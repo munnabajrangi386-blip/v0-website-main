@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getMonthlyResults, runDueSchedules, getSiteContent } from "@/lib/content-store"
+import { getMonthlyResults, runDueSchedules, getSiteContent } from "@/lib/supabase-content-store"
 
 const DEFAULT_ORDER = ["disawar", "newDisawar", "taj", "delhiNoon", "gali", "ghaziabad", "faridabad", "haridwar"]
 

@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server"
-import { getMonthlyResults, runDueSchedules } from "@/lib/content-store"
+import { getMonthlyResults, runDueSchedules } from "@/lib/supabase-content-store"
 import type { MonthKey } from "@/lib/types"
 
 export async function GET(req: NextRequest) {

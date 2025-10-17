@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getSiteContent } from "@/lib/content-store"
+import { getSiteContent } from "@/lib/supabase-content-store"
 
 export async function GET() {
   try {

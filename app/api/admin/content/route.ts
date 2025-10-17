@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/admin-auth"
-import { getSiteContent, saveSiteContent } from "@/lib/content-store"
+import { getSiteContent, saveSiteContent } from "@/lib/supabase-content-store"
 import type { SiteContent } from "@/lib/types"
 
 // Database-based content storage
