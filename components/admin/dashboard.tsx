@@ -626,49 +626,27 @@ export default function AdminDashboard() {
               <Button 
                 variant="destructive" 
                 onClick={async () => {
-                  // Validate form fields
-                  if (!schedCat || !schedValue || !schedDate) {
-                    alert("Please fill in all required fields (Field Key, Value, Date)")
+                  if (!confirm("This will force execute ALL scheduled items immediately, regardless of their date/time. This action cannot be undone. Continue?")) {
                     return
                   }
-
-                  if (!confirm("This will force execute the current form entry immediately, overwriting any existing data for this date/category. Continue?")) {
-                    return
-                  }
-
-                  // Create the result row from current form
-                  const resultRow = {
-                    date: schedDate,
-                    [schedCat]: schedValue
-                  }
-
+                  
                   try {
-                    // Force execute the current form entry immediately
                     const res = await fetch("/api/admin/schedules", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       credentials: "include",
-                      body: JSON.stringify({ 
-                        action: "execute-now-force",
-                        month: "2025-10", // Current month
-                        row: resultRow,
-                        merge: true // Force overwrite
-                      }),
+                      body: JSON.stringify({ action: "force-run" }),
                     })
-                    
+                    const data = await res.json()
                     if (res.ok) {
-                      alert("Schedule force executed successfully!")
-                      // Clear the form
-                      setSchedCat("")
-                      setSchedValue("")
-                      setSchedDate("")
-                      setSchedTime("")
+                      schedMutate()
+                      alert(`Force executed ${data.executed} scheduled items successfully!`)
                     } else {
-                      alert("Failed to force execute schedule")
+                      alert("Failed to force execute schedules")
                     }
                   } catch (error) {
-                    console.error("Error force executing schedule:", error)
-                    alert("Error force executing schedule")
+                    console.error("Error force executing schedules:", error)
+                    alert("Error force executing schedules")
                   }
                 }}
                 className="text-xs sm:text-sm"
