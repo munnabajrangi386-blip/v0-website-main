@@ -236,48 +236,6 @@ export default function AdminDashboard() {
     }
   }
 
-  const runDueNow = async () => {
-    // Validate form fields
-    if (!schedCat || !schedValue || !schedDate) {
-      alert("Please fill in all required fields (Field Key, Value, Date)")
-      return
-    }
-
-    // Create the result row from current form
-    const resultRow = {
-      date: schedDate,
-      [schedCat]: schedValue
-    }
-
-    try {
-      // Execute the current form entry immediately
-      const res = await fetch("/api/admin/schedules", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          action: "execute-now",
-          month: "2025-10", // Current month
-          row: resultRow,
-          merge: false
-        }),
-      })
-      
-      if (res.ok) {
-        alert("Schedule executed successfully!")
-        // Clear the form
-        setSchedCat("")
-        setSchedValue("")
-        setSchedDate("")
-        setSchedTime("")
-      } else {
-        alert("Failed to execute schedule")
-      }
-    } catch (error) {
-      console.error("Error executing schedule:", error)
-      alert("Error executing schedule")
-    }
-  }
 
   // Scheduled list + search
   const { data: schedData, mutate: schedMutate } = useSWR<{ items: ScheduleItem[] }>("/api/admin/schedules", fetcher, {
@@ -664,9 +622,6 @@ export default function AdminDashboard() {
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <Button onClick={addSchedule} disabled={!schedCat || !schedValue || !schedDate}>
                 Add Schedule
-              </Button>
-              <Button variant="secondary" onClick={runDueNow}>
-                Run Due Now
               </Button>
               <Button 
                 variant="destructive" 

@@ -112,31 +112,93 @@ export async function getSchedules(): Promise<ScheduleItem[]> {
   const s = await getJSON<ScheduleItem[]>(SCHEDULES_PATH)
   if (s) return s
   
-  // Create dummy schedules for testing
+  // Create dummy schedules for testing - dates 17-18 with post 8 PM times
   const dummySchedules: ScheduleItem[] = [
+    // October 17, 2025 - 8:30 PM
     {
       id: crypto.randomUUID(),
-      publishAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+      publishAt: new Date("2025-10-17T20:30:00.000Z").toISOString(),
       month: "2025-10",
       row: {
         date: "2025-10-17",
-        disawar: "99",
-        gali: "88",
-        ghaziabad: "77",
-        faridabad: "66"
+        disawar: "99"
       },
       merge: false,
       executed: false
     },
     {
       id: crypto.randomUUID(),
-      publishAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours from now
+      publishAt: new Date("2025-10-17T20:30:00.000Z").toISOString(),
+      month: "2025-10",
+      row: {
+        date: "2025-10-17",
+        gali: "88"
+      },
+      merge: false,
+      executed: false
+    },
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date("2025-10-17T20:30:00.000Z").toISOString(),
+      month: "2025-10",
+      row: {
+        date: "2025-10-17",
+        ghaziabad: "77"
+      },
+      merge: false,
+      executed: false
+    },
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date("2025-10-17T20:30:00.000Z").toISOString(),
+      month: "2025-10",
+      row: {
+        date: "2025-10-17",
+        faridabad: "66"
+      },
+      merge: false,
+      executed: false
+    },
+    // October 18, 2025 - 9:00 PM
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date("2025-10-18T21:00:00.000Z").toISOString(),
       month: "2025-10",
       row: {
         date: "2025-10-18",
-        disawar: "55",
-        gali: "44",
-        ghaziabad: "33",
+        disawar: "55"
+      },
+      merge: false,
+      executed: false
+    },
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date("2025-10-18T21:00:00.000Z").toISOString(),
+      month: "2025-10",
+      row: {
+        date: "2025-10-18",
+        gali: "44"
+      },
+      merge: false,
+      executed: false
+    },
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date("2025-10-18T21:00:00.000Z").toISOString(),
+      month: "2025-10",
+      row: {
+        date: "2025-10-18",
+        ghaziabad: "33"
+      },
+      merge: false,
+      executed: false
+    },
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date("2025-10-18T21:00:00.000Z").toISOString(),
+      month: "2025-10",
+      row: {
+        date: "2025-10-18",
         faridabad: "22"
       },
       merge: false,
@@ -175,14 +237,32 @@ export async function runDueSchedules() {
 export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {
   const existing = await getJSON<MonthlyResults>(monthPath(month))
   if (existing) return existing
+  
+  // Create dummy entries for dates 1-16
+  const dummyRows: ResultRow[] = []
+  for (let day = 1; day <= 16; day++) {
+    const dateStr = `${month}-${day.toString().padStart(2, '0')}`
+    dummyRows.push({
+      date: dateStr,
+      disawar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      newDisawar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      taj: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      delhiNoon: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      gali: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      ghaziabad: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      faridabad: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      haridwar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+    })
+  }
+  
   const seed: MonthlyResults = {
     month,
     fields: [...DEFAULT_RESULT_FIELDS],
-    rows: [],
+    rows: dummyRows,
     updatedAt: new Date().toISOString(),
   }
   await putJSON(monthPath(month), seed)
-  await appendActivity({ action: "bootstrap_month", meta: { month } })
+  await appendActivity({ action: "bootstrap_month", meta: { month, dummyRows: dummyRows.length } })
   return seed
 }
 
