@@ -21,6 +21,7 @@ const DEFAULT_RESULT_FIELDS = [
 
 export async function getSiteContent(): Promise<SiteContent> {
   const now = new Date().toISOString()
+  // Force deployment trigger
   const c = await getJSON<SiteContent>(CONTENT_PATH)
   if (c) {
     // ensure categories exists for older payloads
