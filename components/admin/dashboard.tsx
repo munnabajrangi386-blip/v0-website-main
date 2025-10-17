@@ -657,6 +657,64 @@ export default function AdminDashboard() {
                 />
               </FieldContent>
             </Field>
+            <Field>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/admin/schedules", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ action: "run" }),
+                      })
+                      if (res.ok) {
+                        schedMutate()
+                        alert("Due schedules executed successfully!")
+                      } else {
+                        alert("Failed to execute due schedules")
+                      }
+                    } catch (error) {
+                      console.error("Error executing due schedules:", error)
+                      alert("Error executing due schedules")
+                    }
+                  }}
+                  className="text-xs sm:text-sm"
+                >
+                  Run Due Schedules
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!confirm("This will force execute ALL scheduled items immediately, regardless of their date/time. This action cannot be undone. Continue?")) {
+                      return
+                    }
+                    try {
+                      const res = await fetch("/api/admin/schedules", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ action: "force-run" }),
+                      })
+                      const data = await res.json()
+                      if (res.ok) {
+                        schedMutate()
+                        alert(`Force executed ${data.executed} scheduled items successfully!`)
+                      } else {
+                        alert("Failed to force execute schedules")
+                      }
+                    } catch (error) {
+                      console.error("Error force executing schedules:", error)
+                      alert("Error force executing schedules")
+                    }
+                  }}
+                  className="text-xs sm:text-sm"
+                >
+                  Run Due Now (Force)
+                </Button>
+              </div>
+            </Field>
             <div className="mt-3 grid gap-2">
               {(scheduled || []).map((it) => {
                 const due = Date.parse(it.publishAt) <= Date.now()

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/admin-auth"
-import { appendActivity, getSchedules, runDueSchedules, saveSchedules } from "@/lib/content-store"
+import { appendActivity, getSchedules, runDueSchedules, saveSchedules, upsertResultRow } from "@/lib/content-store"
 import type { ScheduleItem } from "@/lib/types"
 
 export async function GET() {
@@ -106,6 +106,25 @@ export async function POST(req: NextRequest) {
   if (action === "run") {
     await runDueSchedules()
     return NextResponse.json({ ok: true })
+  }
+
+  if (action === "force-run") {
+    const items = await getSchedules()
+    const executedCount = items.length
+    
+    // Execute all scheduled items regardless of date/time
+    for (const item of items) {
+      await upsertResultRow(item.month, item.row, !!item.merge)
+      await appendActivity({
+        action: "force_publish_scheduled",
+        meta: { scheduleId: item.id, month: item.month, date: item.row.date },
+      })
+    }
+    
+    // Clear all schedules after force execution
+    await saveSchedules([])
+    
+    return NextResponse.json({ ok: true, executed: executedCount })
   }
 
   if (action === "delete") {
