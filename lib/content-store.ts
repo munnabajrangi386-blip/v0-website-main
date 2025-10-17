@@ -68,6 +68,16 @@ export async function getSiteContent(): Promise<SiteContent> {
       { key: "faridabad", label: "FARIDABAD", showInToday: true },
       { key: "haridwar", label: "HARIDWAR", showInToday: true },
     ],
+    headerImage: {
+      id: crypto.randomUUID(),
+      imageUrl: "/images/reference-aura.png",
+      alt: "Header Image",
+      active: true,
+    },
+    footerNote: {
+      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      active: true,
+    },
     updatedAt: now,
   }
   await putJSON(CONTENT_PATH, initial)

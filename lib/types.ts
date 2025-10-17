@@ -79,6 +79,16 @@ export type SiteContent = {
   ads: AdItem[]
   updatedAt: string
   categories?: Category[]
+  headerImage?: {
+    id: string
+    imageUrl: string
+    alt?: string
+    active: boolean
+  }
+  footerNote?: {
+    text: string
+    active: boolean
+  }
 }
 
 export type ContentBundle = {

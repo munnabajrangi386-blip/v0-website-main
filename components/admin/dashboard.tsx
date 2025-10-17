@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   })
   const content = (data?.content ?? EMPTY_CONTENT) as SiteContent
 
-  const [active, setActive] = useState<"ads" | "banners" | "categories" | "schedule" | "scheduled">("ads")
+  const [active, setActive] = useState<"ads" | "banners" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note">("ads")
   const [adsDraft, setAdsDraft] = useState(content.ads ?? [])
   const [categoriesDraft, setCategoriesDraft] = useState(content.categories ?? [])
   const [bannerText, setBannerText] = useState("")
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
       <aside className="border-b md:border-b-0 md:border-r bg-white text-black p-2 sm:p-3">
         <div className="text-xs font-semibold mb-2">Admin</div>
         <nav className="grid grid-cols-2 md:grid-cols-1 gap-1 text-xs">
-          {(["ads", "banners", "categories", "schedule", "scheduled"] as const).map((k) => (
+          {(["ads", "banners", "categories", "schedule", "scheduled", "header-image", "footer-note"] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -393,6 +393,8 @@ export default function AdminDashboard() {
               {k === "categories" && "Categories"}
               {k === "schedule" && "Schedule"}
               {k === "scheduled" && "Scheduled"}
+              {k === "header-image" && "Header Image"}
+              {k === "footer-note" && "Footer Note"}
             </button>
           ))}
         </nav>
@@ -742,6 +744,129 @@ export default function AdminDashboard() {
               })}
               {!scheduled?.length && <div className="text-xs text-muted-foreground">No schedules.</div>}
             </div>
+          </FieldSet>
+        )}
+
+        {/* HEADER IMAGE */}
+        {active === "header-image" && (
+          <FieldSet className="max-w-4xl">
+            <FieldLegend>Header Image</FieldLegend>
+            <Field>
+              <Label>Current Header Image</Label>
+              <FieldContent>
+                {content.headerImage?.imageUrl ? (
+                  <div className="space-y-3">
+                    <img 
+                      src={content.headerImage.imageUrl} 
+                      alt={content.headerImage.alt || "Header Image"}
+                      className="max-w-md h-auto rounded border"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={content.headerImage?.active || false}
+                        onCheckedChange={(checked) => {
+                          const nextContent = {
+                            ...content,
+                            headerImage: {
+                              ...content.headerImage!,
+                              active: checked
+                            }
+                          }
+                          persist(nextContent)
+                        }}
+                      />
+                      <Label className="text-sm">Show on website</Label>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">No header image set</div>
+                )}
+              </FieldContent>
+            </Field>
+            <Field>
+              <Label>Upload New Header Image</Label>
+              <FieldContent>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    
+                    const formData = new FormData()
+                    formData.append("file", file)
+                    
+                    try {
+                      const res = await fetch("/api/blob/upload", {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include",
+                      })
+                      const { url } = await res.json()
+                      
+                      const nextContent = {
+                        ...content,
+                        headerImage: {
+                          id: crypto.randomUUID(),
+                          imageUrl: url,
+                          alt: "Header Image",
+                          active: true
+                        }
+                      }
+                      await persist(nextContent)
+                    } catch (error) {
+                      console.error("Upload failed:", error)
+                    }
+                  }}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </FieldContent>
+            </Field>
+          </FieldSet>
+        )}
+
+        {/* FOOTER NOTE */}
+        {active === "footer-note" && (
+          <FieldSet className="max-w-4xl">
+            <FieldLegend>Footer Note</FieldLegend>
+            <Field>
+              <Label>Footer Text</Label>
+              <FieldContent>
+                <textarea
+                  value={content.footerNote?.text || ""}
+                  onChange={(e) => {
+                    const nextContent = {
+                      ...content,
+                      footerNote: {
+                        text: e.target.value,
+                        active: content.footerNote?.active || false
+                      }
+                    }
+                    persist(nextContent)
+                  }}
+                  placeholder="Enter footer text..."
+                  className="w-full min-h-[120px] p-3 border rounded-md resize-vertical"
+                />
+              </FieldContent>
+            </Field>
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={content.footerNote?.active || false}
+                  onCheckedChange={(checked) => {
+                    const nextContent = {
+                      ...content,
+                      footerNote: {
+                        text: content.footerNote?.text || "",
+                        active: checked
+                      }
+                    }
+                    persist(nextContent)
+                  }}
+                />
+                <Label className="text-sm">Show on website</Label>
+              </div>
+            </Field>
           </FieldSet>
         )}
       </section>

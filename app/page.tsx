@@ -66,6 +66,17 @@ export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-2 sm:px-4 py-4 sm:py-6">
       <header className="space-y-3">
+        {/* Header Image */}
+        {content?.headerImage?.active && content?.headerImage?.imageUrl && (
+          <div className="flex justify-center mb-4">
+            <img 
+              src={content.headerImage.imageUrl} 
+              alt={content.headerImage.alt || "Header Image"}
+              className="max-w-full h-auto rounded-lg shadow-lg"
+            />
+          </div>
+        )}
+        
         <div className="grid gap-3">
           {(banners.length
             ? banners
@@ -173,6 +184,17 @@ export default function HomePage() {
           />
         </Suspense>
       </section>
+
+      {/* Footer Note */}
+      {content?.footerNote?.active && content?.footerNote?.text && (
+        <section className="mt-8">
+          <div className="bg-gradient-to-r from-[var(--card-gradient-from)] to-[var(--card-gradient-to)] border-2 border-[var(--border)] rounded-lg p-4 sm:p-6 shadow-lg">
+            <p className="text-sm sm:text-base text-[var(--foreground)] text-center leading-relaxed">
+              {content.footerNote.text}
+            </p>
+          </div>
+        </section>
+      )}
     </main>
   )
 }
