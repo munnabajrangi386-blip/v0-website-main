@@ -759,7 +759,7 @@ export default function AdminDashboard() {
                     <img 
                       src={content.headerImage.imageUrl} 
                       alt={content.headerImage.alt || "Header Image"}
-                      className="max-w-md h-auto rounded border"
+                      className="max-w-full sm:max-w-md h-auto rounded border"
                     />
                     <div className="flex items-center gap-2">
                       <Switch
@@ -818,7 +818,7 @@ export default function AdminDashboard() {
                       console.error("Upload failed:", error)
                     }
                   }}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full text-xs sm:text-sm text-gray-500 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
               </FieldContent>
             </Field>
@@ -845,7 +845,7 @@ export default function AdminDashboard() {
                     persist(nextContent)
                   }}
                   placeholder="Enter footer text..."
-                  className="w-full min-h-[120px] p-3 border rounded-md resize-vertical"
+                  className="w-full min-h-[120px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
                 />
               </FieldContent>
             </Field>

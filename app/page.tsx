@@ -68,11 +68,11 @@ export default function HomePage() {
       <header className="space-y-3">
         {/* Header Image */}
         {content?.headerImage?.active && content?.headerImage?.imageUrl && (
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-3 sm:mb-4 px-2 sm:px-0">
             <img 
               src={content.headerImage.imageUrl} 
               alt={content.headerImage.alt || "Header Image"}
-              className="max-w-full h-auto rounded-lg shadow-lg"
+              className="max-w-full h-auto rounded-lg shadow-lg w-full sm:w-auto"
             />
           </div>
         )}
@@ -187,9 +187,9 @@ export default function HomePage() {
 
       {/* Footer Note */}
       {content?.footerNote?.active && content?.footerNote?.text && (
-        <section className="mt-8">
-          <div className="bg-gradient-to-r from-[var(--card-gradient-from)] to-[var(--card-gradient-to)] border-2 border-[var(--border)] rounded-lg p-4 sm:p-6 shadow-lg">
-            <p className="text-sm sm:text-base text-[var(--foreground)] text-center leading-relaxed">
+        <section className="mt-6 sm:mt-8">
+          <div className="bg-gradient-to-r from-[var(--card-gradient-from)] to-[var(--card-gradient-to)] border-2 border-[var(--border)] rounded-lg p-3 sm:p-4 md:p-6 shadow-lg">
+            <p className="text-xs sm:text-sm md:text-base text-[var(--foreground)] text-center leading-relaxed">
               {content.footerNote.text}
             </p>
           </div>
