@@ -110,8 +110,8 @@ export async function getActivity(): Promise<ActivityEntry[]> {
 
 export async function getSchedules(): Promise<ScheduleItem[]> {
   const s = await getJSON<ScheduleItem[]>(SCHEDULES_PATH)
-  if (s) return s
   
+  // For testing: Always create dummy schedules for dates 17-18 with post 8 PM times
   // Create dummy schedules for testing - dates 17-18 with post 8 PM times
   const dummySchedules: ScheduleItem[] = [
     // October 17, 2025 - 8:30 PM
@@ -206,6 +206,7 @@ export async function getSchedules(): Promise<ScheduleItem[]> {
     }
   ]
   
+  // Always save dummy schedules for testing
   await putJSON(SCHEDULES_PATH, dummySchedules)
   await appendActivity({ action: "bootstrap_schedules", meta: { path: SCHEDULES_PATH, count: dummySchedules.length } })
   return dummySchedules
@@ -236,33 +237,45 @@ export async function runDueSchedules() {
 
 export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {
   const existing = await getJSON<MonthlyResults>(monthPath(month))
-  if (existing) return existing
   
-  // Create dummy entries for dates 1-16
-  const dummyRows: ResultRow[] = []
-  for (let day = 1; day <= 16; day++) {
-    const dateStr = `${month}-${day.toString().padStart(2, '0')}`
-    dummyRows.push({
-      date: dateStr,
-      disawar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      newDisawar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      taj: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      delhiNoon: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      gali: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      ghaziabad: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      faridabad: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-      haridwar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
-    })
+  // For testing: Always create dummy entries for dates 1-16 if month is 2025-10
+  if (month === "2025-10") {
+    const dummyRows: ResultRow[] = []
+    for (let day = 1; day <= 16; day++) {
+      const dateStr = `${month}-${day.toString().padStart(2, '0')}`
+      dummyRows.push({
+        date: dateStr,
+        disawar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        newDisawar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        taj: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        delhiNoon: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        gali: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        ghaziabad: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        faridabad: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+        haridwar: Math.floor(Math.random() * 100).toString().padStart(2, '0'),
+      })
+    }
+    
+    const seed: MonthlyResults = {
+      month,
+      fields: [...DEFAULT_RESULT_FIELDS],
+      rows: dummyRows,
+      updatedAt: new Date().toISOString(),
+    }
+    await putJSON(monthPath(month), seed)
+    await appendActivity({ action: "bootstrap_month", meta: { month, dummyRows: dummyRows.length } })
+    return seed
   }
   
+  if (existing) return existing
   const seed: MonthlyResults = {
     month,
     fields: [...DEFAULT_RESULT_FIELDS],
-    rows: dummyRows,
+    rows: [],
     updatedAt: new Date().toISOString(),
   }
   await putJSON(monthPath(month), seed)
-  await appendActivity({ action: "bootstrap_month", meta: { month, dummyRows: dummyRows.length } })
+  await appendActivity({ action: "bootstrap_month", meta: { month } })
   return seed
 }
 
