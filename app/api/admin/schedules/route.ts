@@ -140,5 +140,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (action === "execute-now") {
+    const month = body?.month as MonthKey | undefined
+    const row = body?.row as ResultRow | undefined
+    const merge = body?.merge as boolean | undefined
+
+    if (!month || !row || !isValidRow(row) || !rowHasOnlyNumericValue(row)) {
+      return NextResponse.json(
+        { error: "Invalid execute payload (month/row malformed or non-numeric value)" },
+        { status: 400 },
+      )
+    }
+
+    await upsertResultRow(month, row, !!merge)
+    await appendActivity({
+      action: "execute_now",
+      meta: { month, date: row.date, merge: !!merge },
+    })
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === "execute-now-force") {
+    const month = body?.month as MonthKey | undefined
+    const row = body?.row as ResultRow | undefined
+    const merge = body?.merge as boolean | undefined
+
+    if (!month || !row || !isValidRow(row) || !rowHasOnlyNumericValue(row)) {
+      return NextResponse.json(
+        { error: "Invalid force execute payload (month/row malformed or non-numeric value)" },
+        { status: 400 },
+      )
+    }
+
+    await upsertResultRow(month, row, true) // Always force merge
+    await appendActivity({
+      action: "execute_now_force",
+      meta: { month, date: row.date, force: true },
+    })
+    return NextResponse.json({ ok: true })
+  }
+
   return NextResponse.json({ error: "Unsupported action" }, { status: 400 })
 }

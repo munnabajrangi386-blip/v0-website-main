@@ -237,17 +237,46 @@ export default function AdminDashboard() {
   }
 
   const runDueNow = async () => {
-    const res = await fetch("/api/admin/schedules", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "run" }),
-    })
-    if (!res.ok) {
-      alert("Failed to run due schedules")
+    // Validate form fields
+    if (!schedCat || !schedValue || !schedDate) {
+      alert("Please fill in all required fields (Field Key, Value, Date)")
       return
     }
-    await schedMutate()
+
+    // Create the result row from current form
+    const resultRow = {
+      date: schedDate,
+      [schedCat]: schedValue
+    }
+
+    try {
+      // Execute the current form entry immediately
+      const res = await fetch("/api/admin/schedules", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          action: "execute-now",
+          month: "2025-10", // Current month
+          row: resultRow,
+          merge: false
+        }),
+      })
+      
+      if (res.ok) {
+        alert("Schedule executed successfully!")
+        // Clear the form
+        setSchedCat("")
+        setSchedValue("")
+        setSchedDate("")
+        setSchedTime("")
+      } else {
+        alert("Failed to execute schedule")
+      }
+    } catch (error) {
+      console.error("Error executing schedule:", error)
+      alert("Error executing schedule")
+    }
   }
 
   // Scheduled list + search
@@ -642,26 +671,49 @@ export default function AdminDashboard() {
               <Button 
                 variant="destructive" 
                 onClick={async () => {
-                  if (!confirm("This will force execute ALL scheduled items immediately, regardless of their date/time. This action cannot be undone. Continue?")) {
+                  // Validate form fields
+                  if (!schedCat || !schedValue || !schedDate) {
+                    alert("Please fill in all required fields (Field Key, Value, Date)")
                     return
                   }
+
+                  if (!confirm("This will force execute the current form entry immediately, overwriting any existing data for this date/category. Continue?")) {
+                    return
+                  }
+
+                  // Create the result row from current form
+                  const resultRow = {
+                    date: schedDate,
+                    [schedCat]: schedValue
+                  }
+
                   try {
+                    // Force execute the current form entry immediately
                     const res = await fetch("/api/admin/schedules", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       credentials: "include",
-                      body: JSON.stringify({ action: "force-run" }),
+                      body: JSON.stringify({ 
+                        action: "execute-now-force",
+                        month: "2025-10", // Current month
+                        row: resultRow,
+                        merge: true // Force overwrite
+                      }),
                     })
-                    const data = await res.json()
+                    
                     if (res.ok) {
-                      schedMutate()
-                      alert(`Force executed ${data.executed} scheduled items successfully!`)
+                      alert("Schedule force executed successfully!")
+                      // Clear the form
+                      setSchedCat("")
+                      setSchedValue("")
+                      setSchedDate("")
+                      setSchedTime("")
                     } else {
-                      alert("Failed to force execute schedules")
+                      alert("Failed to force execute schedule")
                     }
                   } catch (error) {
-                    console.error("Error force executing schedules:", error)
-                    alert("Error force executing schedules")
+                    console.error("Error force executing schedule:", error)
+                    alert("Error force executing schedule")
                   }
                 }}
                 className="text-xs sm:text-sm"
