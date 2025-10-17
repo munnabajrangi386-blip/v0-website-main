@@ -111,9 +111,42 @@ export async function getActivity(): Promise<ActivityEntry[]> {
 export async function getSchedules(): Promise<ScheduleItem[]> {
   const s = await getJSON<ScheduleItem[]>(SCHEDULES_PATH)
   if (s) return s
-  await putJSON(SCHEDULES_PATH, [])
-  await appendActivity({ action: "bootstrap_schedules", meta: { path: SCHEDULES_PATH } })
-  return []
+  
+  // Create dummy schedules for testing
+  const dummySchedules: ScheduleItem[] = [
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+      month: "2025-10",
+      row: {
+        date: "2025-10-17",
+        disawar: "99",
+        gali: "88",
+        ghaziabad: "77",
+        faridabad: "66"
+      },
+      merge: false,
+      executed: false
+    },
+    {
+      id: crypto.randomUUID(),
+      publishAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours from now
+      month: "2025-10",
+      row: {
+        date: "2025-10-18",
+        disawar: "55",
+        gali: "44",
+        ghaziabad: "33",
+        faridabad: "22"
+      },
+      merge: false,
+      executed: false
+    }
+  ]
+  
+  await putJSON(SCHEDULES_PATH, dummySchedules)
+  await appendActivity({ action: "bootstrap_schedules", meta: { path: SCHEDULES_PATH, count: dummySchedules.length } })
+  return dummySchedules
 }
 
 export async function saveSchedules(items: ScheduleItem[]) {
