@@ -26,6 +26,12 @@ export async function getSiteContent(): Promise<SiteContent> {
     // ensure categories exists for older payloads
     if (!c.categories) {
       c.categories = [
+        // Custom admin categories (will show as leftmost columns)
+        { key: "ghaziabad1", label: "GHAZIABAD1", showInToday: true },
+        { key: "gali1", label: "GALI1", showInToday: true },
+        { key: "faridabad1", label: "FARIDABAD1", showInToday: true },
+        { key: "desawar1", label: "DESAWAR1", showInToday: true },
+        // Default categories (will be filtered out from hybrid table)
         { key: "disawar", label: "DESAWAR", showInToday: true },
         { key: "newDisawar", label: "NEW DESAWAR", showInToday: true },
         { key: "taj", label: "TAJ", showInToday: true },
@@ -59,6 +65,12 @@ export async function getSiteContent(): Promise<SiteContent> {
       },
     ],
     categories: [
+      // Custom admin categories (will show as leftmost columns)
+      { key: "ghaziabad1", label: "GHAZIABAD1", showInToday: true },
+      { key: "gali1", label: "GALI1", showInToday: true },
+      { key: "faridabad1", label: "FARIDABAD1", showInToday: true },
+      { key: "desawar1", label: "DESAWAR1", showInToday: true },
+      // Default categories (will be filtered out from hybrid table)
       { key: "disawar", label: "DESAWAR", showInToday: true },
       { key: "newDisawar", label: "NEW DESAWAR", showInToday: true },
       { key: "taj", label: "TAJ", showInToday: true },
