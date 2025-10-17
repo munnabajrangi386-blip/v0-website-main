@@ -8,19 +8,19 @@ export type MonthlyResult = {
 }
 
 export function parseMonthlyTable(html: string, month: number, year: number): MonthlyResult {
-  // For testing: Return dummy data for October 2025
+  // For testing: Return empty table for October 2025 with dates 1-31
   if (month === 10 && year === 2025) {
     const columns = ["Desawar", "Firozabad", "Disawar", "Faridabad", "Ghaziabad", "Gali"]
     const rows: Array<{ day: number; values: Array<number | null> }> = []
     
-    for (let day = 1; day <= 16; day++) {
+    for (let day = 1; day <= 31; day++) {
       const values: Array<number | null> = [
-        Math.floor(Math.random() * 100), // Desawar
-        Math.floor(Math.random() * 100), // Firozabad
-        Math.floor(Math.random() * 100), // Disawar
-        Math.floor(Math.random() * 100), // Faridabad
-        Math.floor(Math.random() * 100), // Ghaziabad
-        Math.floor(Math.random() * 100), // Gali
+        null, // Desawar
+        null, // Firozabad
+        null, // Disawar
+        null, // Faridabad
+        null, // Ghaziabad
+        null, // Gali
       ]
       rows.push({ day, values })
     }
