@@ -48,41 +48,10 @@ export function useMonthlyResults(month: number, year: number) {
   return useSWR<MonthlyData>(
     ["monthly", month, year],
     async () => {
-      // Get both admin content and scraper data for hybrid table
-      const [contentResponse, scraperResponse] = await Promise.all([
-        fetch("/api/content"),
-        postJson<MonthlyData>("/api/scrape", { month, year })
-      ])
+      // Just get scraper data - no admin categories
+      const scraperData = await postJson<MonthlyData>("/api/scrape", { month, year })
       
-      const content = await contentResponse.json()
-      const scraperData = await scraperResponse
-      
-      // Get admin categories (excluding the default ones that come from scraper)
-      const adminCategories = content.categories?.filter(cat => 
-        !["disawar", "newDisawar", "taj", "delhiNoon", "gali", "ghaziabad", "faridabad", "haridwar"].includes(cat.key)
-      ) || []
-      
-      // Create hybrid columns: admin categories first, then scraper columns
-      const hybridColumns = [
-        ...adminCategories.map(cat => cat.label),
-        ...scraperData.columns
-      ]
-      
-      // Create hybrid rows: admin data first (empty for now), then scraper data
-      const hybridRows = scraperData.rows.map(row => ({
-        day: row.day,
-        values: [
-          ...new Array(adminCategories.length).fill(null), // Empty values for admin categories
-          ...row.values // Scraper data
-        ]
-      }))
-      
-      return {
-        month: scraperData.month,
-        year: scraperData.year,
-        columns: hybridColumns,
-        rows: hybridRows
-      }
+      return scraperData
     },
     {
       refreshInterval: isCurrent ? 300_000 : 0, // Reduced frequency: 5 minutes for current month
