@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/admin-auth"
-import { appendActivity, getSchedules, runDueSchedules, saveSchedules, upsertResultRow } from "@/lib/supabase-content-store"
+import { appendActivity, getSchedules, runDueSchedules, saveSchedules, upsertResultRow } from "@/lib/local-content-store"
 import type { ScheduleItem } from "@/lib/types"
 
 export async function GET() {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getSiteContent } from "@/lib/supabase-content-store"
+import { getSiteContent } from "@/lib/local-content-store"
 import { parseMonthlyTable } from "@/lib/scrape"
 
 // Combined API that returns everything in one request
