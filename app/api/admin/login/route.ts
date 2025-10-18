@@ -1,21 +1,28 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 
-export async function POST(req: Request) {
-  const { password } = await req.json().catch(() => ({}))
-  const secret = process.env.ADMIN_SECRET
-  if (!secret) {
-    return NextResponse.json({ error: "Missing ADMIN_SECRET" }, { status: 500 })
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { secret } = body
+    
+    const expected = process.env.ADMIN_SECRET || "change-me-to-a-strong-secret"
+    
+    if (secret === expected) {
+      const cookieStore = await cookies()
+      cookieStore.set("admin_session", "1", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 8 // 8 hours
+      })
+      
+      return NextResponse.json({ success: true })
+    } else {
+      return NextResponse.json({ error: "Invalid secret" }, { status: 401 })
+    }
+  } catch (error) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
-  if (!password || password !== secret) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-  }
-  const res = NextResponse.json({ ok: true })
-  res.cookies.set("admin_session", "1", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 8, // 8h
-  })
-  return res
 }
