@@ -42,7 +42,7 @@ export default function HomePage() {
   }, [todayData])
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-2 sm:px-4 py-4 sm:py-6">
+    <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-4 sm:py-6">
       <header className="space-y-3">
         {/* Header Image */}
         {content?.headerImage?.active && content?.headerImage?.imageUrl && (
@@ -97,7 +97,13 @@ export default function HomePage() {
           {isLoading ? (
             <div className="text-sm text-[var(--color-muted-foreground)]">Loading live results…</div>
           ) : (
-            <ResultGrid items={[]} />
+            <ResultGrid items={todayItems.map(item => ({
+              name: item.title,
+              time: "LIVE",
+              live: "🔴",
+              result: item.value,
+              status: item.value !== "--" ? "pass" : "wait"
+            }))} />
           )}
         </div>
       </section>

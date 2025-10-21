@@ -49,6 +49,12 @@ export async function GET(req: Request) {
       ]
     }))
     
+    // Create today's data from admin categories
+    const todayItems = adminCategories.map(cat => ({
+      category: cat.label,
+      value: "--" // Default empty value
+    }))
+    
     // Return everything in one response
     return NextResponse.json({
       content: {
@@ -65,7 +71,7 @@ export async function GET(req: Request) {
       },
       todayData: {
         date: new Date().toISOString().split('T')[0],
-        items: [] // Empty for now
+        items: todayItems
       }
     }, { 
       headers: { 
