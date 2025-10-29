@@ -17,7 +17,10 @@ export type MonthlyData = {
   month: number
   year: number
   columns: string[]
-  rows: Array<{ day: number; values: Array<number | null> }>
+  rows: Array<{
+    day: number
+    values: Array<number | null>
+  }>
 }
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())

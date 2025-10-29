@@ -1,0 +1,13 @@
+[
+  {
+    "id": "live-schedule-1",
+    "category": "GHAZIABAD1",
+    "scheduledTime": "2025-10-29T16:54:00.000Z",
+    "result": "23",
+    "yesterdayResult": "88",
+    "todayResult": "23",
+    "status": "published",
+    "createdAt": "2025-10-29T16:56:00.000Z",
+    "publishedAt": "2025-10-29T16:56:00.000Z"
+  }
+]

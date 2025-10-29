@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react"
 import useSWR from "swr"
-import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey, TextColumn, TextColumnLine } from "@/lib/types"
+import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey, TextColumn, TextColumnLine, LiveSchedule } from "@/lib/types"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -40,7 +40,7 @@ export default function AdminDashboard() {
       })
     }
   }, [data?.content])
-  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns">("ads")
+  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "banner3" | "footer-banner" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns" | "scraper-config" | "live-schedules">("ads")
   const [adsDraft, setAdsDraft] = useState(content.ads ?? [])
   const [categoriesDraft, setCategoriesDraft] = useState(content.categories ?? [])
   const [bannerText, setBannerText] = useState("")
@@ -63,6 +63,31 @@ export default function AdminDashboard() {
   const [banner2Bold, setBanner2Bold] = useState(false)
   const [banner2GifUrl, setBanner2GifUrl] = useState("")
   const [customColorPalette2, setCustomColorPalette2] = useState<string[]>([]) // Store custom color palette for banner2
+
+  // Banner3 state
+  const [banner3Text, setBanner3Text] = useState("")
+  const [banner3Color, setBanner3Color] = useState("#000000")
+  const [banner3CompleteRow, setBanner3CompleteRow] = useState(false)
+  const [banner3BackgroundColor, setBanner3BackgroundColor] = useState("#f3f4f6")
+  const [banner3MultiColor, setBanner3MultiColor] = useState(false)
+  const [banner3Bold, setBanner3Bold] = useState(false)
+  const [banner3GifUrl, setBanner3GifUrl] = useState("")
+  const [customColorPalette3, setCustomColorPalette3] = useState<string[]>([]) // Store custom color palette for banner3
+
+  // Footer Banner state
+  const [footerBannerText, setFooterBannerText] = useState("")
+  const [footerBannerColor, setFooterBannerColor] = useState("#000000")
+  const [footerBannerCompleteRow, setFooterBannerCompleteRow] = useState(false)
+  const [footerBannerBackgroundColor, setFooterBannerBackgroundColor] = useState("#f3f4f6")
+  const [footerBannerMultiColor, setFooterBannerMultiColor] = useState(false)
+  const [footerBannerBold, setFooterBannerBold] = useState(false)
+  const [footerBannerGifUrl, setFooterBannerGifUrl] = useState("")
+  const [customColorPaletteFooter, setCustomColorPaletteFooter] = useState<string[]>([]) // Store custom color palette for footer banner
+  
+  // Scraper configuration state
+  const [useFastScraper, setUseFastScraper] = useState(content.scraperConfig?.useFastScraper || false)
+  const [fastScraperUrl, setFastScraperUrl] = useState(content.scraperConfig?.fastScraperUrl || "https://satta-king-fast.com/")
+  const [originalScraperUrl, setOriginalScraperUrl] = useState(content.scraperConfig?.originalScraperUrl || "https://neghaziabad.com/")
   
   // Edit banner modal state
   const [editingBanner, setEditingBanner] = useState<BannerBlock | null>(null)
@@ -84,6 +109,39 @@ export default function AdminDashboard() {
   const [editBanner2Bold, setEditBanner2Bold] = useState(false)
   const [editBanner2GifUrl, setEditBanner2GifUrl] = useState("")
   
+  // Banner3 edit modal state
+  const [editingBanner3, setEditingBanner3] = useState<BannerBlock | null>(null)
+  const [editBanner3Text, setEditBanner3Text] = useState("")
+  const [editBanner3Color, setEditBanner3Color] = useState("#000000")
+  const [editBanner3CompleteRow, setEditBanner3CompleteRow] = useState(false)
+  const [editBanner3BackgroundColor, setEditBanner3BackgroundColor] = useState("#f3f4f6")
+  const [editBanner3MultiColor, setEditBanner3MultiColor] = useState(false)
+  const [editBanner3Bold, setEditBanner3Bold] = useState(false)
+  const [editBanner3GifUrl, setEditBanner3GifUrl] = useState("")
+  const [editCustomColorPalette3, setEditCustomColorPalette3] = useState<string[]>([])
+
+  // Footer Banner edit modal state
+  const [editingFooterBanner, setEditingFooterBanner] = useState<BannerBlock | null>(null)
+  const [editFooterBannerText, setEditFooterBannerText] = useState("")
+  const [editFooterBannerColor, setEditFooterBannerColor] = useState("#000000")
+  const [editFooterBannerCompleteRow, setEditFooterBannerCompleteRow] = useState(false)
+  const [editFooterBannerBackgroundColor, setEditFooterBannerBackgroundColor] = useState("#f3f4f6")
+  const [editFooterBannerMultiColor, setEditFooterBannerMultiColor] = useState(false)
+  const [editFooterBannerBold, setEditFooterBannerBold] = useState(false)
+  const [editFooterBannerGifUrl, setEditFooterBannerGifUrl] = useState("")
+  const [editCustomColorPaletteFooter, setEditCustomColorPaletteFooter] = useState<string[]>([])
+  
+  // Live Schedules state
+  const [liveSchedules, setLiveSchedules] = useState<LiveSchedule[]>([])
+  const [newScheduleCategory, setNewScheduleCategory] = useState("GHAZIABAD1")
+  const [newScheduleTime, setNewScheduleTime] = useState("")
+  const [newScheduleResult, setNewScheduleResult] = useState("")
+  const [newScheduleYesterdayResult, setNewScheduleYesterdayResult] = useState("")
+  
+  // Category editing state
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
+  const [editCategoryLabel, setEditCategoryLabel] = useState("")
+  const [editCategoryDefaultTime, setEditCategoryDefaultTime] = useState("")
 
   useEffect(() => {
     if (data?.content?.ads) setAdsDraft(data.content.ads)
@@ -157,21 +215,51 @@ export default function AdminDashboard() {
   // Categories helpers
   const [catKey, setCatKey] = useState("")
   const [catLabel, setCatLabel] = useState("")
+  const [catDefaultTime, setCatDefaultTime] = useState("")
 
   const addCategory = () => {
     if (!catKey.trim() || !catLabel.trim()) return
     const exists = (categoriesDraft ?? []).some((c) => c.key === catKey.trim())
     if (exists) return alert("Key must be unique")
-    setCategoriesDraft([{ key: catKey.trim(), label: catLabel.trim() }, ...(categoriesDraft ?? [])])
+    setCategoriesDraft([{ 
+      key: catKey.trim(), 
+      label: catLabel.trim(),
+      defaultTime: catDefaultTime || undefined
+    }, ...(categoriesDraft ?? [])])
     setCatKey("")
     setCatLabel("")
+    setCatDefaultTime("")
   }
 
-  const updateCategoryDraft = (key: string, patch: { label?: string }) =>
+  const updateCategoryDraft = (key: string, patch: { label?: string; defaultTime?: string }) =>
     setCategoriesDraft((prev) => (prev ?? []).map((c) => (c.key === key ? { ...c, ...patch } : c)))
   const removeCategoryDraft = (key: string) => setCategoriesDraft((prev) => (prev ?? []).filter((c) => c.key !== key))
 
   const saveCategories = () => persist({ ...content, categories: categoriesDraft })
+
+  // Category editing functions
+  const startEditCategory = (category: any) => {
+    setEditingCategory(category.key)
+    setEditCategoryLabel(category.label)
+    setEditCategoryDefaultTime(category.defaultTime || "")
+  }
+
+  const cancelEditCategory = () => {
+    setEditingCategory(null)
+    setEditCategoryLabel("")
+    setEditCategoryDefaultTime("")
+  }
+
+  const saveEditCategory = () => {
+    if (!editingCategory) return
+    
+    updateCategoryDraft(editingCategory, {
+      label: editCategoryLabel,
+      defaultTime: editCategoryDefaultTime || undefined
+    })
+    
+    cancelEditCategory()
+  }
 
   // Schedule
   const cats = content.categories ?? []
@@ -293,7 +381,7 @@ export default function AdminDashboard() {
       }
       await schedMutate()
       setSchedValue("")
-      setActive("scheduled") // jump user to the Scheduled list
+      // Stay on the same page after adding schedule
     } catch (err: any) {
       alert(`Network error while saving schedule: ${err?.message || "unknown error"}`)
     }
@@ -405,6 +493,124 @@ export default function AdminDashboard() {
       alert(`Network error while deleting schedule: ${err?.message || "unknown error"}`)
     }
   }
+
+  // Live Schedule functions
+  async function loadLiveSchedules() {
+    try {
+      const response = await fetch("/api/admin/live-schedules", { credentials: "include" })
+      const data = await response.json()
+      if (response.ok) {
+        setLiveSchedules(data.schedules || [])
+      }
+    } catch (error) {
+      console.error("Error loading live schedules:", error)
+    }
+  }
+
+  async function addLiveSchedule() {
+    if (!newScheduleCategory || !newScheduleTime || !newScheduleResult) {
+      alert("Please fill in all required fields")
+      return
+    }
+
+    // Create ISO datetime for today with the specified time
+    const today = new Date()
+    const [hours, minutes] = newScheduleTime.split(':').map(Number)
+    const scheduledTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes)
+    
+    // Check if the time is in the future
+    if (scheduledTime <= new Date()) {
+      alert("Scheduled time must be in the future")
+      return
+    }
+
+    try {
+      const response = await fetch("/api/admin/live-schedules", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add",
+          schedule: {
+            category: newScheduleCategory,
+            scheduledTime: scheduledTime.toISOString(),
+            result: newScheduleResult,
+            yesterdayResult: newScheduleYesterdayResult || undefined,
+            todayResult: newScheduleResult,
+            status: "scheduled"
+          }
+        })
+      })
+
+      const data = await response.json()
+      if (response.ok) {
+        await loadLiveSchedules()
+        setNewScheduleCategory("GHAZIABAD1")
+        setNewScheduleTime("")
+        setNewScheduleResult("")
+        setNewScheduleYesterdayResult("")
+        alert("Live schedule added successfully!")
+      } else {
+        alert(data.error || "Failed to add live schedule")
+      }
+    } catch (error) {
+      console.error("Error adding live schedule:", error)
+      alert("Failed to add live schedule")
+    }
+  }
+
+  async function deleteLiveSchedule(id: string) {
+    if (!confirm("Are you sure you want to delete this live schedule?")) return
+
+    try {
+      const response = await fetch("/api/admin/live-schedules", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id })
+      })
+
+      const data = await response.json()
+      if (response.ok) {
+        await loadLiveSchedules()
+        alert("Live schedule deleted successfully!")
+      } else {
+        alert(data.error || "Failed to delete live schedule")
+      }
+    } catch (error) {
+      console.error("Error deleting live schedule:", error)
+      alert("Failed to delete live schedule")
+    }
+  }
+
+  async function publishLiveSchedule(id: string) {
+    try {
+      const response = await fetch("/api/admin/live-schedules", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish", id })
+      })
+
+      const data = await response.json()
+      if (response.ok) {
+        await loadLiveSchedules()
+        alert("Live schedule published successfully!")
+      } else {
+        alert(data.error || "Failed to publish live schedule")
+      }
+    } catch (error) {
+      console.error("Error publishing live schedule:", error)
+      alert("Failed to publish live schedule")
+    }
+  }
+
+  // Load live schedules when component mounts and when active tab changes
+  useEffect(() => {
+    if (active === "live-schedules") {
+      loadLiveSchedules()
+    }
+  }, [active])
 
   const addBanner = () => {
     if (!bannerText.trim()) return
@@ -567,6 +773,192 @@ export default function AdminDashboard() {
     cancelEditBanner2()
   }
 
+  // Banner3 functions
+  const addBanner3 = () => {
+    if (!banner3Text.trim()) return
+    const banner: BannerBlock = {
+      id: crypto.randomUUID(),
+      text: banner3Text,
+      color: banner3Color,
+      completeRow: banner3CompleteRow,
+      backgroundColor: banner3BackgroundColor,
+      multiColor: banner3MultiColor,
+      bold: banner3Bold,
+      gifUrl: banner3GifUrl.trim() || undefined,
+      customColorPalette: customColorPalette3.length > 0 ? customColorPalette3 : undefined
+    }
+    
+    const nextContent = {
+      ...content,
+      banner3: [banner, ...(content.banner3 ?? [])]
+    }
+    persist(nextContent)
+    setBanner3Text("")
+    setBanner3Color("#000000")
+    setBanner3CompleteRow(false)
+    setBanner3BackgroundColor("#f3f4f6")
+    setBanner3MultiColor(false)
+    setBanner3Bold(false)
+    setBanner3GifUrl("")
+    setCustomColorPalette3([])
+  }
+
+  const removeBanner3 = (id: string) => {
+    const nextContent = {
+      ...content,
+      banner3: (content.banner3 ?? []).filter(b => b.id !== id)
+    }
+    persist(nextContent)
+  }
+
+  const startEditBanner3 = (banner: BannerBlock) => {
+    setEditingBanner3(banner)
+    setEditBanner3Text(banner.text)
+    setEditBanner3Color(banner.color || "#000000")
+    setEditBanner3CompleteRow(banner.completeRow || false)
+    setEditBanner3BackgroundColor(banner.backgroundColor || "#f3f4f6")
+    setEditBanner3MultiColor(banner.multiColor || false)
+    setEditBanner3Bold(banner.bold || false)
+    setEditBanner3GifUrl(banner.gifUrl || "")
+    setEditCustomColorPalette3(banner.customColorPalette || [])
+  }
+
+  const cancelEditBanner3 = () => {
+    setEditingBanner3(null)
+    setEditBanner3Text("")
+    setEditBanner3Color("#000000")
+    setEditBanner3CompleteRow(false)
+    setEditBanner3BackgroundColor("#f3f4f6")
+    setEditBanner3MultiColor(false)
+    setEditBanner3Bold(false)
+    setEditBanner3GifUrl("")
+    setCustomColorPalette3([])
+  }
+
+  const saveEditBanner3 = () => {
+    if (!editingBanner3 || !editBanner3Text.trim()) return
+    
+    const updatedBanner: BannerBlock = {
+      ...editingBanner3,
+      text: editBanner3Text,
+      color: editBanner3Color,
+      completeRow: editBanner3CompleteRow,
+      backgroundColor: editBanner3BackgroundColor,
+      multiColor: editBanner3MultiColor,
+      bold: editBanner3Bold,
+      gifUrl: editBanner3GifUrl.trim() || undefined,
+      customColorPalette: customColorPalette3.length > 0 ? customColorPalette3 : editingBanner3.customColorPalette
+    }
+    
+    const nextContent = {
+      ...content,
+      banner3: (content.banner3 ?? []).map(b => 
+        b.id === editingBanner3.id ? updatedBanner : b
+      )
+    }
+    persist(nextContent)
+    cancelEditBanner3()
+  }
+
+  // Footer Banner functions
+  const addFooterBanner = () => {
+    if (!footerBannerText.trim()) return
+    const banner: BannerBlock = {
+      id: crypto.randomUUID(),
+      text: footerBannerText,
+      color: footerBannerColor,
+      completeRow: footerBannerCompleteRow,
+      backgroundColor: footerBannerBackgroundColor,
+      multiColor: footerBannerMultiColor,
+      bold: footerBannerBold,
+      gifUrl: footerBannerGifUrl.trim() || undefined,
+      customColorPalette: customColorPaletteFooter.length > 0 ? customColorPaletteFooter : undefined
+    }
+    
+    const nextContent = {
+      ...content,
+      footerBanner: [banner, ...(content.footerBanner ?? [])]
+    }
+    persist(nextContent)
+    setFooterBannerText("")
+    setFooterBannerColor("#000000")
+    setFooterBannerCompleteRow(false)
+    setFooterBannerBackgroundColor("#f3f4f6")
+    setFooterBannerMultiColor(false)
+    setFooterBannerBold(false)
+    setFooterBannerGifUrl("")
+    setCustomColorPaletteFooter([])
+  }
+
+  const removeFooterBanner = (id: string) => {
+    const nextContent = {
+      ...content,
+      footerBanner: (content.footerBanner ?? []).filter(b => b.id !== id)
+    }
+    persist(nextContent)
+  }
+
+  const startEditFooterBanner = (banner: BannerBlock) => {
+    setEditingFooterBanner(banner)
+    setEditFooterBannerText(banner.text)
+    setEditFooterBannerColor(banner.color || "#000000")
+    setEditFooterBannerCompleteRow(banner.completeRow || false)
+    setEditFooterBannerBackgroundColor(banner.backgroundColor || "#f3f4f6")
+    setEditFooterBannerMultiColor(banner.multiColor || false)
+    setEditFooterBannerBold(banner.bold || false)
+    setEditFooterBannerGifUrl(banner.gifUrl || "")
+    setEditCustomColorPaletteFooter(banner.customColorPalette || [])
+  }
+
+  const cancelEditFooterBanner = () => {
+    setEditingFooterBanner(null)
+    setEditFooterBannerText("")
+    setEditFooterBannerColor("#000000")
+    setEditFooterBannerCompleteRow(false)
+    setEditFooterBannerBackgroundColor("#f3f4f6")
+    setEditFooterBannerMultiColor(false)
+    setEditFooterBannerBold(false)
+    setEditFooterBannerGifUrl("")
+    setEditCustomColorPaletteFooter([])
+  }
+
+  const saveEditFooterBanner = () => {
+    if (!editingFooterBanner || !editFooterBannerText.trim()) return
+    
+    const updatedBanner: BannerBlock = {
+      ...editingFooterBanner,
+      text: editFooterBannerText,
+      color: editFooterBannerColor,
+      completeRow: editFooterBannerCompleteRow,
+      backgroundColor: editFooterBannerBackgroundColor,
+      multiColor: editFooterBannerMultiColor,
+      bold: editFooterBannerBold,
+      gifUrl: editFooterBannerGifUrl.trim() || undefined,
+      customColorPalette: customColorPaletteFooter.length > 0 ? customColorPaletteFooter : editingFooterBanner.customColorPalette
+    }
+    
+    const nextContent = {
+      ...content,
+      footerBanner: (content.footerBanner ?? []).map(b => 
+        b.id === editingFooterBanner.id ? updatedBanner : b
+      )
+    }
+    persist(nextContent)
+    cancelEditFooterBanner()
+  }
+
+  const saveScraperConfig = () => {
+    const nextContent = {
+      ...content,
+      scraperConfig: {
+        useFastScraper,
+        fastScraperUrl,
+        originalScraperUrl
+      }
+    }
+    persist(nextContent)
+  }
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
       {/* Left Sidebar - Compact */}
@@ -577,7 +969,7 @@ export default function AdminDashboard() {
         </div>
         
         <nav className="space-y-2 mb-6">
-          {(["ads", "banners", "banner2", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns"] as const).map((k) => (
+                 {(["ads", "banners", "banner2", "banner3", "footer-banner", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns", "scraper-config"] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -591,13 +983,17 @@ export default function AdminDashboard() {
               {k === "ads" && "📢 Ads"}
               {k === "banners" && "🎯 Banners"}
               {k === "banner2" && "🎯 Banner2"}
+              {k === "banner3" && "🎯 Banner3"}
+              {k === "footer-banner" && "🎯 Footer Banner"}
               {k === "categories" && "📊 Categories"}
               {k === "schedule" && "⏰ Schedule"}
-              {k === "scheduled" && "📅 Scheduled"}
+              {k === "scheduled" && "📅 Past Results"}
               {k === "header-image" && "🖼️ Header Image"}
               {k === "footer-note" && "📝 Footer Note"}
-              {k === "running-banner" && "🏃 Running Banner"}
-              {k === "text-columns" && "📝 Text Columns"}
+                     {k === "running-banner" && "🏃 Running Banner"}
+                     {k === "text-columns" && "📝 Text Columns"}
+                     {k === "scraper-config" && "⚙️ Scraper Config"}
+                     {k === "live-schedules" && "⏰ Live Schedules"}
             </button>
           ))}
         </nav>
@@ -609,7 +1005,7 @@ export default function AdminDashboard() {
             <div>Ads: {(adsDraft ?? []).length}</div>
             <div>Banners: {(content.banners ?? []).length}</div>
             <div>Categories: {(categoriesDraft ?? []).length}</div>
-            <div>Scheduled: {(schedData?.items ?? []).length}</div>
+            <div>Past Results: {(schedData?.items ?? []).length}</div>
           </div>
         </div>
       </aside>
@@ -1275,15 +1671,699 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* BANNER3 */}
+        {active === "banner3" && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Add Banner3</FieldLegend>
+            
+            {/* Banner Text */}
+            <Field>
+              <Label>Banner Text</Label>
+              <FieldContent>
+                <textarea
+                  required
+                  aria-required="true"
+                  value={banner3Text}
+                  onChange={(e) => setBanner3Text(e.target.value)}
+                  placeholder="Enter banner text... Press Enter for new lines"
+                  className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                  rows={3}
+                />
+              </FieldContent>
+            </Field>
+
+            {/* Complete Row Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={banner3CompleteRow}
+                  onCheckedChange={setBanner3CompleteRow}
+                />
+                <Label className="text-sm">Complete Row (Full Width)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner will span the full width of the section. When disabled, it will appear as a button.
+              </FieldDescription>
+            </Field>
+
+            {/* Background Color */}
+            <Field>
+              <Label>Background Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={banner3BackgroundColor}
+                    onChange={(e) => setBanner3BackgroundColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={banner3BackgroundColor}
+                    onChange={(e) => setBanner3BackgroundColor(e.target.value)}
+                    placeholder="#f3f4f6"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Text Color */}
+            <Field>
+              <Label>Text Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={banner3Color}
+                    onChange={(e) => setBanner3Color(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={banner3Color}
+                    onChange={(e) => setBanner3Color(e.target.value)}
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Multi-Color Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={banner3MultiColor}
+                  onCheckedChange={setBanner3MultiColor}
+                />
+                <Label className="text-sm">Multi-Color Text (Auto Rainbow)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, text will automatically use multiple colors for visual appeal.
+              </FieldDescription>
+            </Field>
+
+            {/* Refresh Color Palette Button */}
+            {banner3MultiColor && (
+              <Field>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const colors = [
+                      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7",
+                      "#DDA0DD", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9"
+                    ]
+                    setCustomColorPalette3(colors)
+                  }}
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                >
+                  Refresh Color Palette
+                </Button>
+                <FieldDescription>
+                  Click to generate new random colors for better visibility.
+                </FieldDescription>
+              </Field>
+            )}
+
+            {/* Bold Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={banner3Bold}
+                  onCheckedChange={setBanner3Bold}
+                />
+                <Label className="text-sm">Bold Text</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner text will be displayed in bold.
+              </FieldDescription>
+            </Field>
+
+            {/* GIF URL Input */}
+            <Field>
+              <Label>GIF URL (Optional)</Label>
+              <FieldContent>
+                <Input
+                  value={banner3GifUrl}
+                  onChange={(e) => setBanner3GifUrl(e.target.value)}
+                  placeholder="https://media.giphy.com/media/..."
+                  className="w-full"
+                />
+              </FieldContent>
+            </Field>
+
+            {/* Add Button */}
+            <div className="flex gap-2">
+              <Button onClick={addBanner3} disabled={!banner3Text.trim()}>
+                Add Banner3
+              </Button>
+            </div>
+
+            {/* Banner3 List */}
+            <div className="mt-6">
+              <FieldLegend>Existing Banner3 ({(content.banner3 || []).length} total)</FieldLegend>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300 bg-white">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT PREVIEW</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TYPE</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">BACKGROUND</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT COLOR</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">GIF</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(content.banner3 || []).map((banner) => (
+                      <tr key={banner.id} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900 max-w-xs">
+                          <div className="truncate" title={banner.text}>
+                            {banner.text.length > 50 ? `${banner.text.substring(0, 50)}...` : banner.text}
+                          </div>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            banner.completeRow 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {banner.completeRow ? 'Full Width Row' : 'Button'}
+                          </span>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 border border-gray-300 rounded"
+                              style={{ backgroundColor: banner.backgroundColor || '#f3f4f6' }}
+                            ></div>
+                            <span className="text-xs font-mono text-gray-600">
+                              {banner.backgroundColor || '#f3f4f6'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 border border-gray-300 rounded"
+                              style={{ backgroundColor: banner.color || '#000000' }}
+                            ></div>
+                            <span className="text-xs font-mono text-gray-600">
+                              {banner.color || '#000000'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2 text-sm text-gray-500">
+                          {banner.gifUrl ? 'Has GIF' : 'No GIF'}
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => startEditBanner3(banner)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeBanner3(banner.id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Banner3 Edit Modal */}
+            {editingBanner3 && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                  <h3 className="text-lg font-semibold mb-4">Edit Banner3</h3>
+                  
+                  <Field>
+                    <Label>Banner Text</Label>
+                    <FieldContent>
+                      <textarea
+                        value={editBanner3Text}
+                        onChange={(e) => setEditBanner3Text(e.target.value)}
+                        placeholder="Enter banner text..."
+                        className="w-full min-h-[80px] p-2 border rounded-md resize-vertical"
+                        rows={3}
+                      />
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editBanner3CompleteRow}
+                        onCheckedChange={setEditBanner3CompleteRow}
+                      />
+                      <Label className="text-sm">Complete Row (Full Width)</Label>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <Label>Background Color</Label>
+                    <FieldContent>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={editBanner3BackgroundColor}
+                          onChange={(e) => setEditBanner3BackgroundColor(e.target.value)}
+                          className="w-16 h-10 p-1 border rounded"
+                        />
+                        <Input
+                          value={editBanner3BackgroundColor}
+                          onChange={(e) => setEditBanner3BackgroundColor(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <Label>Text Color</Label>
+                    <FieldContent>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={editBanner3Color}
+                          onChange={(e) => setEditBanner3Color(e.target.value)}
+                          className="w-16 h-10 p-1 border rounded"
+                        />
+                        <Input
+                          value={editBanner3Color}
+                          onChange={(e) => setEditBanner3Color(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editBanner3MultiColor}
+                        onCheckedChange={setEditBanner3MultiColor}
+                      />
+                      <Label className="text-sm">Multi-Color Text</Label>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editBanner3Bold}
+                        onCheckedChange={setEditBanner3Bold}
+                      />
+                      <Label className="text-sm">Bold Text</Label>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <Label>GIF URL (Optional)</Label>
+                    <FieldContent>
+                      <Input
+                        value={editBanner3GifUrl}
+                        onChange={(e) => setEditBanner3GifUrl(e.target.value)}
+                        placeholder="https://media.giphy.com/media/..."
+                        className="w-full"
+                      />
+                    </FieldContent>
+                  </Field>
+
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={saveEditBanner3}>Save</Button>
+                    <Button variant="outline" onClick={cancelEditBanner3}>Cancel</Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* FOOTER BANNER */}
+        {active === "footer-banner" && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Add Footer Banner</FieldLegend>
+            
+            {/* Banner Text */}
+            <Field>
+              <Label>Banner Text</Label>
+              <FieldContent>
+                <textarea
+                  required
+                  aria-required="true"
+                  value={footerBannerText}
+                  onChange={(e) => setFooterBannerText(e.target.value)}
+                  placeholder="Enter banner text... Press Enter for new lines"
+                  className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                  rows={3}
+                />
+              </FieldContent>
+            </Field>
+
+            {/* Complete Row Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={footerBannerCompleteRow}
+                  onCheckedChange={setFooterBannerCompleteRow}
+                />
+                <Label className="text-sm">Complete Row (Full Width)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner will span the full width of the section. When disabled, it will appear as a button.
+              </FieldDescription>
+            </Field>
+
+            {/* Background Color */}
+            <Field>
+              <Label>Background Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={footerBannerBackgroundColor}
+                    onChange={(e) => setFooterBannerBackgroundColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={footerBannerBackgroundColor}
+                    onChange={(e) => setFooterBannerBackgroundColor(e.target.value)}
+                    placeholder="#f3f4f6"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Text Color */}
+            <Field>
+              <Label>Text Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={footerBannerColor}
+                    onChange={(e) => setFooterBannerColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={footerBannerColor}
+                    onChange={(e) => setFooterBannerColor(e.target.value)}
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Multi-Color Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={footerBannerMultiColor}
+                  onCheckedChange={setFooterBannerMultiColor}
+                />
+                <Label className="text-sm">Multi-Color Text (Auto Rainbow)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, text will automatically use multiple colors for visual appeal.
+              </FieldDescription>
+            </Field>
+
+            {/* Refresh Color Palette Button */}
+            {footerBannerMultiColor && (
+              <Field>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const colors = [
+                      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7",
+                      "#DDA0DD", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9"
+                    ]
+                    setCustomColorPaletteFooter(colors)
+                  }}
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                >
+                  Refresh Color Palette
+                </Button>
+                <FieldDescription>
+                  Click to generate new random colors for better visibility.
+                </FieldDescription>
+              </Field>
+            )}
+
+            {/* Bold Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={footerBannerBold}
+                  onCheckedChange={setFooterBannerBold}
+                />
+                <Label className="text-sm">Bold Text</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner text will be displayed in bold.
+              </FieldDescription>
+            </Field>
+
+            {/* GIF URL Input */}
+            <Field>
+              <Label>GIF URL (Optional)</Label>
+              <FieldContent>
+                <Input
+                  value={footerBannerGifUrl}
+                  onChange={(e) => setFooterBannerGifUrl(e.target.value)}
+                  placeholder="https://media.giphy.com/media/..."
+                  className="w-full"
+                />
+              </FieldContent>
+            </Field>
+
+            {/* Add Button */}
+            <div className="flex gap-2">
+              <Button onClick={addFooterBanner} disabled={!footerBannerText.trim()}>
+                Add Footer Banner
+              </Button>
+            </div>
+
+            {/* Footer Banner List */}
+            <div className="mt-6">
+              <FieldLegend>Existing Footer Banner ({(content.footerBanner || []).length} total)</FieldLegend>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300 bg-white">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT PREVIEW</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TYPE</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">BACKGROUND</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT COLOR</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">GIF</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(content.footerBanner || []).map((banner) => (
+                      <tr key={banner.id} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900 max-w-xs">
+                          <div className="truncate" title={banner.text}>
+                            {banner.text.length > 50 ? `${banner.text.substring(0, 50)}...` : banner.text}
+                          </div>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            banner.completeRow 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {banner.completeRow ? 'Full Width Row' : 'Button'}
+                          </span>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 border border-gray-300 rounded"
+                              style={{ backgroundColor: banner.backgroundColor || '#f3f4f6' }}
+                            ></div>
+                            <span className="text-xs font-mono text-gray-600">
+                              {banner.backgroundColor || '#f3f4f6'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 border border-gray-300 rounded"
+                              style={{ backgroundColor: banner.color || '#000000' }}
+                            ></div>
+                            <span className="text-xs font-mono text-gray-600">
+                              {banner.color || '#000000'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2 text-sm text-gray-500">
+                          {banner.gifUrl ? 'Has GIF' : 'No GIF'}
+                        </td>
+                        <td className="border border-gray-300 px-3 py-2">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => startEditFooterBanner(banner)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeFooterBanner(banner.id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer Banner Edit Modal */}
+            {editingFooterBanner && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                  <h3 className="text-lg font-semibold mb-4">Edit Footer Banner</h3>
+                  
+                  <Field>
+                    <Label>Banner Text</Label>
+                    <FieldContent>
+                      <textarea
+                        value={editFooterBannerText}
+                        onChange={(e) => setEditFooterBannerText(e.target.value)}
+                        placeholder="Enter banner text..."
+                        className="w-full min-h-[80px] p-2 border rounded-md resize-vertical"
+                        rows={3}
+                      />
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editFooterBannerCompleteRow}
+                        onCheckedChange={setEditFooterBannerCompleteRow}
+                      />
+                      <Label className="text-sm">Complete Row (Full Width)</Label>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <Label>Background Color</Label>
+                    <FieldContent>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={editFooterBannerBackgroundColor}
+                          onChange={(e) => setEditFooterBannerBackgroundColor(e.target.value)}
+                          className="w-16 h-10 p-1 border rounded"
+                        />
+                        <Input
+                          value={editFooterBannerBackgroundColor}
+                          onChange={(e) => setEditFooterBannerBackgroundColor(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <Label>Text Color</Label>
+                    <FieldContent>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={editFooterBannerColor}
+                          onChange={(e) => setEditFooterBannerColor(e.target.value)}
+                          className="w-16 h-10 p-1 border rounded"
+                        />
+                        <Input
+                          value={editFooterBannerColor}
+                          onChange={(e) => setEditFooterBannerColor(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editFooterBannerMultiColor}
+                        onCheckedChange={setEditFooterBannerMultiColor}
+                      />
+                      <Label className="text-sm">Multi-Color Text</Label>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editFooterBannerBold}
+                        onCheckedChange={setEditFooterBannerBold}
+                      />
+                      <Label className="text-sm">Bold Text</Label>
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <Label>GIF URL (Optional)</Label>
+                    <FieldContent>
+                      <Input
+                        value={editFooterBannerGifUrl}
+                        onChange={(e) => setEditFooterBannerGifUrl(e.target.value)}
+                        placeholder="https://media.giphy.com/media/..."
+                        className="w-full"
+                      />
+                    </FieldContent>
+                  </Field>
+
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={saveEditFooterBanner}>Save</Button>
+                    <Button variant="outline" onClick={cancelEditFooterBanner}>Cancel</Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* CATEGORIES */}
         {active === "categories" && (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <FieldLegend>Categories</FieldLegend>
+            <FieldLegend>Categories Management</FieldLegend>
             <FieldDescription>
-              Key = machine name (e.g., ghaziabad). Label = what users see (e.g., GHAZIABAD). Changes are saved only
-              when you click Update Categories.
+              Manage categories with default times. Key = machine name (e.g., ghaziabad). Label = what users see (e.g., GHAZIABAD). 
+              Default Time = when results are typically published (e.g., 15:59 for 3:59 PM).
             </FieldDescription>
-            <div className="grid gap-3 items-end mt-2 sm:grid-cols-[200px_1fr_120px]">
+            
+            {/* Add New Category */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
+              <div className="grid gap-3 items-end sm:grid-cols-[200px_1fr_120px_120px]">
               <Field>
                 <Label>Key</Label>
                 <FieldContent>
@@ -1308,11 +2388,25 @@ export default function AdminDashboard() {
                   />
                 </FieldContent>
               </Field>
+                <Field>
+                  <Label>Default Time</Label>
+                  <FieldContent>
+                    <Input
+                      type="time"
+                      value={catDefaultTime}
+                      onChange={(e) => setCatDefaultTime(e.target.value)}
+                      placeholder="15:59"
+                  />
+                </FieldContent>
+              </Field>
               <Button onClick={addCategory} disabled={!catKey.trim() || !catLabel.trim()}>
                 Add
               </Button>
             </div>
-            <div className="mt-3">
+            </div>
+
+            {/* Save Button */}
+            <div className="mb-6">
               <Button 
                 variant="secondary" 
                 onClick={saveCategories}
@@ -1322,19 +2416,67 @@ export default function AdminDashboard() {
                 {isSaving ? "Saving..." : "Update Categories"}
               </Button>
             </div>
-            <FieldSeparator>Existing</FieldSeparator>
-            <div className="grid gap-3">
+
+            {/* Existing Categories */}
+            <FieldSeparator>Existing Categories</FieldSeparator>
+            <div className="space-y-4">
               {(categoriesDraft ?? []).map((c) => (
-                <div key={c.key} className="border rounded p-3 grid gap-3 items-center sm:grid-cols-[1fr_120px]">
+                <div key={c.key} className="border rounded-lg p-4 bg-gray-50">
+                  {editingCategory === c.key ? (
+                    // Edit Mode
+                    <div className="space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-[1fr_120px_120px]">
                   <Field>
                     <Label>Label</Label>
                     <FieldContent>
-                      <Input value={c.label} onChange={(e) => updateCategoryDraft(c.key, { label: e.target.value })} />
+                            <Input 
+                              value={editCategoryLabel} 
+                              onChange={(e) => setEditCategoryLabel(e.target.value)}
+                              placeholder="e.g., GHAZIABAD"
+                            />
                     </FieldContent>
                   </Field>
-                  <Button variant="destructive" onClick={() => removeCategoryDraft(c.key)}>
+                        <Field>
+                          <Label>Default Time</Label>
+                          <FieldContent>
+                            <Input
+                              type="time"
+                              value={editCategoryDefaultTime}
+                              onChange={(e) => setEditCategoryDefaultTime(e.target.value)}
+                              placeholder="15:59"
+                            />
+                          </FieldContent>
+                        </Field>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={saveEditCategory} className="bg-green-600 hover:bg-green-700">
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={cancelEditCategory}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // View Mode
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">{c.label}</div>
+                        <div className="text-sm text-gray-600">Key: {c.key}</div>
+                        <div className="text-sm text-gray-600">
+                          Default Time: {c.defaultTime || "Not set"}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => startEditCategory(c)}>
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => removeCategoryDraft(c.key)}>
                     Remove
                   </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1449,65 +2591,108 @@ export default function AdminDashboard() {
         {/* SCHEDULED LIST */}
         {active === "scheduled" && (
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <FieldLegend>Scheduled Results</FieldLegend>
+            <FieldLegend>Past Results</FieldLegend>
             <Field>
               <Label>Search</Label>
               <FieldContent>
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="name, number, category, date…"
+                  placeholder="Search by category, value, date..."
                 />
               </FieldContent>
             </Field>
-            <div className="mt-3 grid gap-2">
+            
+            {/* Tabular View */}
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">Value</th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">Publish Time</th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
               {(scheduled || []).map((it) => {
                 const due = Date.parse(it.publishAt) <= Date.now()
-                const isEditing = editId === it.id
                 const isExecuted = it.executed || false
+                    const categoryKey = Object.keys(it.row).find(k => k !== "date")
+                    const categoryValue = categoryKey ? it.row[categoryKey] : "--"
+                    const categoryLabel = (content.categories ?? []).find(c => c.key === categoryKey)?.label || categoryKey
+                    
                 return (
-                  <div key={it.id} className="border rounded p-3 flex flex-col gap-3">
-                    {!isEditing ? (
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm">
-                          <div className="font-medium">
-                            {Object.keys(it.row)
-                              .filter((k) => k !== "date")
-                              .map((k) => `${k}: ${it.row[k]}`)
-                              .join(", ")}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Date {it.row.date} • Month {it.month} • Publish {new Date(it.publishAt).toLocaleString()}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
+                      <tr key={it.id} className="hover:bg-gray-50">
+                        <td className="border border-gray-200 px-4 py-3 text-sm">
+                          <div className="font-medium text-gray-900">{categoryLabel}</div>
+                          <div className="text-xs text-gray-500">({categoryKey})</div>
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm font-mono text-gray-900">
+                          {categoryValue}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-900">
+                          {it.row.date}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-900">
+                          {new Date(it.publishAt).toLocaleString()}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm">
                           <span
-                            className={`text-xs px-2 py-1 rounded ${
+                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                               isExecuted 
-                                ? "bg-green-100 text-green-900" 
+                                ? "bg-green-100 text-green-800" 
                                 : due 
-                                  ? "bg-yellow-100 text-yellow-900" 
-                                  : "bg-blue-100 text-blue-900"
+                                  ? "bg-yellow-100 text-yellow-800" 
+                                  : "bg-blue-100 text-blue-800"
                             }`}
                           >
                             {isExecuted ? "Published" : due ? "Due / Unpublished" : "Scheduled"}
                           </span>
-                          <Button size="sm" variant="secondary" onClick={() => startEdit(it)}>
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm">
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => startEdit(it)}
+                              className="text-xs"
+                            >
                             Edit
                           </Button>
                           <Button 
                             size="sm" 
                             variant="destructive" 
                             onClick={() => deleteSchedule(it.id)}
+                              className="text-xs"
                           >
                             Delete
                           </Button>
                         </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  {!scheduled?.length && (
+                    <tr>
+                      <td colSpan={6} className="border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+                        No scheduled items found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
                       </div>
-                    ) : (
-                      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-5">
-                        <div className="md:col-span-2">
-                          <Label>Field Key</Label>
+
+            {/* Edit Modal */}
+            {editId && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Edit Schedule</h3>
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                  <div>
+                    <Label>Category</Label>
                           <select
                             className="h-9 w-full rounded border px-2"
                             value={editCat}
@@ -1532,21 +2717,17 @@ export default function AdminDashboard() {
                           <Label>Time</Label>
                           <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
                         </div>
-                        <div className="md:col-span-5 flex gap-2">
-                          <Button size="sm" onClick={() => saveEdit(it)}>
-                            Save
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Button onClick={() => saveEdit(scheduled?.find(s => s.id === editId))}>
+                    Save Changes
                           </Button>
-                          <Button size="sm" variant="secondary" onClick={cancelEdit}>
+                  <Button variant="outline" onClick={cancelEdit}>
                             Cancel
                           </Button>
                         </div>
                       </div>
                     )}
-                  </div>
-                )
-              })}
-              {!scheduled?.length && <div className="text-xs text-muted-foreground">No schedules.</div>}
-            </div>
           </div>
         )}
 
@@ -2253,6 +3434,151 @@ export default function AdminDashboard() {
                   >
                     Add New Line
                   </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* LIVE SCHEDULES */}
+        {active === "live-schedules" && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Live Results Scheduling</FieldLegend>
+            <FieldDescription>
+              Schedule live results to be published at specific times today. These will override scraper data.
+            </FieldDescription>
+            
+            {/* Add New Schedule Form */}
+            <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Add New Live Schedule</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field>
+                  <Label>Category</Label>
+                  <FieldContent>
+                    <select
+                      value={newScheduleCategory}
+                      onChange={(e) => setNewScheduleCategory(e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                    >
+                      <option value="GHAZIABAD1">GHAZIABAD1</option>
+                      <option value="FARIDABAD1">FARIDABAD1</option>
+                      <option value="GALI1">GALI1</option>
+                      <option value="DESAWAR1">DESAWAR1</option>
+                      <option value="GHAZIABAD">GHAZIABAD</option>
+                      <option value="FARIDABAD">FARIDABAD</option>
+                      <option value="GALI">GALI</option>
+                      <option value="DESAWAR">DESAWAR</option>
+                    </select>
+                  </FieldContent>
+                </Field>
+                
+                <Field>
+                  <Label>Time (24h format)</Label>
+                  <FieldContent>
+                    <Input
+                      type="time"
+                      value={newScheduleTime}
+                      onChange={(e) => setNewScheduleTime(e.target.value)}
+                      placeholder="15:59"
+                    />
+                  </FieldContent>
+                </Field>
+                
+                <Field>
+                  <Label>Today's Result</Label>
+                  <FieldContent>
+                    <Input
+                      value={newScheduleResult}
+                      onChange={(e) => setNewScheduleResult(e.target.value)}
+                      placeholder="56"
+                    />
+                  </FieldContent>
+                </Field>
+                
+                <Field>
+                  <Label>Yesterday's Result (Optional)</Label>
+                  <FieldContent>
+                    <Input
+                      value={newScheduleYesterdayResult}
+                      onChange={(e) => setNewScheduleYesterdayResult(e.target.value)}
+                      placeholder="88"
+                    />
+                  </FieldContent>
+                </Field>
+              </div>
+              
+              <div className="mt-4">
+                <Button onClick={addLiveSchedule} className="w-full">
+                  Add Live Schedule
+                </Button>
+              </div>
+            </div>
+
+            {/* Current Schedules */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Current Live Schedules</h3>
+              {liveSchedules.length === 0 ? (
+                <div className="text-gray-500 text-center py-8">
+                  No live schedules found. Add one above to get started.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {liveSchedules.map((schedule) => {
+                    const scheduleTime = new Date(schedule.scheduledTime)
+                    const now = new Date()
+                    const isDue = now >= scheduleTime
+                    const timeUntil = Math.ceil((scheduleTime.getTime() - now.getTime()) / (1000 * 60))
+                    
+                    return (
+                      <div key={schedule.id} className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="font-semibold text-lg">{schedule.category}</div>
+                            <div className="text-sm text-gray-600">
+                              Scheduled: {scheduleTime.toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: true 
+                              })}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Result: {schedule.result}
+                              {schedule.yesterdayResult && ` | Yesterday: ${schedule.yesterdayResult}`}
+                            </div>
+                            <div className="text-sm">
+                              Status: 
+                              <span className={`ml-1 font-semibold ${
+                                schedule.status === 'published' ? 'text-green-600' :
+                                isDue ? 'text-blue-600' : 'text-yellow-600'
+                              }`}>
+                                {schedule.status === 'published' ? 'Published' :
+                                 isDue ? 'Due Now' : `In ${timeUntil}m`}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            {!isDue && schedule.status === 'scheduled' && (
+                              <Button
+                                size="sm"
+                                onClick={() => publishLiveSchedule(schedule.id)}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                Publish Now
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteLiveSchedule(schedule.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

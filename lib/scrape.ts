@@ -13,6 +13,8 @@ export type LiveResult = {
   jodi: string
   result: string
   status: string
+  yesterdayResult?: string // Yesterday's result (left of globe)
+  todayResult?: string    // Today's result (in curly braces)
 }
 
 export type LiveResults = {
@@ -54,31 +56,34 @@ export function parseMonthlyTable(html: string, month: number, year: number): Mo
     if (label) columns.push(label)
   })
 
-  const dataRows: Array<{ day: number; values: Array<number | null> }> = []
+  const dataRows: Array<{ 
+    day: number
+    values: Array<number | null>
+  }> = []
+  
   rows.slice(1).each((_, tr) => {
     const tds = $(tr).find("td")
     if (tds.length < columns.length + 1) return
 
-    const dayText = $(tds[0])
-      .text()
-      .replace(/[^\d]+/g, "")
-      .trim()
+    // Extract day from first column - look for valid day numbers (1-31)
+    const dayText = $(tds[0]).text().trim()
     const day = Number.parseInt(dayText, 10)
-    if (!Number.isFinite(day)) return
+    
+    // Only process rows with valid day numbers (1-31)
+    if (!day || day < 1 || day > 31) return
 
     const values: Array<number | null> = []
+    const rowData: any = { day, values }
+    
     for (let i = 1; i < tds.length && i <= columns.length; i++) {
       const raw = $(tds[i]).text().trim()
       const clean = raw.replace(/[^\d-]+/g, "").trim()
-      if (clean === "" || clean === "--") {
-        values.push(null)
-      } else {
-        const num = Number.parseInt(clean, 10)
-        values.push(Number.isFinite(num) ? num : null)
-      }
+      const value = (clean === "" || clean === "--" || clean === "XX") ? null : clean
+      
+      values.push(value ? Number.parseInt(value, 10) : null)
     }
 
-    dataRows.push({ day, values })
+    dataRows.push(rowData)
   })
 
   dataRows.sort((a, b) => a.day - b.day)
@@ -126,5 +131,72 @@ export function parseLiveResults(html: string): LiveResults {
   })
 
   console.log('Parsed live results:', results.length, 'items')
+  return { results }
+}
+
+// New scraper for satta-king-fast.com
+export function parseLiveResultsFast(html: string): LiveResults {
+  const $ = cheerio.load(html)
+  const results: LiveResult[] = []
+
+  // Find all game result rows
+  $('tr[class*="game-result"]').each((_, row) => {
+    const $row = $(row)
+    const cells = $row.find('td')
+    
+    if (cells.length >= 3) {
+      // Extract game name from first cell
+      const gameNameElement = cells.eq(0).find('.game-name')
+      const gameTimeElement = cells.eq(0).find('.game-time')
+      
+      const title = gameNameElement.text().trim()
+      const timeText = gameTimeElement.text().trim()
+      
+      // Extract time from "at XX:XX PM/AM" format
+      const timeMatch = timeText.match(/at\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))/i)
+      const time = timeMatch ? timeMatch[1] : ''
+      
+      // Extract yesterday's result (second column)
+      const yesterdayResult = cells.eq(1).text().trim()
+      
+      // Extract today's result (third column) 
+      const todayResult = cells.eq(2).text().trim()
+      
+      // Clean and validate results
+      const cleanYesterdayResult = yesterdayResult && yesterdayResult !== 'XX' && yesterdayResult !== '--' && !isNaN(parseInt(yesterdayResult)) ? yesterdayResult : '--'
+      const cleanTodayResult = todayResult && todayResult !== 'XX' && todayResult !== '--' && !isNaN(parseInt(todayResult)) ? todayResult : '--'
+      
+      // Determine which result to use for main display and status
+      let result = '--'
+      let status = 'wait'
+      let jodi = '--'
+      
+      // Use today's result if available, otherwise yesterday's
+      if (cleanTodayResult !== '--') {
+        result = cleanTodayResult
+        status = 'pass'
+        jodi = cleanTodayResult
+      } else if (cleanYesterdayResult !== '--') {
+        result = cleanYesterdayResult
+        status = 'pass'
+        jodi = cleanYesterdayResult
+      }
+      
+      // Include all games from the scraper
+      if (title) {
+        results.push({
+          title: title.toUpperCase(),
+          time: time || 'N/A',
+          jodi: jodi,
+          result: result,
+          status: status,
+          yesterdayResult: cleanYesterdayResult,
+          todayResult: cleanTodayResult
+        })
+      }
+    }
+  })
+
+  console.log('Parsed live results from satta-king-fast.com:', results.length, 'items')
   return { results }
 }

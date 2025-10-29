@@ -1,4 +1,4 @@
-import type { SiteContent, MonthlyResults, ScheduleItem, ActivityLog, MonthKey } from './types'
+import type { SiteContent, MonthlyResults, ScheduleItem, ActivityLog, MonthKey, LiveSchedule } from './types'
 import { writeFileSync, readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 
@@ -236,8 +236,235 @@ export async function appendActivity(activity: ActivityLog): Promise<void> {
 
 export async function runDueSchedules(): Promise<void> {
   console.log("✅ Running due schedules...")
+  
+  const schedules = await getSchedules()
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
+  
+  // Add a test schedule for immediate execution (for testing purposes)
+  const testSchedule = {
+    id: "test-schedule-" + Date.now(),
+    month: "2025-10" as MonthKey,
+    row: { date: today, gali1: "99" },
+    publishAt: new Date(now.getTime() - 1000).toISOString(), // 1 second ago
+    merge: false,
+    executed: false
+  }
+  
+  // Add test schedule if it doesn't exist
+  const hasTestSchedule = schedules.some(s => s.id.startsWith("test-schedule-"))
+  if (!hasTestSchedule) {
+    schedules.push(testSchedule)
+    await saveSchedules(schedules)
+    console.log("🧪 Added test schedule for immediate execution:", testSchedule)
+  } else {
+    console.log("🧪 Test schedule already exists")
+  }
+  
+  // Add a test FARIDABAD1 schedule for 6:05 PM (should have executed)
+  const faridabadTestSchedule = {
+    id: "faridabad-test-" + Date.now(),
+    month: "2025-10" as MonthKey,
+    row: { date: today, faridabad1: "88" },
+    publishAt: new Date(now.getTime() - 60000).toISOString(), // 1 minute ago
+    merge: false,
+    executed: false
+  }
+  
+  const hasFaridabadTest = schedules.some(s => s.id.startsWith("faridabad-test-"))
+  if (!hasFaridabadTest) {
+    schedules.push(faridabadTestSchedule)
+    await saveSchedules(schedules)
+    console.log("🧪 Added FARIDABAD1 test schedule:", faridabadTestSchedule)
+  }
+  
+  // Find due schedules for today
+  const dueSchedules = schedules.filter(schedule => {
+    const scheduleTime = new Date(schedule.publishAt)
+    const scheduleDate = schedule.row.date
+    return scheduleDate === today && scheduleTime <= now && !schedule.executed
+  })
+  
+  console.log(`🔍 Found ${dueSchedules.length} due schedules for today`)
+  
+  // Execute due schedules
+  for (const schedule of dueSchedules) {
+    console.log(`🚀 Executing schedule: ${schedule.id} with data:`, schedule.row)
+    await upsertResultRow(schedule.month, schedule.row, !!schedule.merge)
+    
+    // Mark as executed
+    const updatedSchedules = schedules.map(s => 
+      s.id === schedule.id ? { ...s, executed: true } : s
+    )
+    await saveSchedules(updatedSchedules)
+    
+    console.log(`✅ Executed schedule: ${schedule.id}`)
+  }
+  
+  if (dueSchedules.length > 0) {
+    console.log(`✅ Executed ${dueSchedules.length} due schedules`)
+  } else {
+    console.log(`ℹ️ No due schedules found for today`)
+  }
 }
 
 export async function upsertResultRow(month: MonthKey, row: any, merge: boolean): Promise<void> {
   console.log("✅ Result row upserted:", { month, row, merge })
+  
+  try {
+    // Get current monthly results
+    let monthlyResults = await getMonthlyResults(month)
+    
+    // Find or create the month data
+    if (!monthlyResults) {
+      monthlyResults = { 
+        month: month,
+        fields: Object.keys(row).filter(k => k !== 'date'),
+        rows: [],
+        updatedAt: new Date().toISOString()
+      }
+    }
+    
+    // Find existing row with same date
+    const existingRowIndex = monthlyResults.rows.findIndex(r => r.date === row.date)
+    
+    if (existingRowIndex >= 0) {
+      // Update existing row
+      if (merge) {
+        // Merge the data
+        monthlyResults.rows[existingRowIndex] = {
+          ...monthlyResults.rows[existingRowIndex],
+          ...row
+        }
+      } else {
+        // Replace the row
+        monthlyResults.rows[existingRowIndex] = row
+      }
+    } else {
+      // Add new row
+      monthlyResults.rows.push(row)
+    }
+    
+    // Save the updated monthly results
+    await saveMonthlyResults(monthlyResults)
+    console.log(`✅ Updated monthly results for ${month}`)
+  } catch (error) {
+    console.error("❌ Error in upsertResultRow:", error)
+    throw error
+  }
+}
+
+// Live Schedule Management
+const LIVE_SCHEDULES_FILE = join(process.cwd(), 'live-schedules.json')
+
+export async function getLiveSchedules(): Promise<LiveSchedule[]> {
+  try {
+    if (!existsSync(LIVE_SCHEDULES_FILE)) {
+      return []
+    }
+    const data = readFileSync(LIVE_SCHEDULES_FILE, 'utf-8')
+    const schedules = JSON.parse(data) as LiveSchedule[]
+    
+    // Filter out expired schedules (older than 24 hours)
+    const now = new Date()
+    const validSchedules = schedules.filter(schedule => {
+      const scheduleTime = new Date(schedule.scheduledTime)
+      const hoursDiff = (now.getTime() - scheduleTime.getTime()) / (1000 * 60 * 60)
+      return hoursDiff < 24 // Keep schedules for 24 hours
+    })
+    
+    // Update expired schedules
+    const updatedSchedules = schedules.map(schedule => {
+      const scheduleTime = new Date(schedule.scheduledTime)
+      const hoursDiff = (now.getTime() - scheduleTime.getTime()) / (1000 * 60 * 60)
+      if (hoursDiff >= 24 && schedule.status !== 'expired') {
+        return { ...schedule, status: 'expired' as const }
+      }
+      return schedule
+    })
+    
+    // Save updated schedules if any were marked as expired
+    if (updatedSchedules.some(s => s.status === 'expired')) {
+      await saveLiveSchedules(updatedSchedules)
+    }
+    
+    return validSchedules
+  } catch (error) {
+    console.error('Error reading live schedules:', error)
+    return []
+  }
+}
+
+export async function saveLiveSchedules(schedules: LiveSchedule[]): Promise<void> {
+  try {
+    writeFileSync(LIVE_SCHEDULES_FILE, JSON.stringify(schedules, null, 2))
+  } catch (error) {
+    console.error('Error saving live schedules:', error)
+  }
+}
+
+export async function addLiveSchedule(schedule: Omit<LiveSchedule, 'id' | 'createdAt'>): Promise<LiveSchedule> {
+  const schedules = await getLiveSchedules()
+  const newSchedule: LiveSchedule = {
+    ...schedule,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString()
+  }
+  
+  // Remove any existing schedule for the same category
+  const filteredSchedules = schedules.filter(s => s.category !== newSchedule.category)
+  
+  const updatedSchedules = [newSchedule, ...filteredSchedules]
+  await saveLiveSchedules(updatedSchedules)
+  
+  return newSchedule
+}
+
+export async function updateLiveSchedule(id: string, updates: Partial<LiveSchedule>): Promise<LiveSchedule | null> {
+  const schedules = await getLiveSchedules()
+  const index = schedules.findIndex(s => s.id === id)
+  
+  if (index === -1) {
+    return null
+  }
+  
+  const updatedSchedule = { ...schedules[index], ...updates }
+  schedules[index] = updatedSchedule
+  await saveLiveSchedules(schedules)
+  
+  return updatedSchedule
+}
+
+export async function deleteLiveSchedule(id: string): Promise<boolean> {
+  const schedules = await getLiveSchedules()
+  const filteredSchedules = schedules.filter(s => s.id !== id)
+  
+  if (filteredSchedules.length === schedules.length) {
+    return false // Schedule not found
+  }
+  
+  await saveLiveSchedules(filteredSchedules)
+  return true
+}
+
+export async function getActiveLiveSchedules(): Promise<LiveSchedule[]> {
+  const schedules = await getLiveSchedules()
+  const now = new Date()
+  
+  return schedules.filter(schedule => {
+    const scheduleTime = new Date(schedule.scheduledTime)
+    const isToday = scheduleTime.toDateString() === now.toDateString()
+    const isActive = schedule.status === 'scheduled' || schedule.status === 'published'
+    
+    return isToday && isActive
+  })
+}
+
+export async function publishLiveSchedule(id: string): Promise<LiveSchedule | null> {
+  const schedule = await updateLiveSchedule(id, {
+    status: 'published',
+    publishedAt: new Date().toISOString()
+  })
+  
+  return schedule
 }

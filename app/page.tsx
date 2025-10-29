@@ -31,7 +31,9 @@ export default function HomePage() {
       time: item.time || "TBD",
       jodi: item.jodi || "--",
       status: item.status || "wait",
-      color: item.value && item.value !== "--" ? "text-green-600" : "text-gray-400"
+      color: item.value && item.value !== "--" ? "text-green-600" : "text-gray-400",
+      yesterdayResult: item.yesterdayResult || "--",
+      todayResult: item.todayResult || "--"
     }))
   }, [todayData])
 
@@ -466,10 +468,19 @@ export default function HomePage() {
       <main className="w-full px-4 sm:px-6 py-2 sm:py-6">
         <TodayNewsSection />
         <LiveResultsSection currentTime={currentTime} todayItems={todayItems} isLoading={isLoading} />
+      </main>
+      
+      {/* Banner3 Section - After live results, before table chart, outside main container for full-width coverage */}
+      <Banner3Section content={content} />
+      
+      <main className="w-full px-4 sm:px-6 py-2 sm:py-6">
         <FilterSection month={month} year={year} setMonth={setMonth} setYear={setYear} />
         <MonthlyResultsSection monthlyData={monthlyData} isLoading={isLoading} />
-        <Footer content={content} />
       </main>
+      
+      {/* Footer Banner Section - Outside main container for full-width coverage */}
+      <Footer content={content} />
+      
     </div>
   )
 }
@@ -569,21 +580,23 @@ function LiveResultsSection({ currentTime, todayItems, isLoading }: { currentTim
         {isLoading ? (
           <div className="text-sm text-[var(--color-muted-foreground)]">Loading live results…</div>
         ) : todayItems && todayItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {todayItems.map((item, index) => (
-              <div key={index} className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-sm min-h-[140px] flex flex-col justify-center">
+              <div key={index} className="bg-white border-2 border-gray-200 rounded-lg p-3 shadow-sm min-h-[120px] flex flex-col justify-center">
                 <div className="text-center">
-                  <h3 className="font-bold text-lg text-blue-600 mb-2 truncate">{item.title}</h3>
-                  <div className="text-sm text-gray-600 mb-3">TIME: {item.time}</div>
-                  <div className="flex justify-center items-center space-x-2 mb-3">
-                    <span className="text-green-600 font-bold text-xl">{item.jodi}🌐</span>
-                    <span className="text-red-600 font-bold text-2xl">{`{ ${item.value} }`}</span>
-                    <span className="text-green-600 text-lg">✔️</span>
+                  <h3 className="font-bold text-sm text-blue-600 mb-1 truncate">{item.title}</h3>
+                  <div className="text-xs text-gray-600 mb-2">TIME: {item.time}</div>
+                  <div className="flex justify-center items-center space-x-1 mb-2">
+                    <span className="text-green-600 font-bold text-lg">{item.yesterdayResult || '--'}🌐</span>
+                    <span className="text-red-600 font-bold text-xl">{`{ ${item.todayResult || '--'} }`}</span>
+                    <span className="text-green-600 text-sm">✔️</span>
                   </div>
-                  <div className={`text-sm font-semibold ${
-                    item.status === 'pass' ? 'text-green-600' : 'text-yellow-600'
+                  <div className={`text-xs font-semibold ${
+                    item.status === 'pass' ? 'text-green-600' : 
+                    item.status === 'next' ? 'text-blue-600' : 'text-yellow-600'
                   }`}>
-                    {item.status === 'pass' ? 'PASS' : 'WAIT'}
+                    {item.status === 'pass' ? 'PASS' : 
+                     item.status === 'next' ? 'NEXT' : 'WAIT'}
                   </div>
                 </div>
               </div>
@@ -602,7 +615,7 @@ function LiveResultsSection({ currentTime, todayItems, isLoading }: { currentTim
 function FilterSection({ month, year, setMonth, setYear }: { month: number; year: number; setMonth: (m: number) => void; setYear: (y: number) => void }) {
   return (
     <section aria-labelledby="filter" className="mt-8">
-      <h2 id="filter" className="sr-only">Filter Results</h2>
+      <h2 id="filter" className="text-center text-3xl font-black text-gray-800 mb-6 uppercase tracking-wide">📊 MONTHLY AND YEARLY CHART 📈</h2>
       <form className="mx-auto flex max-w-md flex-col items-stretch gap-2 sm:gap-3 md:flex-row md:items-end" aria-label="Show monthly results">
         <div className="flex flex-col gap-1">
           <label htmlFor="dd_month" className="text-xs sm:text-sm font-medium">Month</label>
@@ -657,12 +670,302 @@ function MonthlyResultsSection({ monthlyData, isLoading }: { monthlyData?: any; 
   )
 }
 
-function Footer({ content }: { content?: SiteContent }) {
-  if (!content?.footerNote?.active || !content?.footerNote?.text) return null
-  
+function Banner3Section({ content }: { content?: SiteContent }) {
+  if (!content?.banner3 || content.banner3.length === 0) return null
+
+  const getBannerStyle = (banner: any, index: number) => {
+    const colors = [
+      { bg: "#dc2626", text: "#ffffff" }, // Red
+      { bg: "#2563eb", text: "#ffffff" }, // Blue  
+      { bg: "#059669", text: "#ffffff" }, // Green
+      { bg: "#7c3aed", text: "#ffffff" }, // Purple
+      { bg: "#ea580c", text: "#ffffff" }, // Orange
+      { bg: "#0891b2", text: "#ffffff" }, // Cyan
+      { bg: "#be123c", text: "#ffffff" }, // Rose
+      { bg: "#65a30d", text: "#ffffff" }, // Lime
+    ]
+    
+    if (banner.backgroundColor && banner.color) {
+      return { bg: banner.backgroundColor, text: banner.color }
+    }
+    
+    return colors[index % colors.length]
+  }
+
+  const renderGif = (banner: any) => {
+    if (!banner.gifUrl) return null
+    return (
+      <img
+        src={banner.gifUrl}
+        alt="Banner GIF"
+        className="inline-block w-8 h-8 mx-2 align-middle"
+      />
+    )
+  }
+
+  const renderBannerText = (banner: any) => {
+    if (banner.multiColor && banner.customColorPalette) {
+      const lines = banner.text.split('\n')
+      return lines.map((line: string, lineIndex: number) => (
+        <div key={lineIndex} className="whitespace-pre-line">
+          {renderGif(banner)}
+          {line.split(' ').map((word: string, wordIndex: number) => {
+            const colorIndex = wordIndex % banner.customColorPalette.length
+            const color = banner.customColorPalette[colorIndex]
+            return (
+              <span key={wordIndex} style={{ color }} className="inline">
+                {word}{' '}
+              </span>
+            )
+          })}
+          {renderGif(banner)}
+        </div>
+      ))
+    } else {
+      // Single color text
+      return (
+        <span style={{ 
+          color: banner.color || '#ffffff',
+          fontWeight: banner.bold ? 'bold' : 'normal'
+        }}>
+          {renderGif(banner)}
+          {banner.text}
+          {renderGif(banner)}
+        </span>
+      )
+    }
+  }
+
+  // Process banners in order and group consecutive side-by-side banners
+  const renderBanners = () => {
+    if (!content.banner3) return []
+    
+    const result = []
+    let i = 0
+    
+    while (i < content.banner3.length) {
+      const currentBanner = content.banner3[i]
+      
+      if (currentBanner.completeRow) {
+        // Full-width banner - render immediately
+        const style = getBannerStyle(currentBanner, i)
+        result.push(
+          <div
+            key={currentBanner.id || i}
+            className="w-full py-3 sm:py-4"
+            style={{
+              backgroundColor: style.bg,
+              color: style.text
+            }}
+          >
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center">
+                <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                  {renderBannerText(currentBanner)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+        i++
+      } else {
+        // Side-by-side banner - collect consecutive ones
+        const sideBySideGroup = []
+        while (i < content.banner3.length && !content.banner3[i].completeRow) {
+          sideBySideGroup.push(content.banner3[i])
+          i++
+        }
+        
+        // Render the group of side-by-side banners
+        if (sideBySideGroup.length > 0) {
+          result.push(
+            <div key={`group-${i}`} className="flex flex-wrap">
+              {sideBySideGroup.map((banner: any, groupIndex: number) => {
+                const style = getBannerStyle(banner, i - sideBySideGroup.length + groupIndex)
+                return (
+                  <div 
+                    key={banner.id || groupIndex} 
+                    className="flex-1 min-w-0 py-3 sm:py-4"
+                    style={{
+                      backgroundColor: style.bg,
+                      color: style.text
+                    }}
+                  >
+                    <div className="text-center px-4">
+                      <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                        {renderBannerText(banner)}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        }
+      }
+    }
+    
+    return result
+  }
+
   return (
-    <footer className="mt-8 p-4 bg-gray-100 rounded-lg">
-      <p className="text-sm text-gray-600 text-center">{content.footerNote.text}</p>
+    <div className="w-full">
+      {renderBanners()}
+    </div>
+  )
+}
+
+function Footer({ content }: { content?: SiteContent }) {
+  const getBannerStyle = (banner: any, index: number) => {
+    const colors = [
+      { bg: "#dc2626", text: "#ffffff" }, // Red
+      { bg: "#2563eb", text: "#ffffff" }, // Blue  
+      { bg: "#059669", text: "#ffffff" }, // Green
+      { bg: "#7c3aed", text: "#ffffff" }, // Purple
+      { bg: "#ea580c", text: "#ffffff" }, // Orange
+      { bg: "#0891b2", text: "#ffffff" }, // Cyan
+      { bg: "#be123c", text: "#ffffff" }, // Rose
+      { bg: "#65a30d", text: "#ffffff" }, // Lime
+    ]
+    
+    if (banner.backgroundColor && banner.color) {
+      return { bg: banner.backgroundColor, text: banner.color }
+    }
+    
+    return colors[index % colors.length]
+  }
+
+  const renderGif = (banner: any) => {
+    if (!banner.gifUrl) return null
+    return (
+      <img
+        src={banner.gifUrl}
+        alt="Banner GIF"
+        className="inline-block w-8 h-8 mx-2 align-middle"
+      />
+    )
+  }
+
+  const renderBannerText = (banner: any) => {
+    if (banner.multiColor && banner.customColorPalette) {
+      const lines = banner.text.split('\n')
+      return lines.map((line: string, lineIndex: number) => (
+        <div key={lineIndex} className="whitespace-pre-line">
+          {renderGif(banner)}
+          {line.split(' ').map((word: string, wordIndex: number) => {
+            const colorIndex = wordIndex % banner.customColorPalette.length
+            const color = banner.customColorPalette[colorIndex]
+            return (
+              <span key={wordIndex} style={{ color }} className="inline">
+                {word}{' '}
+              </span>
+            )
+          })}
+          {renderGif(banner)}
+        </div>
+      ))
+    } else {
+      // Single color text
+      return (
+        <span style={{ 
+          color: banner.color || '#ffffff',
+          fontWeight: banner.bold ? 'bold' : 'normal'
+        }}>
+          {renderGif(banner)}
+          {banner.text}
+          {renderGif(banner)}
+        </span>
+      )
+    }
+  }
+
+  // Process banners in order and group consecutive side-by-side banners
+  const renderFooterBanners = () => {
+    if (!content?.footerBanner || content.footerBanner.length === 0) return null
+    
+    const result = []
+    let i = 0
+    
+    while (i < content.footerBanner.length) {
+      const currentBanner = content.footerBanner[i]
+      
+      if (currentBanner.completeRow) {
+        // Full-width banner - render immediately
+        const style = getBannerStyle(currentBanner, i)
+        result.push(
+          <div
+            key={currentBanner.id || i}
+            className="w-full py-3 sm:py-4"
+            style={{
+              backgroundColor: style.bg,
+              color: style.text
+            }}
+          >
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center">
+                <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                  {renderBannerText(currentBanner)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+        i++
+      } else {
+        // Side-by-side banner - collect consecutive ones
+        const sideBySideGroup = []
+        while (i < content.footerBanner.length && !content.footerBanner[i].completeRow) {
+          sideBySideGroup.push(content.footerBanner[i])
+          i++
+        }
+        
+        // Render the group of side-by-side banners
+        if (sideBySideGroup.length > 0) {
+          result.push(
+            <div key={`group-${i}`} className="flex flex-wrap">
+              {sideBySideGroup.map((banner: any, groupIndex: number) => {
+                const style = getBannerStyle(banner, i - sideBySideGroup.length + groupIndex)
+                return (
+                  <div 
+                    key={banner.id || groupIndex} 
+                    className="flex-1 min-w-0 py-3 sm:py-4"
+                    style={{
+                      backgroundColor: style.bg,
+                      color: style.text
+                    }}
+                  >
+                    <div className="text-center px-4">
+                      <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                        {renderBannerText(banner)}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        }
+      }
+    }
+    
+    return result
+  }
+
+  return (
+    <footer>
+      {/* Footer Banner Section */}
+      {content?.footerBanner && content.footerBanner.length > 0 && (
+        <div className="w-full mb-6">
+          {renderFooterBanners()}
+        </div>
+      )}
+      
+      {/* Footer Note */}
+      {content?.footerNote?.active && content?.footerNote?.text && (
+        <div className="text-center text-sm text-muted-foreground">
+          <p>{content.footerNote.text}</p>
+        </div>
+      )}
     </footer>
   )
 }

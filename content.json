@@ -145,22 +145,26 @@
     {
       "key": "ghaziabad1",
       "label": "GHAZIABAD1",
-      "showInToday": true
+      "showInToday": true,
+      "defaultTime": "20:45"
     },
     {
       "key": "gali1",
       "label": "GALI1",
-      "showInToday": true
+      "showInToday": true,
+      "defaultTime": "20:55"
     },
     {
       "key": "faridabad1",
       "label": "FARIDABAD1",
-      "showInToday": true
+      "showInToday": true,
+      "defaultTime": "21:58"
     },
     {
       "key": "desawar1",
       "label": "DESAWAR1",
-      "showInToday": true
+      "showInToday": true,
+      "defaultTime": "22:57"
     }
   ],
   "headerHighlight": {
@@ -176,7 +180,7 @@
     "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     "active": true
   },
-  "updatedAt": "2025-10-29T09:01:43.706Z",
+  "updatedAt": "2025-10-29T13:46:45.312Z",
   "banner2": [
     {
       "id": "banner2-1",
@@ -204,6 +208,60 @@
       "color": "#ffffff",
       "completeRow": false,
       "backgroundColor": "#25d366",
+      "multiColor": false,
+      "bold": true,
+      "kind": "info"
+    }
+  ],
+  "banner3": [
+    {
+      "id": "98441efe-6402-475b-baf3-c44956bc4627",
+      "text": "                                         SATTA-KING-FIXED-NO.IN\n                                                                     SATTA KING | SATTA RESULT | SATTA RECORD",
+      "color": "#fcfcfc",
+      "completeRow": true,
+      "backgroundColor": "#427ef5",
+      "multiColor": false,
+      "bold": true,
+      "gifUrl": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmZteHFmM3l5Mm8yZ2JldDZjNzN2YTVlZXJyc295Z2hoNDM2dDUwbCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/PbiP6MCW5guXTtYgJQ/giphy.gif"
+    },
+    {
+      "id": "banner3-2",
+      "text": "🎲 WIN BIG 🎲\nToday's Lucky Numbers",
+      "color": "#000000",
+      "completeRow": false,
+      "backgroundColor": "#f39c12",
+      "multiColor": false,
+      "bold": true,
+      "kind": "info"
+    }
+  ],
+  "footerBanner": [
+    {
+      "id": "footer-banner-1",
+      "text": "🏆 WINNER'S CHOICE 🏆\nTrusted by Thousands",
+      "color": "#ffffff",
+      "completeRow": true,
+      "backgroundColor": "#8e44ad",
+      "multiColor": false,
+      "bold": true,
+      "kind": "info"
+    },
+    {
+      "id": "footer-banner-2",
+      "text": "📞 CONTACT US 📞\n24/7 Support Available",
+      "color": "#000000",
+      "completeRow": false,
+      "backgroundColor": "#3498db",
+      "multiColor": false,
+      "bold": false,
+      "kind": "info"
+    },
+    {
+      "id": "footer-banner-3",
+      "text": "🔒 SECURE & SAFE 🔒\nYour Data is Protected",
+      "color": "#ffffff",
+      "completeRow": false,
+      "backgroundColor": "#27ae60",
       "multiColor": false,
       "bold": true,
       "kind": "info"
