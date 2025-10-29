@@ -27,7 +27,7 @@ export function useCombinedData(month: number, year: number) {
   const now = new Date()
   const isCurrent = year === now.getFullYear() && month === now.getMonth() + 1
 
-  return useSWR(
+  const { data, error, isLoading } = useSWR(
     ["combined", month, year],
     () => fetcher(`/api/combined?month=${month}&year=${year}`),
     {
@@ -38,6 +38,12 @@ export function useCombinedData(month: number, year: number) {
       dedupingInterval: 300_000, // 5 minute deduplication
     }
   )
+
+  return {
+    data,
+    error,
+    isLoading
+  }
 }
 
 // Legacy hooks for compatibility

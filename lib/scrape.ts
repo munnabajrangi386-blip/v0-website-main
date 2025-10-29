@@ -7,6 +7,18 @@ export type MonthlyResult = {
   rows: Array<{ day: number; values: Array<number | null> }>
 }
 
+export type LiveResult = {
+  title: string
+  time: string
+  jodi: string
+  result: string
+  status: string
+}
+
+export type LiveResults = {
+  results: LiveResult[]
+}
+
 export function parseMonthlyTable(html: string, month: number, year: number): MonthlyResult {
 
   const $ = cheerio.load(html)
@@ -71,4 +83,48 @@ export function parseMonthlyTable(html: string, month: number, year: number): Mo
 
   dataRows.sort((a, b) => a.day - b.day)
   return { month, year, columns, rows: dataRows }
+}
+
+export function parseLiveResults(html: string): LiveResults {
+  const $ = cheerio.load(html)
+  const results: LiveResult[] = []
+
+  // Find all the game cards with the correct selector
+  $('.col-6.karan').each((_, element) => {
+    const $card = $(element)
+    
+    // Get the title from the blue span
+    const title = $card.find('span[style*="color:blue"]').text().trim()
+    
+    // Get the time from the website div
+    const timeText = $card.find('.website').text().trim()
+    const time = timeText.replace('TIME- ', '')
+    
+    // Get the jodi from the green span
+    const jodiText = $card.find('span[style*="color:green"]').text().trim()
+    const jodi = jodiText.replace('🌐', '').trim()
+    
+    // Get the result from the red span
+    const resultText = $card.find('span[style*="color:red"]').text().trim()
+    
+    // Extract result from { XX } format
+    const resultMatch = resultText.match(/\{\s*(\d+)\s*\}/)
+    const result = resultMatch ? resultMatch[1] : '--'
+    
+    // Determine status based on result
+    const status = result !== '--' ? 'pass' : 'wait'
+
+    if (title && time) {
+      results.push({
+        title,
+        time,
+        jodi,
+        result,
+        status
+      })
+    }
+  })
+
+  console.log('Parsed live results:', results.length, 'items')
+  return { results }
 }

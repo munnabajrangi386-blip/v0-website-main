@@ -1,4 +1,6 @@
 import type { SiteContent, MonthlyResults, ScheduleItem, ActivityLog, MonthKey } from './types'
+import { writeFileSync, readFileSync, existsSync } from 'fs'
+import { join } from 'path'
 
 // Local fallback data for testing
 const DUMMY_CONTENT: SiteContent = {
@@ -12,6 +14,45 @@ const DUMMY_CONTENT: SiteContent = {
       id: "banner-2", 
       text: "Welcome to Satta King. Play responsibly. Avoid fraud. ✅✅✅",
       kind: "info"
+    }
+  ],
+  runningBanner: {
+    id: "running-1",
+    text: "SATTA KING, SATTAKING, SATTA RESULT, GALI RESULT, GALI SATTA, SATTA BAZAR, GALI SATTA RESULT, SATTA KING 2024 SATTA KING 2025, SATTA KING RESULT, SATTA KING UP, SATTA GAME TODAY RESULT, SATTA RESULT CHART, SATTA KING LIVE, DESAWAR SATTA, FARIDABAD SATTA, FARIDABAD RESULT, BLACK SATTA KING",
+    speed: 50,
+    active: true,
+    backgroundColor: "#dc2626", // red-600
+    textColor: "#ffffff"
+  },
+  fullWidthBanners: [
+    {
+      id: "fw-banner-1",
+      title: "आज की लीक जोड़ी यहां मिलेगी",
+      content: "FARIDABAD GAZIYABAD GALI DS - कन्फर्म गेम लेने के लिए जल्दी Telegram पे मैसेज कीजिए सिंगल जोड़ी में काम होगा fb.gb.gl.ds",
+      backgroundColor: "linear-gradient(to right, #134e4a, #0f172a)", // teal-900 to slate-900
+      textColor: "#ffffff",
+      active: true,
+      order: 1
+    },
+    {
+      id: "fw-banner-2", 
+      title: "Satta king | Satta result | सत्ता किंग",
+      content: "",
+      backgroundColor: "#fbbf24", // yellow-400
+      textColor: "#000000",
+      active: true,
+      order: 2
+    },
+    {
+      id: "fw-banner-3",
+      title: "Diwali Special Dhamaka",
+      content: "Single Jodi Mein Game Milegi Faridabad Ghaziabad Gali Disawar - Proof Ke Sath Kam Hoga Leak Jodi Milegi Head Department Se",
+      backgroundColor: "#134e4a", // teal-900
+      textColor: "#ffffff",
+      active: true,
+      order: 3,
+      showBorder: true,
+      borderColor: "#3b82f6" // blue-500
     }
   ],
   ads: [
@@ -84,18 +125,88 @@ const DUMMY_SCHEDULES: ScheduleItem[] = [
   }
 ]
 
-// Local storage simulation
+// Local storage simulation - Initialize with dummy content
 let localContent = { ...DUMMY_CONTENT }
 let localMonthlyResults = { ...DUMMY_MONTHLY_RESULTS }
 let localSchedules = [...DUMMY_SCHEDULES]
 
+// Track if content has been updated
+let contentUpdated = false
+
+// Load persisted content on startup
+function loadPersistedContent() {
+  try {
+    if (typeof window !== 'undefined') {
+      // Browser environment - use localStorage
+      const savedContent = localStorage.getItem('site-content')
+      if (savedContent) {
+        localContent = JSON.parse(savedContent)
+        contentUpdated = true
+        console.log('🌐 Loaded content from localStorage')
+      }
+    } else {
+      // Server environment - use file system
+      const contentFile = join(process.cwd(), 'content.json')
+      if (existsSync(contentFile)) {
+        const savedContent = readFileSync(contentFile, 'utf8')
+        localContent = JSON.parse(savedContent)
+        contentUpdated = true
+        console.log('📁 Loaded persisted content from file:', localContent.headerImage?.imageUrl)
+      }
+    }
+  } catch (error) {
+    console.log('No persisted content found, using default:', error.message)
+  }
+}
+
+// Initialize content on startup
+loadPersistedContent()
+
 export async function getSiteContent(): Promise<SiteContent> {
+  // Force reload from file on server to ensure fresh data
+  if (typeof window === 'undefined') {
+    try {
+      const contentFile = join(process.cwd(), 'content.json')
+      if (existsSync(contentFile)) {
+        const savedContent = readFileSync(contentFile, 'utf8')
+        const fileContent = JSON.parse(savedContent)
+        // Always load from file if it exists - file content takes precedence
+        localContent = { ...DUMMY_CONTENT, ...fileContent }
+        console.log('🔄 Loaded content from file:', localContent.runningBanner?.active, localContent.fullWidthBanners?.length)
+        console.log('📊 Banners loaded:', localContent.banners?.length, localContent.banners?.map(b => ({ id: b.id, text: b.text.substring(0, 20) + '...', completeRow: b.completeRow })))
+      }
+    } catch (error) {
+      console.log('Could not reload from file:', error.message)
+    }
+  }
+  
   return localContent
 }
 
 export async function saveSiteContent(content: SiteContent): Promise<void> {
+  // Update the in-memory content
   localContent = { ...content, updatedAt: new Date().toISOString() }
-  console.log("✅ Content saved locally:", localContent)
+  contentUpdated = true
+  
+  console.log("🔄 Saving content with header image:", localContent.headerImage?.imageUrl)
+  
+  // Persist to localStorage in browser or file system on server
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('site-content', JSON.stringify(localContent))
+      console.log('🌐 Content saved to localStorage')
+    } else {
+      // Server environment - save to file
+      const contentFile = join(process.cwd(), 'content.json')
+      writeFileSync(contentFile, JSON.stringify(localContent, null, 2))
+      console.log('💾 Content saved to file:', contentFile)
+      console.log('📸 Header image URL:', localContent.headerImage?.imageUrl)
+    }
+  } catch (error) {
+    console.log('Could not persist content:', error)
+  }
+  
+  console.log("✅ Content saved successfully")
 }
 
 export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {

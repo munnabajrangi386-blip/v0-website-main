@@ -187,3 +187,26 @@
   background: linear-gradient(to right, var(--bg-gradient-from), var(--bg-gradient-to));
   border: 3px solid var(--color-border);
 }
+
+/* Running banner animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--scroll-duration, 30s) linear infinite;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Ensure GIFs animate properly */
+img {
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}

@@ -35,9 +35,36 @@ export type HeaderHighlight = {
 export type BannerBlock = {
   id: string
   text: string
-  kind: "info" | "warning" | "success"
+  kind?: "info" | "warning" | "success" // Made optional
   color?: string // e.g. "#fff59d" or "gold"
   textColor?: "black" | "white" // default black
+  completeRow?: boolean // Toggle for full width vs button
+  backgroundColor?: string // Background color for the banner
+  multiColor?: boolean // Toggle for automatic multi-color text
+  bold?: boolean // Toggle for bold text
+  customColorPalette?: string[] // Custom color palette for multi-color text
+  gifUrl?: string // GIF URL for small inline display
+}
+
+export type RunningBanner = {
+  id: string
+  text: string
+  speed?: number // pixels per second, default 50
+  active: boolean
+  backgroundColor?: string // default red
+  textColor?: string // default white
+}
+
+export type FullWidthBanner = {
+  id: string
+  title: string
+  content: string
+  backgroundColor: string
+  textColor: string
+  active: boolean
+  order: number
+  showBorder?: boolean
+  borderColor?: string
 }
 
 export type AdItem = {
@@ -73,8 +100,22 @@ export type Category = {
   showInToday?: boolean
 }
 
+export type TextColumnLine = {
+  text: string
+  color?: string
+  size?: string
+}
+
+export type TextColumn = {
+  active: boolean
+  lines: TextColumnLine[]
+}
+
 export type SiteContent = {
   banners: BannerBlock[]
+  runningBanner?: RunningBanner
+  fullWidthBanners?: FullWidthBanner[]
+  banner2?: BannerBlock[]
   headerHighlight: HeaderHighlight
   ads: AdItem[]
   updatedAt: string
@@ -85,6 +126,8 @@ export type SiteContent = {
     alt?: string
     active: boolean
   }
+  leftTextColumn?: TextColumn
+  rightTextColumn?: TextColumn
   footerNote?: {
     text: string
     active: boolean

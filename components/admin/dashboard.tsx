@@ -1,9 +1,8 @@
 "use client"
 
-import type React from "react"
 import { useMemo, useState, useEffect } from "react"
 import useSWR from "swr"
-import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey } from "@/lib/types"
+import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey, TextColumn, TextColumnLine } from "@/lib/types"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -27,63 +26,127 @@ export default function AdminDashboard() {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
-    dedupingInterval: 10_000, // Prevent duplicate requests
+    dedupingInterval: 10_000,
   })
+  
   const content = (data?.content ?? EMPTY_CONTENT) as SiteContent
-
-  const [active, setActive] = useState<"ads" | "banners" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note">("ads")
+  
+  // Debug logging
+  useEffect(() => {
+    if (data?.content) {
+      console.log('🔍 Admin Dashboard - API Response:', {
+        bannersCount: data.content.banners?.length,
+        banners: data.content.banners?.map(b => ({ id: b.id, text: b.text.substring(0, 30) + '...', completeRow: b.completeRow }))
+      })
+    }
+  }, [data?.content])
+  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns">("ads")
   const [adsDraft, setAdsDraft] = useState(content.ads ?? [])
   const [categoriesDraft, setCategoriesDraft] = useState(content.categories ?? [])
   const [bannerText, setBannerText] = useState("")
   const [bannerColor, setBannerColor] = useState("#000000")
+  const [bannerCompleteRow, setBannerCompleteRow] = useState(false)
+  const [bannerBackgroundColor, setBannerBackgroundColor] = useState("#dc2626")
+  const [bannerMultiColor, setBannerMultiColor] = useState(false)
+  const [bannerBold, setBannerBold] = useState(false)
+  const [bannerGifUrl, setBannerGifUrl] = useState("")
   const [isSaving, setIsSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [customColorPalette, setCustomColorPalette] = useState<string[]>([]) // Store custom color palette
+  
+  // Banner2 state variables
+  const [banner2Text, setBanner2Text] = useState("")
+  const [banner2Color, setBanner2Color] = useState("#000000")
+  const [banner2CompleteRow, setBanner2CompleteRow] = useState(false)
+  const [banner2BackgroundColor, setBanner2BackgroundColor] = useState("#dc2626")
+  const [banner2MultiColor, setBanner2MultiColor] = useState(false)
+  const [banner2Bold, setBanner2Bold] = useState(false)
+  const [banner2GifUrl, setBanner2GifUrl] = useState("")
+  const [customColorPalette2, setCustomColorPalette2] = useState<string[]>([]) // Store custom color palette for banner2
+  
+  // Edit banner modal state
+  const [editingBanner, setEditingBanner] = useState<BannerBlock | null>(null)
+  const [editBannerText, setEditBannerText] = useState("")
+  const [editBannerColor, setEditBannerColor] = useState("#000000")
+  const [editBannerCompleteRow, setEditBannerCompleteRow] = useState(false)
+  const [editBannerBackgroundColor, setEditBannerBackgroundColor] = useState("#dc2626")
+  const [editBannerMultiColor, setEditBannerMultiColor] = useState(false)
+  const [editBannerBold, setEditBannerBold] = useState(false)
+  const [editBannerGifUrl, setEditBannerGifUrl] = useState("")
+  
+  // Banner2 edit modal state
+  const [editingBanner2, setEditingBanner2] = useState<BannerBlock | null>(null)
+  const [editBanner2Text, setEditBanner2Text] = useState("")
+  const [editBanner2Color, setEditBanner2Color] = useState("#000000")
+  const [editBanner2CompleteRow, setEditBanner2CompleteRow] = useState(false)
+  const [editBanner2BackgroundColor, setEditBanner2BackgroundColor] = useState("#dc2626")
+  const [editBanner2MultiColor, setEditBanner2MultiColor] = useState(false)
+  const [editBanner2Bold, setEditBanner2Bold] = useState(false)
+  const [editBanner2GifUrl, setEditBanner2GifUrl] = useState("")
+  
 
   useEffect(() => {
     if (data?.content?.ads) setAdsDraft(data.content.ads)
   }, [data?.content?.ads])
+  
   useEffect(() => {
     if (data?.content?.categories) setCategoriesDraft(data.content.categories)
   }, [data?.content?.categories])
+  
 
   async function persist(next: SiteContent) {
     setIsSaving(true)
     try {
       mutate({ content: next }, { revalidate: false })
-      const res = await fetch("/api/admin/content", {
+      const response = await fetch("/api/admin/content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),
       })
-      if (!res.ok) {
+      
+      if (!response.ok) {
         alert("Failed to save content")
-      } else {
-        const json = (await res.json()) as ContentPayload
-        mutate(json, { revalidate: false })
+        return
       }
+      
+      const result = await response.json() as ContentPayload
+      mutate(result, { revalidate: false })
+      setLastSaved(new Date())
+    } catch (error) {
+      console.error("Save error:", error)
+      alert("Failed to save content")
     } finally {
       setIsSaving(false)
     }
   }
 
-  // Ads
   async function uploadAd(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files?.[0]) return
-    const fd = new FormData()
-    fd.set("file", e.target.files[0])
-    const r = await fetch("/api/blob/upload", { method: "POST", body: fd })
-    const j = await r.json()
-    if (j?.url) {
-      const ad: AdItem = {
-        id: crypto.randomUUID(),
-        title: "New Ad",
-        imageUrl: j.url,
-        href: "",
-        active: true,
-        createdAt: new Date().toISOString(),
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    try {
+      const formData = new FormData()
+      formData.set("file", file)
+      const response = await fetch("/api/blob/upload", { method: "POST", body: formData })
+      const result = await response.json()
+      
+      if (result?.url) {
+        const ad: AdItem = {
+          id: crypto.randomUUID(),
+          title: "New Ad",
+          imageUrl: result.url,
+          href: "",
+          active: true,
+          createdAt: new Date().toISOString(),
+        }
+        setAdsDraft(prev => [ad, ...prev])
       }
-      setAdsDraft((prev) => [ad, ...prev])
+    } catch (error) {
+      console.error("Upload error:", error)
+      alert("Failed to upload image")
+    } finally {
+      e.target.value = ""
     }
-    e.target.value = ""
   }
 
   const patchAdDraft = (id: string, patch: Partial<AdItem>) =>
@@ -349,11 +412,24 @@ export default function AdminDashboard() {
       id: crypto.randomUUID(),
       text: bannerText,
       color: bannerColor,
+      completeRow: bannerCompleteRow,
+      backgroundColor: bannerBackgroundColor,
+      multiColor: bannerMultiColor,
+      bold: bannerBold,
+      gifUrl: bannerGifUrl.trim() || undefined, // Add GIF URL
+      customColorPalette: customColorPalette.length > 0 ? customColorPalette : undefined, // Add custom palette
+      kind: "info" // Default kind
     }
     const nextContent = { ...content, banners: [...(content.banners ?? []), banner] }
     persist(nextContent)
     setBannerText("")
     setBannerColor("#000000")
+    setBannerCompleteRow(false)
+    setBannerBackgroundColor("#dc2626")
+    setBannerMultiColor(false)
+    setBannerBold(false)
+    setBannerGifUrl("") // Reset GIF URL
+    setCustomColorPalette([]) // Reset custom palette
   }
 
   const removeBanner = (id: string) => {
@@ -361,36 +437,188 @@ export default function AdminDashboard() {
     persist(nextContent)
   }
 
+  const startEditBanner = (banner: BannerBlock) => {
+    setEditingBanner(banner)
+    setEditBannerText(banner.text)
+    setEditBannerColor(banner.color || "#000000")
+    setEditBannerCompleteRow(banner.completeRow || false)
+    setEditBannerBackgroundColor(banner.backgroundColor || "#dc2626")
+    setEditBannerMultiColor(banner.multiColor || false)
+    setEditBannerBold(banner.bold || false)
+    setEditBannerGifUrl(banner.gifUrl || "") // Load existing GIF URL
+    setCustomColorPalette(banner.customColorPalette || []) // Load existing custom palette
+  }
+
+  const cancelEditBanner = () => {
+    setEditingBanner(null)
+    setEditBannerText("")
+    setEditBannerColor("#000000")
+    setEditBannerCompleteRow(false)
+    setEditBannerBackgroundColor("#dc2626")
+    setEditBannerMultiColor(false)
+    setEditBannerBold(false)
+    setEditBannerGifUrl("") // Reset GIF URL
+    setCustomColorPalette([]) // Reset custom palette
+  }
+
+  const saveEditBanner = () => {
+    if (!editingBanner || !editBannerText.trim()) return
+    
+    const updatedBanner: BannerBlock = {
+      ...editingBanner,
+      text: editBannerText,
+      color: editBannerColor,
+      completeRow: editBannerCompleteRow,
+      backgroundColor: editBannerBackgroundColor,
+      multiColor: editBannerMultiColor,
+      bold: editBannerBold,
+      gifUrl: editBannerGifUrl.trim() || undefined, // Add GIF URL
+      customColorPalette: customColorPalette.length > 0 ? customColorPalette : editingBanner.customColorPalette
+    }
+    
+    const nextContent = {
+      ...content,
+      banners: (content.banners ?? []).map(b => 
+        b.id === editingBanner.id ? updatedBanner : b
+      )
+    }
+    persist(nextContent)
+    cancelEditBanner()
+  }
+
+  // Banner2 functions
+  const addBanner2 = () => {
+    if (!banner2Text.trim()) return
+    const banner: BannerBlock = {
+      id: crypto.randomUUID(),
+      text: banner2Text,
+      color: banner2Color,
+      completeRow: banner2CompleteRow,
+      backgroundColor: banner2BackgroundColor,
+      multiColor: banner2MultiColor,
+      bold: banner2Bold,
+      gifUrl: banner2GifUrl.trim() || undefined,
+      customColorPalette: customColorPalette2.length > 0 ? customColorPalette2 : undefined,
+      kind: "info"
+    }
+    const nextContent = { ...content, banner2: [...(content.banner2 ?? []), banner] }
+    persist(nextContent)
+    setBanner2Text("")
+    setBanner2Color("#000000")
+    setBanner2CompleteRow(false)
+    setBanner2BackgroundColor("#dc2626")
+    setBanner2MultiColor(false)
+    setBanner2Bold(false)
+    setBanner2GifUrl("")
+    setCustomColorPalette2([])
+  }
+
+  const removeBanner2 = (id: string) => {
+    const nextContent = { ...content, banner2: (content.banner2 ?? []).filter((b) => b.id !== id) }
+    persist(nextContent)
+  }
+
+  const startEditBanner2 = (banner: BannerBlock) => {
+    setEditingBanner2(banner)
+    setEditBanner2Text(banner.text)
+    setEditBanner2Color(banner.color || "#000000")
+    setEditBanner2CompleteRow(banner.completeRow || false)
+    setEditBanner2BackgroundColor(banner.backgroundColor || "#dc2626")
+    setEditBanner2MultiColor(banner.multiColor || false)
+    setEditBanner2Bold(banner.bold || false)
+    setEditBanner2GifUrl(banner.gifUrl || "")
+    setCustomColorPalette2(banner.customColorPalette || [])
+  }
+
+  const cancelEditBanner2 = () => {
+    setEditingBanner2(null)
+    setEditBanner2Text("")
+    setEditBanner2Color("#000000")
+    setEditBanner2CompleteRow(false)
+    setEditBanner2BackgroundColor("#dc2626")
+    setEditBanner2MultiColor(false)
+    setEditBanner2Bold(false)
+    setEditBanner2GifUrl("")
+    setCustomColorPalette2([])
+  }
+
+  const saveEditBanner2 = () => {
+    if (!editingBanner2 || !editBanner2Text.trim()) return
+    
+    const updatedBanner: BannerBlock = {
+      ...editingBanner2,
+      text: editBanner2Text,
+      color: editBanner2Color,
+      completeRow: editBanner2CompleteRow,
+      backgroundColor: editBanner2BackgroundColor,
+      multiColor: editBanner2MultiColor,
+      bold: editBanner2Bold,
+      gifUrl: editBanner2GifUrl.trim() || undefined,
+      customColorPalette: customColorPalette2.length > 0 ? customColorPalette2 : editingBanner2.customColorPalette
+    }
+    
+    const nextContent = {
+      ...content,
+      banner2: (content.banner2 ?? []).map(b => 
+        b.id === editingBanner2.id ? updatedBanner : b
+      )
+    }
+    persist(nextContent)
+    cancelEditBanner2()
+  }
+
   return (
-    <div className="flex flex-col md:grid md:grid-cols-[220px_1fr] min-h-dvh">
-      <aside className="border-b md:border-b-0 md:border-r bg-white text-black p-2 sm:p-3">
-        <div className="text-xs font-semibold mb-2">Admin</div>
-        <nav className="grid grid-cols-2 md:grid-cols-1 gap-1 text-xs">
-          {(["ads", "banners", "categories", "schedule", "scheduled", "header-image", "footer-note"] as const).map((k) => (
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+      {/* Left Sidebar - Compact */}
+      <aside className="w-full lg:w-64 bg-white border-r border-gray-200 p-4">
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-gray-900">Admin Panel</h2>
+          <p className="text-xs text-gray-500">Manage your website content</p>
+        </div>
+        
+        <nav className="space-y-2 mb-6">
+          {(["ads", "banners", "banner2", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns"] as const).map((k) => (
             <button
               key={k}
               type="button"
               onClick={() => setActive(k)}
-              className={`text-left px-2 h-8 rounded border transition-colors ${
-                active === k ? "bg-neutral-100" : "hover:bg-neutral-50"
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                active === k 
+                  ? "bg-blue-600 text-white shadow-sm" 
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              {k === "ads" && "Ads"}
-              {k === "banners" && "Banners"}
-              {k === "categories" && "Categories"}
-              {k === "schedule" && "Schedule"}
-              {k === "scheduled" && "Scheduled"}
-              {k === "header-image" && "Header Image"}
-              {k === "footer-note" && "Footer Note"}
+              {k === "ads" && "📢 Ads"}
+              {k === "banners" && "🎯 Banners"}
+              {k === "banner2" && "🎯 Banner2"}
+              {k === "categories" && "📊 Categories"}
+              {k === "schedule" && "⏰ Schedule"}
+              {k === "scheduled" && "📅 Scheduled"}
+              {k === "header-image" && "🖼️ Header Image"}
+              {k === "footer-note" && "📝 Footer Note"}
+              {k === "running-banner" && "🏃 Running Banner"}
+              {k === "text-columns" && "📝 Text Columns"}
             </button>
           ))}
         </nav>
+        
+        {/* Quick Stats - Compact */}
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="text-xs font-semibold text-gray-600 mb-2">Quick Stats</div>
+          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+            <div>Ads: {(adsDraft ?? []).length}</div>
+            <div>Banners: {(content.banners ?? []).length}</div>
+            <div>Categories: {(categoriesDraft ?? []).length}</div>
+            <div>Scheduled: {(schedData?.items ?? []).length}</div>
+          </div>
+        </div>
       </aside>
 
-      <section className="p-3 sm:p-5 bg-white text-black">
+      {/* Main Content Area - Properly Sized */}
+      <main className="flex-1 p-6 bg-gray-50 overflow-auto">
         {/* ADS */}
         {active === "ads" && (
-          <FieldSet className="max-w-4xl">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <FieldLegend>Advertisements</FieldLegend>
             <Field>
               <Label>Upload Image</Label>
@@ -447,48 +675,609 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-          </FieldSet>
+          </div>
         )}
 
         {/* BANNERS */}
         {active === "banners" && (
-          <FieldSet className="max-w-3xl">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <FieldLegend>Add Banner</FieldLegend>
-            <div className="grid gap-3 items-end sm:grid-cols-[1fr_120px]">
+            
+            {/* Banner Text */}
               <Field>
                 <Label>Banner Text</Label>
                 <FieldContent>
-                  <Input
+                <textarea
                     required
                     aria-required="true"
                     value={bannerText}
                     onChange={(e) => setBannerText(e.target.value)}
+                  placeholder="Enter banner text... Press Enter for new lines"
+                  className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                  rows={3}
                   />
                 </FieldContent>
+              <FieldDescription>
+                Press Enter to create line breaks in your banner text
+              </FieldDescription>
               </Field>
+
+            {/* Complete Row Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={bannerCompleteRow}
+                  onCheckedChange={setBannerCompleteRow}
+                />
+                <Label className="text-sm">Complete Row (Full Width)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner will span the full width of the section. When disabled, it will appear as a button.
+              </FieldDescription>
+            </Field>
+
+            {/* Background Color Selection */}
+            <Field>
+              <Label>Background Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={bannerBackgroundColor}
+                    onChange={(e) => setBannerBackgroundColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={bannerBackgroundColor}
+                    onChange={(e) => setBannerBackgroundColor(e.target.value)}
+                    placeholder="#dc2626"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Text Color Selection */}
+            <Field>
+              <Label>Text Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={bannerColor}
+                    onChange={(e) => setBannerColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={bannerColor}
+                    onChange={(e) => setBannerColor(e.target.value)}
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+                   {/* Multi-Color Text Toggle */}
+                   <Field>
+                     <div className="flex items-center gap-2">
+                       <Switch
+                         checked={bannerMultiColor}
+                         onCheckedChange={setBannerMultiColor}
+                       />
+                       <Label className="text-sm">Multi-Color Text (Auto Rainbow)</Label>
+                     </div>
+                     <FieldDescription>
+                       When enabled, text will automatically use multiple colors for visual appeal.
+                     </FieldDescription>
+                   </Field>
+
+                   {/* Refresh Colors Button */}
+                   {bannerMultiColor && (
+                     <Field>
+                       <Button
+                         type="button"
+                         variant="outline"
+                         size="sm"
+                         onClick={() => {
+                           // Generate new random colors for better visibility
+                           const newColors = [
+                             '#ff0000', '#ff4500', '#ff8c00', '#ffa500', '#ffd700',
+                             '#adff2f', '#32cd32', '#00ff7f', '#00ced1', '#1e90ff',
+                             '#4169e1', '#8a2be2', '#ff1493', '#dc143c', '#b22222',
+                             '#8b0000', '#006400', '#000080', '#800080', '#ff6347'
+                           ]
+                           // Shuffle the colors array
+                           const shuffledColors = newColors.sort(() => Math.random() - 0.5)
+                           setCustomColorPalette(shuffledColors)
+                           console.log('🎨 New color palette stored:', shuffledColors)
+                           alert(`New color palette generated! Colors will be applied when you save the banner.`)
+                         }}
+                         className="w-full"
+                       >
+                         🎨 Refresh Color Palette
+                       </Button>
+                       <FieldDescription>
+                         Click to generate new random colors for better visibility on different backgrounds.
+                       </FieldDescription>
+                     </Field>
+                   )}
+
+            {/* Bold Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={bannerBold}
+                  onCheckedChange={setBannerBold}
+                />
+                <Label className="text-sm">Bold Text</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner text will be displayed in bold.
+              </FieldDescription>
+            </Field>
+
+            {/* GIF URL Input */}
+            <Field>
+              <Label>GIF URL (Optional)</Label>
+              <FieldContent>
+                <Input
+                  value={bannerGifUrl}
+                  onChange={(e) => setBannerGifUrl(e.target.value)}
+                  placeholder="https://media.giphy.com/media/..."
+                  className="w-full"
+                />
+              </FieldContent>
+              <FieldDescription>
+                Add a GIF URL to display a small animated image next to the banner text.
+              </FieldDescription>
+            </Field>
+
+            {/* Add Button */}
+            <div className="flex justify-end">
               <Button onClick={addBanner} disabled={!bannerText.trim()}>
-                Add
+                Add Banner
               </Button>
             </div>
-            <FieldSeparator>Existing Banners</FieldSeparator>
-            <div className="grid gap-3">
-              {(content.banners ?? []).map((b) => (
-                <div key={b.id} className="border rounded p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="font-medium">{b.text}</div>
+
+            <FieldSeparator>Existing Banners ({content.banners?.length || 0} total)</FieldSeparator>
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Text Preview
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Background
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Text Color
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      GIF
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {(() => {
+                    const banners = content.banners ?? []
+                    console.log('Admin Dashboard - Rendering banners:', banners.length, banners)
+                    console.log('🔍 Table rows being rendered:', banners.map((b, i) => `Row ${i + 1}: ${b.id}`))
+                    return banners
+                  })().map((b, index) => (
+                    <tr key={b.id} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div 
+                          className="max-w-xs text-ellipsis overflow-hidden leading-tight" 
+                          style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            lineHeight: '1.2',
+                            maxHeight: '2.4em'
+                          }}
+                          title={b.text}
+                        >
+                          {b.text}
                   </div>
-                  <Button variant="destructive" onClick={() => removeBanner(b.id)}>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          b.completeRow 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {b.completeRow ? "Full Width Row" : "Button"}
+                        </span>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded border" 
+                            style={{ backgroundColor: b.backgroundColor || "#dc2626" }}
+                          ></div>
+                          <span className="text-xs font-mono">{b.backgroundColor || "#dc2626"}</span>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded border" 
+                            style={{ backgroundColor: b.color || "#000000" }}
+                          ></div>
+                          <span className="text-xs font-mono">{b.color || "#000000"}</span>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        {b.gifUrl ? (
+                          <img 
+                            src={b.gifUrl} 
+                            alt="Banner GIF" 
+                            className="w-6 h-6 object-cover rounded"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-400">No GIF</span>
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => startEditBanner(b)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => removeBanner(b.id)}
+                          >
                     Remove
                   </Button>
                 </div>
-              ))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </FieldSet>
+
+            {/* Save Button */}
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <Button 
+                  onClick={() => {
+                    setIsSaving(true)
+                    setTimeout(() => {
+                      setIsSaving(false)
+                      setLastSaved(new Date())
+                    }, 1000)
+                  }}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? "Saving..." : "Save All Changes"}
+                </Button>
+                {lastSaved && (
+                  <span className="text-xs text-gray-500">
+                    Last saved: {lastSaved.toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BANNER2 */}
+        {active === "banner2" && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Add Banner2</FieldLegend>
+            
+            {/* Banner Text */}
+            <Field>
+              <Label>Banner Text</Label>
+              <FieldContent>
+                <textarea
+                  required
+                  aria-required="true"
+                  value={banner2Text}
+                  onChange={(e) => setBanner2Text(e.target.value)}
+                  placeholder="Enter banner text... Press Enter for new lines"
+                  className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                  rows={3}
+                />
+              </FieldContent>
+              <FieldDescription>
+                Press Enter to create line breaks in your banner text
+              </FieldDescription>
+            </Field>
+
+            {/* Complete Row Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={banner2CompleteRow}
+                  onCheckedChange={setBanner2CompleteRow}
+                />
+                <Label className="text-sm">Complete Row (Full Width)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner will span the full width of the section. When disabled, it will appear as a button.
+              </FieldDescription>
+            </Field>
+
+            {/* Background Color Selection */}
+            <Field>
+              <Label>Background Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={banner2BackgroundColor}
+                    onChange={(e) => setBanner2BackgroundColor(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={banner2BackgroundColor}
+                    onChange={(e) => setBanner2BackgroundColor(e.target.value)}
+                    placeholder="#dc2626"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Text Color Selection */}
+            <Field>
+              <Label>Text Color</Label>
+              <FieldContent>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={banner2Color}
+                    onChange={(e) => setBanner2Color(e.target.value)}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={banner2Color}
+                    onChange={(e) => setBanner2Color(e.target.value)}
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Multi-Color Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={banner2MultiColor}
+                  onCheckedChange={setBanner2MultiColor}
+                />
+                <Label className="text-sm">Multi-Color Text (Auto Rainbow)</Label>
+              </div>
+              <FieldDescription>
+                When enabled, text will automatically use multiple colors for visual appeal.
+              </FieldDescription>
+            </Field>
+
+            {/* Refresh Colors Button */}
+            {banner2MultiColor && (
+              <Field>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Generate new random colors for better visibility
+                    const newColors = [
+                      '#ff0000', '#ff4500', '#ff8c00', '#ffa500', '#ffd700',
+                      '#adff2f', '#32cd32', '#00ff7f', '#00ced1', '#1e90ff',
+                      '#4169e1', '#8a2be2', '#ff1493', '#dc143c', '#b22222',
+                      '#8b0000', '#006400', '#000080', '#800080', '#ff6347'
+                    ]
+                    // Shuffle the colors array
+                    const shuffledColors = newColors.sort(() => Math.random() - 0.5)
+                    setCustomColorPalette2(shuffledColors)
+                    console.log('🎨 New color palette for banner2 stored:', shuffledColors)
+                    alert(`New color palette generated! Colors will be applied when you save the banner.`)
+                  }}
+                  className="w-full"
+                >
+                  🎨 Refresh Color Palette
+                </Button>
+                <FieldDescription>
+                  Click to generate new random colors for better visibility on different backgrounds.
+                </FieldDescription>
+              </Field>
+            )}
+
+            {/* Bold Text Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={banner2Bold}
+                  onCheckedChange={setBanner2Bold}
+                />
+                <Label className="text-sm">Bold Text</Label>
+              </div>
+              <FieldDescription>
+                When enabled, banner text will be displayed in bold.
+              </FieldDescription>
+            </Field>
+
+            {/* GIF URL Input */}
+            <Field>
+              <Label>GIF URL (Optional)</Label>
+              <FieldContent>
+                <Input
+                  value={banner2GifUrl}
+                  onChange={(e) => setBanner2GifUrl(e.target.value)}
+                  placeholder="https://media.giphy.com/media/..."
+                  className="w-full"
+                />
+              </FieldContent>
+              <FieldDescription>
+                Add a GIF URL to display a small animated image next to the banner text.
+              </FieldDescription>
+            </Field>
+
+            {/* Add Button */}
+            <div className="flex justify-end">
+              <Button onClick={addBanner2} disabled={!banner2Text.trim()}>
+                Add Banner2
+              </Button>
+            </div>
+
+            <FieldSeparator>Existing Banner2 ({content.banner2?.length || 0} total)</FieldSeparator>
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Text Preview
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Background
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Text Color
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      GIF
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {(content.banner2 ?? []).map((b) => (
+                    <tr key={b.id} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div 
+                          className="max-w-xs text-ellipsis overflow-hidden leading-tight" 
+                          style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            lineHeight: '1.2',
+                            maxHeight: '2.4em'
+                          }}
+                          title={b.text}
+                        >
+                          {b.text}
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          b.completeRow 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {b.completeRow ? "Full Width Row" : "Button"}
+                        </span>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded border" 
+                            style={{ backgroundColor: b.backgroundColor || "#dc2626" }}
+                          ></div>
+                          <span className="text-xs font-mono">{b.backgroundColor || "#dc2626"}</span>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded border" 
+                            style={{ backgroundColor: b.color || "#000000" }}
+                          ></div>
+                          <span className="text-xs font-mono">{b.color || "#000000"}</span>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        {b.gifUrl ? (
+                          <img 
+                            src={b.gifUrl} 
+                            alt="Banner GIF" 
+                            className="w-6 h-6 object-cover rounded"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-400">No GIF</span>
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => startEditBanner2(b)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => removeBanner2(b.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Save Button */}
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <Button 
+                  onClick={() => {
+                    setIsSaving(true)
+                    setTimeout(() => {
+                      setIsSaving(false)
+                      setLastSaved(new Date())
+                    }, 1000)
+                  }}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? "Saving..." : "Save All Changes"}
+                </Button>
+                {lastSaved && (
+                  <span className="text-xs text-gray-500">
+                    Last saved: {lastSaved.toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* CATEGORIES */}
         {active === "categories" && (
-          <FieldSet className="max-w-3xl">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <FieldLegend>Categories</FieldLegend>
             <FieldDescription>
               Key = machine name (e.g., ghaziabad). Label = what users see (e.g., GHAZIABAD). Changes are saved only
@@ -549,12 +1338,12 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-          </FieldSet>
+          </div>
         )}
 
         {/* SCHEDULE */}
         {active === "schedule" && (
-          <FieldSet className="max-w-3xl">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <FieldLegend>Create Schedule</FieldLegend>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field>
@@ -654,12 +1443,12 @@ export default function AdminDashboard() {
                 Run Due Now (Force)
               </Button>
             </div>
-          </FieldSet>
+          </div>
         )}
 
         {/* SCHEDULED LIST */}
         {active === "scheduled" && (
-          <FieldSet className="max-w-4xl">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <FieldLegend>Scheduled Results</FieldLegend>
             <Field>
               <Label>Search</Label>
@@ -758,47 +1547,62 @@ export default function AdminDashboard() {
               })}
               {!scheduled?.length && <div className="text-xs text-muted-foreground">No schedules.</div>}
             </div>
-          </FieldSet>
+          </div>
         )}
 
         {/* HEADER IMAGE */}
         {active === "header-image" && (
-          <FieldSet className="max-w-4xl">
-            <FieldLegend>Header Image</FieldLegend>
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Header Image Management</FieldLegend>
+            
+            {/* Current Header Image */}
             <Field>
               <Label>Current Header Image</Label>
               <FieldContent>
                 {content.headerImage?.imageUrl ? (
-                  <div className="space-y-3">
-                    <img 
-                      src={content.headerImage.imageUrl} 
-                      alt={content.headerImage.alt || "Header Image"}
-                      className="max-w-full sm:max-w-md h-auto rounded border"
-                    />
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={content.headerImage?.active || false}
-                        onCheckedChange={(checked) => {
-                          const nextContent = {
-                            ...content,
-                            headerImage: {
-                              ...content.headerImage!,
-                              active: checked
-                            }
-                          }
-                          persist(nextContent)
-                        }}
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <img 
+                        src={content.headerImage.imageUrl} 
+                        alt={content.headerImage.alt || "Header Image"}
+                        className="max-w-full sm:max-w-lg h-auto rounded border mx-auto block"
                       />
-                      <Label className="text-sm">Show on website</Label>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 flex-wrap">
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to remove the header image? This action cannot be undone.")) {
+                            const nextContent = {
+                              ...content,
+                              headerImage: null
+                            }
+                            persist(nextContent)
+                          }
+                        }}
+                      >
+                        Remove Image
+                      </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-muted-foreground">No header image set</div>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <div className="text-4xl mb-2">🖼️</div>
+                    <div className="text-sm">No header image set</div>
+                    <div className="text-xs text-gray-500 mt-1">Upload an image below to get started</div>
+                  </div>
                 )}
               </FieldContent>
             </Field>
+            
+            <FieldSeparator>Upload New Header Image</FieldSeparator>
+            
+            {/* Upload Section */}
             <Field>
-              <Label>Upload New Header Image</Label>
+              <Label>Choose Image File</Label>
               <FieldContent>
                 <input
                   type="file"
@@ -806,6 +1610,18 @@ export default function AdminDashboard() {
                   onChange={async (e) => {
                     const file = e.target.files?.[0]
                     if (!file) return
+                    
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                      alert("File size must be less than 5MB")
+                      return
+                    }
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                      alert("Please select a valid image file")
+                      return
+                    }
                     
                     const formData = new FormData()
                     formData.append("file", file)
@@ -816,6 +1632,11 @@ export default function AdminDashboard() {
                         body: formData,
                         credentials: "include",
                       })
+                      
+                      if (!res.ok) {
+                        throw new Error(`Upload failed: ${res.status}`)
+                      }
+                      
                       const { url } = await res.json()
                       
                       const nextContent = {
@@ -823,25 +1644,624 @@ export default function AdminDashboard() {
                         headerImage: {
                           id: crypto.randomUUID(),
                           imageUrl: url,
-                          alt: "Header Image",
+                          alt: file.name.replace(/\.[^/.]+$/, ""), // Use filename without extension as alt text
                           active: true
                         }
                       }
                       await persist(nextContent)
+                      
+                      // Reset file input
+                      e.target.value = ""
+                      
                     } catch (error) {
                       console.error("Upload failed:", error)
+                      alert("Failed to upload image. Please try again.")
                     }
                   }}
                   className="block w-full text-xs sm:text-sm text-gray-500 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
+                <FieldDescription>
+                  Supported formats: JPG, PNG, GIF, WebP. Maximum file size: 5MB.
+                </FieldDescription>
               </FieldContent>
             </Field>
-          </FieldSet>
+            
+            {/* Save Changes Button */}
+            <div className="mt-4">
+              <Button 
+                onClick={() => {
+                  // Force save current state
+                  persist(content)
+                }}
+                disabled={isSaving}
+                className={isSaving ? "bg-green-600 hover:bg-green-700" : ""}
+              >
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* RUNNING BANNER */}
+        {active === "running-banner" && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Running Banner Management</FieldLegend>
+            
+            {/* Banner Text */}
+            <Field>
+              <Label>Banner Text</Label>
+              <FieldContent>
+                <textarea
+                  value={content.runningBanner?.text || ""}
+                  onChange={(e) => {
+                    const nextContent = {
+                      ...content,
+                      runningBanner: {
+                        ...content.runningBanner,
+                        id: content.runningBanner?.id || "running-1",
+                        text: e.target.value,
+                        speed: content.runningBanner?.speed || 30,
+                        active: content.runningBanner?.active || false,
+                        backgroundColor: content.runningBanner?.backgroundColor || "#dc2626",
+                        textColor: content.runningBanner?.textColor || "#ffffff"
+                      }
+                    }
+                    persist(nextContent)
+                  }}
+                  placeholder="Enter running banner text..."
+                  className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                />
+                <FieldDescription>
+                  This text will scroll across the top of the page
+                </FieldDescription>
+              </FieldContent>
+            </Field>
+
+            {/* Speed Control */}
+            <Field>
+              <Label>Scroll Speed (seconds)</Label>
+              <FieldContent>
+                <Input
+                  type="number"
+                  min="5"
+                  max="120"
+                  value={content.runningBanner?.speed || 30}
+                  onChange={(e) => {
+                    const speed = Math.max(5, Math.min(120, parseInt(e.target.value) || 30))
+                    const nextContent = {
+                      ...content,
+                      runningBanner: {
+                        ...content.runningBanner,
+                        id: content.runningBanner?.id || "running-1",
+                        text: content.runningBanner?.text || "",
+                        speed: speed,
+                        active: content.runningBanner?.active || false,
+                        backgroundColor: content.runningBanner?.backgroundColor || "#dc2626",
+                        textColor: content.runningBanner?.textColor || "#ffffff"
+                      }
+                    }
+                    persist(nextContent)
+                  }}
+                  className="w-24"
+                />
+                <FieldDescription>
+                  Lower values = faster scrolling (5-120 seconds)
+                </FieldDescription>
+              </FieldContent>
+            </Field>
+
+            {/* Background Color */}
+            <Field>
+              <Label>Background Color</Label>
+              <FieldContent>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="color"
+                    value={content.runningBanner?.backgroundColor || "#dc2626"}
+                    onChange={(e) => {
+                      const nextContent = {
+                        ...content,
+                        runningBanner: {
+                          ...content.runningBanner,
+                          id: content.runningBanner?.id || "running-1",
+                          text: content.runningBanner?.text || "",
+                          speed: content.runningBanner?.speed || 30,
+                          active: content.runningBanner?.active || false,
+                          backgroundColor: e.target.value,
+                          textColor: content.runningBanner?.textColor || "#ffffff"
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={content.runningBanner?.backgroundColor || "#dc2626"}
+                    onChange={(e) => {
+                      const nextContent = {
+                        ...content,
+                        runningBanner: {
+                          ...content.runningBanner,
+                          id: content.runningBanner?.id || "running-1",
+                          text: content.runningBanner?.text || "",
+                          speed: content.runningBanner?.speed || 30,
+                          active: content.runningBanner?.active || false,
+                          backgroundColor: e.target.value,
+                          textColor: content.runningBanner?.textColor || "#ffffff"
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                    placeholder="#dc2626"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Text Color */}
+            <Field>
+              <Label>Text Color</Label>
+              <FieldContent>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="color"
+                    value={content.runningBanner?.textColor || "#ffffff"}
+                    onChange={(e) => {
+                      const nextContent = {
+                        ...content,
+                        runningBanner: {
+                          ...content.runningBanner,
+                          id: content.runningBanner?.id || "running-1",
+                          text: content.runningBanner?.text || "",
+                          speed: content.runningBanner?.speed || 30,
+                          active: content.runningBanner?.active || false,
+                          backgroundColor: content.runningBanner?.backgroundColor || "#dc2626",
+                          textColor: e.target.value
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                    className="w-16 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={content.runningBanner?.textColor || "#ffffff"}
+                    onChange={(e) => {
+                      const nextContent = {
+                        ...content,
+                        runningBanner: {
+                          ...content.runningBanner,
+                          id: content.runningBanner?.id || "running-1",
+                          text: content.runningBanner?.text || "",
+                          speed: content.runningBanner?.speed || 30,
+                          active: content.runningBanner?.active || false,
+                          backgroundColor: content.runningBanner?.backgroundColor || "#dc2626",
+                          textColor: e.target.value
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                    placeholder="#ffffff"
+                    className="flex-1"
+                  />
+                </div>
+              </FieldContent>
+            </Field>
+
+            {/* Active Toggle */}
+            <Field>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={content.runningBanner?.active || false}
+                  onCheckedChange={(checked) => {
+                    const nextContent = {
+                      ...content,
+                      runningBanner: {
+                        ...content.runningBanner,
+                        id: content.runningBanner?.id || "running-1",
+                        text: content.runningBanner?.text || "",
+                        speed: content.runningBanner?.speed || 30,
+                        active: checked,
+                        backgroundColor: content.runningBanner?.backgroundColor || "#dc2626",
+                        textColor: content.runningBanner?.textColor || "#ffffff"
+                      }
+                    }
+                    persist(nextContent)
+                  }}
+                />
+                <Label className="text-sm">Show running banner on website</Label>
+              </div>
+            </Field>
+
+            {/* Save Button */}
+            <div className="mt-6">
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={() => {
+                    // Force save current running banner state
+                    persist(content)
+                  }}
+                  disabled={isSaving}
+                  className={isSaving ? "bg-green-600 hover:bg-green-700" : ""}
+                >
+                  {isSaving ? "Saving..." : "Save Running Banner Changes"}
+                </Button>
+                {lastSaved && (
+                  <div className="text-sm text-green-600 flex items-center gap-1">
+                    <span>✓</span>
+                    <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+                  </div>
+                )}
+              </div>
+              <FieldDescription className="mt-2">
+                Changes are automatically saved as you type, but you can also save manually here. 
+                Changes are published to the website immediately.
+              </FieldDescription>
+            </div>
+
+            {/* Preview */}
+            {content.runningBanner?.active && content.runningBanner?.text && (
+              <FieldSeparator>Preview</FieldSeparator>
+            )}
+            {content.runningBanner?.active && content.runningBanner?.text && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div 
+                  className="w-full py-2 overflow-hidden rounded"
+                  style={{
+                    backgroundColor: content.runningBanner.backgroundColor,
+                    color: content.runningBanner.textColor,
+                    '--scroll-duration': `${content.runningBanner.speed || 30}s`
+                  } as React.CSSProperties}
+                >
+                  <div 
+                    className="animate-scroll whitespace-nowrap font-bold"
+                    style={{
+                      animationDuration: `${content.runningBanner.speed || 30}s`
+                    }}
+                  >
+                    {content.runningBanner.text}
+                  </div>
+                </div>
+                <FieldDescription className="mt-2">
+                  This is how the running banner will appear on your website
+                </FieldDescription>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TEXT COLUMNS */}
+        {active === "text-columns" && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <FieldLegend>Header Text Columns Management</FieldLegend>
+            
+            {/* Left Text Column */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">Left Text Column</h3>
+              <Field>
+                <div className="flex items-center gap-2 mb-4">
+                  <Switch
+                    checked={content.leftTextColumn?.active || false}
+                    onCheckedChange={(checked) => {
+                      const nextContent = {
+                        ...content,
+                        leftTextColumn: {
+                          ...content.leftTextColumn,
+                          active: checked,
+                          lines: content.leftTextColumn?.lines || []
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                  />
+                  <Label className="text-sm">Show left text column</Label>
+                </div>
+              </Field>
+              
+              {content.leftTextColumn?.active && (
+                <div className="space-y-4">
+                  {content.leftTextColumn.lines?.map((line: TextColumnLine, index: number) => (
+                    <div key={index} className="border rounded p-4 bg-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Field>
+                          <Label>Text</Label>
+                          <FieldContent>
+                            <Input
+                              value={line.text}
+                              onChange={(e) => {
+                                const newLines = [...(content.leftTextColumn?.lines || [])]
+                                newLines[index] = { ...line, text: e.target.value }
+                                const nextContent = {
+                                  ...content,
+                                  leftTextColumn: {
+                                    ...content.leftTextColumn,
+                                    lines: newLines
+                                  }
+                                }
+                                persist(nextContent)
+                              }}
+                              placeholder="Enter text..."
+                            />
+                          </FieldContent>
+                        </Field>
+                        <Field>
+                          <Label>Color</Label>
+                          <FieldContent>
+                            <div className="flex gap-2">
+                              <Input
+                                type="color"
+                                value={line.color || "#000000"}
+                                onChange={(e) => {
+                                  const newLines = [...(content.leftTextColumn?.lines || [])]
+                                  newLines[index] = { ...line, color: e.target.value }
+                                  const nextContent = {
+                                    ...content,
+                                    leftTextColumn: {
+                                      ...content.leftTextColumn,
+                                      lines: newLines
+                                    }
+                                  }
+                                  persist(nextContent)
+                                }}
+                                className="w-16 h-10 p-1 border rounded"
+                              />
+                              <Input
+                                value={line.color || "#000000"}
+                                onChange={(e) => {
+                                  const newLines = [...(content.leftTextColumn?.lines || [])]
+                                  newLines[index] = { ...line, color: e.target.value }
+                                  const nextContent = {
+                                    ...content,
+                                    leftTextColumn: {
+                                      ...content.leftTextColumn,
+                                      lines: newLines
+                                    }
+                                  }
+                                  persist(nextContent)
+                                }}
+                                placeholder="#000000"
+                                className="flex-1"
+                              />
+                            </div>
+                          </FieldContent>
+                        </Field>
+                        <Field>
+                          <Label>Size</Label>
+                          <FieldContent>
+                            <select
+                              value={line.size || "text-lg"}
+                              onChange={(e) => {
+                                const newLines = [...(content.leftTextColumn?.lines || [])]
+                                newLines[index] = { ...line, size: e.target.value }
+                                const nextContent = {
+                                  ...content,
+                                  leftTextColumn: {
+                                    ...content.leftTextColumn,
+                                    lines: newLines
+                                  }
+                                }
+                                persist(nextContent)
+                              }}
+                              className="w-full h-9 rounded border px-2"
+                            >
+                              <option value="text-xs">Extra Small</option>
+                              <option value="text-sm">Small</option>
+                              <option value="text-base">Base</option>
+                              <option value="text-lg">Large</option>
+                              <option value="text-xl">Extra Large</option>
+                              <option value="text-2xl">2X Large</option>
+                            </select>
+                          </FieldContent>
+                        </Field>
+                      </div>
+                      <div className="mt-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const newLines = (content.leftTextColumn?.lines || []).filter((_, i) => i !== index)
+                            const nextContent = {
+                              ...content,
+                              leftTextColumn: {
+                                ...content.leftTextColumn,
+                                lines: newLines
+                              }
+                            }
+                            persist(nextContent)
+                          }}
+                        >
+                          Remove Line
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    onClick={() => {
+                      const newLines = [...(content.leftTextColumn?.lines || []), { text: "", color: "#000000", size: "text-lg" }]
+                      const nextContent = {
+                        ...content,
+                        leftTextColumn: {
+                          ...content.leftTextColumn,
+                          lines: newLines
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                    className="w-full"
+                  >
+                    Add New Line
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <FieldSeparator />
+
+            {/* Right Text Column */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Right Text Column</h3>
+              <Field>
+                <div className="flex items-center gap-2 mb-4">
+                  <Switch
+                    checked={content.rightTextColumn?.active || false}
+                    onCheckedChange={(checked) => {
+                      const nextContent = {
+                        ...content,
+                        rightTextColumn: {
+                          ...content.rightTextColumn,
+                          active: checked,
+                          lines: content.rightTextColumn?.lines || []
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                  />
+                  <Label className="text-sm">Show right text column</Label>
+                </div>
+              </Field>
+              
+              {content.rightTextColumn?.active && (
+                <div className="space-y-4">
+                  {content.rightTextColumn.lines?.map((line: TextColumnLine, index: number) => (
+                    <div key={index} className="border rounded p-4 bg-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Field>
+                          <Label>Text</Label>
+                          <FieldContent>
+                            <Input
+                              value={line.text}
+                              onChange={(e) => {
+                                const newLines = [...(content.rightTextColumn?.lines || [])]
+                                newLines[index] = { ...line, text: e.target.value }
+                                const nextContent = {
+                                  ...content,
+                                  rightTextColumn: {
+                                    ...content.rightTextColumn,
+                                    lines: newLines
+                                  }
+                                }
+                                persist(nextContent)
+                              }}
+                              placeholder="Enter text..."
+                            />
+                          </FieldContent>
+                        </Field>
+                        <Field>
+                          <Label>Color</Label>
+                          <FieldContent>
+                            <div className="flex gap-2">
+                              <Input
+                                type="color"
+                                value={line.color || "#000000"}
+                                onChange={(e) => {
+                                  const newLines = [...(content.rightTextColumn?.lines || [])]
+                                  newLines[index] = { ...line, color: e.target.value }
+                                  const nextContent = {
+                                    ...content,
+                                    rightTextColumn: {
+                                      ...content.rightTextColumn,
+                                      lines: newLines
+                                    }
+                                  }
+                                  persist(nextContent)
+                                }}
+                                className="w-16 h-10 p-1 border rounded"
+                              />
+                              <Input
+                                value={line.color || "#000000"}
+                                onChange={(e) => {
+                                  const newLines = [...(content.rightTextColumn?.lines || [])]
+                                  newLines[index] = { ...line, color: e.target.value }
+                                  const nextContent = {
+                                    ...content,
+                                    rightTextColumn: {
+                                      ...content.rightTextColumn,
+                                      lines: newLines
+                                    }
+                                  }
+                                  persist(nextContent)
+                                }}
+                                placeholder="#000000"
+                                className="flex-1"
+                              />
+                            </div>
+                          </FieldContent>
+                        </Field>
+                        <Field>
+                          <Label>Size</Label>
+                          <FieldContent>
+                            <select
+                              value={line.size || "text-lg"}
+                              onChange={(e) => {
+                                const newLines = [...(content.rightTextColumn?.lines || [])]
+                                newLines[index] = { ...line, size: e.target.value }
+                                const nextContent = {
+                                  ...content,
+                                  rightTextColumn: {
+                                    ...content.rightTextColumn,
+                                    lines: newLines
+                                  }
+                                }
+                                persist(nextContent)
+                              }}
+                              className="w-full h-9 rounded border px-2"
+                            >
+                              <option value="text-xs">Extra Small</option>
+                              <option value="text-sm">Small</option>
+                              <option value="text-base">Base</option>
+                              <option value="text-lg">Large</option>
+                              <option value="text-xl">Extra Large</option>
+                              <option value="text-2xl">2X Large</option>
+                            </select>
+                          </FieldContent>
+                        </Field>
+                      </div>
+                      <div className="mt-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const newLines = (content.rightTextColumn?.lines || []).filter((_, i) => i !== index)
+                            const nextContent = {
+                              ...content,
+                              rightTextColumn: {
+                                ...content.rightTextColumn,
+                                lines: newLines
+                              }
+                            }
+                            persist(nextContent)
+                          }}
+                        >
+                          Remove Line
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    onClick={() => {
+                      const newLines = [...(content.rightTextColumn?.lines || []), { text: "", color: "#000000", size: "text-lg" }]
+                      const nextContent = {
+                        ...content,
+                        rightTextColumn: {
+                          ...content.rightTextColumn,
+                          lines: newLines
+                        }
+                      }
+                      persist(nextContent)
+                    }}
+                    className="w-full"
+                  >
+                    Add New Line
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* FOOTER NOTE */}
         {active === "footer-note" && (
-          <FieldSet className="max-w-4xl">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <FieldLegend>Footer Note</FieldLegend>
             <Field>
               <Label>Footer Text</Label>
@@ -881,9 +2301,359 @@ export default function AdminDashboard() {
                 <Label className="text-sm">Show on website</Label>
               </div>
             </Field>
-          </FieldSet>
+          </div>
         )}
-      </section>
+      </main>
+
+      {/* Edit Banner Modal */}
+      {editingBanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Edit Banner</h3>
+              
+              {/* Banner Text */}
+              <Field>
+                <Label>Banner Text</Label>
+                <FieldContent>
+                  <textarea
+                    required
+                    aria-required="true"
+                    value={editBannerText}
+                    onChange={(e) => setEditBannerText(e.target.value)}
+                    placeholder="Enter banner text... Press Enter for new lines"
+                    className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                    rows={3}
+                  />
+                </FieldContent>
+                <FieldDescription>
+                  Press Enter to create line breaks in your banner text
+                </FieldDescription>
+              </Field>
+
+              {/* Complete Row Toggle */}
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={editBannerCompleteRow}
+                    onCheckedChange={setEditBannerCompleteRow}
+                  />
+                  <Label className="text-sm">Complete Row (Full Width)</Label>
+                </div>
+                <FieldDescription>
+                  When enabled, banner will span the full width of the section. When disabled, it will appear as a button.
+                </FieldDescription>
+              </Field>
+
+              {/* Background Color Selection */}
+              <Field>
+                <Label>Background Color</Label>
+                <FieldContent>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={editBannerBackgroundColor}
+                      onChange={(e) => setEditBannerBackgroundColor(e.target.value)}
+                      className="w-16 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={editBannerBackgroundColor}
+                      onChange={(e) => setEditBannerBackgroundColor(e.target.value)}
+                      placeholder="#dc2626"
+                      className="flex-1"
+                    />
+                  </div>
+                </FieldContent>
+              </Field>
+
+              {/* Text Color Selection */}
+              <Field>
+                <Label>Text Color</Label>
+                <FieldContent>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={editBannerColor}
+                      onChange={(e) => setEditBannerColor(e.target.value)}
+                      className="w-16 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={editBannerColor}
+                      onChange={(e) => setEditBannerColor(e.target.value)}
+                      placeholder="#000000"
+                      className="flex-1"
+                    />
+                  </div>
+                </FieldContent>
+              </Field>
+
+                     {/* Multi-Color Text Toggle */}
+                     <Field>
+                       <div className="flex items-center gap-2">
+                         <Switch
+                           checked={editBannerMultiColor}
+                           onCheckedChange={setEditBannerMultiColor}
+                         />
+                         <Label className="text-sm">Multi-Color Text (Auto Rainbow)</Label>
+                       </div>
+                       <FieldDescription>
+                         When enabled, text will automatically use multiple colors for visual appeal.
+                       </FieldDescription>
+                     </Field>
+
+                     {/* Refresh Colors Button */}
+                     {editBannerMultiColor && (
+                       <Field>
+                         <Button
+                           type="button"
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             // Generate new random colors for better visibility
+                             const newColors = [
+                               '#ff0000', '#ff4500', '#ff8c00', '#ffa500', '#ffd700',
+                               '#adff2f', '#32cd32', '#00ff7f', '#00ced1', '#1e90ff',
+                               '#4169e1', '#8a2be2', '#ff1493', '#dc143c', '#b22222',
+                               '#8b0000', '#006400', '#000080', '#800080', '#ff6347'
+                             ]
+                             // Shuffle the colors array
+                             const shuffledColors = newColors.sort(() => Math.random() - 0.5)
+                             setCustomColorPalette(shuffledColors)
+                             console.log('🎨 New color palette for edit stored:', shuffledColors)
+                             alert(`New color palette generated! Colors will be applied when you save the banner.`)
+                           }}
+                           className="w-full"
+                         >
+                           🎨 Refresh Color Palette
+                         </Button>
+                         <FieldDescription>
+                           Click to generate new random colors for better visibility on different backgrounds.
+                         </FieldDescription>
+                       </Field>
+                     )}
+
+              {/* Bold Text Toggle */}
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={editBannerBold}
+                    onCheckedChange={setEditBannerBold}
+                  />
+                  <Label className="text-sm">Bold Text</Label>
+                </div>
+                <FieldDescription>
+                  When enabled, banner text will be displayed in bold.
+                </FieldDescription>
+              </Field>
+
+              {/* GIF URL Input */}
+              <Field>
+                <Label>GIF URL (Optional)</Label>
+                <FieldContent>
+                  <Input
+                    value={editBannerGifUrl}
+                    onChange={(e) => setEditBannerGifUrl(e.target.value)}
+                    placeholder="https://media.giphy.com/media/..."
+                    className="w-full"
+                  />
+                </FieldContent>
+                <FieldDescription>
+                  Add a GIF URL to display a small animated image next to the banner text.
+                </FieldDescription>
+              </Field>
+
+              {/* Modal Actions */}
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                <Button variant="outline" onClick={cancelEditBanner}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={saveEditBanner} 
+                  disabled={!editBannerText.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Banner2 Modal */}
+      {editingBanner2 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Edit Banner2</h3>
+              
+              {/* Banner Text */}
+              <Field>
+                <Label>Banner Text</Label>
+                <FieldContent>
+                  <textarea
+                    required
+                    aria-required="true"
+                    value={editBanner2Text}
+                    onChange={(e) => setEditBanner2Text(e.target.value)}
+                    placeholder="Enter banner text... Press Enter for new lines"
+                    className="w-full min-h-[80px] p-2 sm:p-3 border rounded-md resize-vertical text-sm sm:text-base"
+                    rows={3}
+                  />
+                </FieldContent>
+                <FieldDescription>
+                  Press Enter to create line breaks in your banner text
+                </FieldDescription>
+              </Field>
+
+              {/* Complete Row Toggle */}
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={editBanner2CompleteRow}
+                    onCheckedChange={setEditBanner2CompleteRow}
+                  />
+                  <Label className="text-sm">Complete Row (Full Width)</Label>
+                </div>
+                <FieldDescription>
+                  When enabled, banner will span the full width of the section. When disabled, it will appear as a button.
+                </FieldDescription>
+              </Field>
+
+              {/* Background Color Selection */}
+              <Field>
+                <Label>Background Color</Label>
+                <FieldContent>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={editBanner2BackgroundColor}
+                      onChange={(e) => setEditBanner2BackgroundColor(e.target.value)}
+                      className="w-16 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={editBanner2BackgroundColor}
+                      onChange={(e) => setEditBanner2BackgroundColor(e.target.value)}
+                      placeholder="#dc2626"
+                      className="flex-1"
+                    />
+                  </div>
+                </FieldContent>
+              </Field>
+
+              {/* Text Color Selection */}
+              <Field>
+                <Label>Text Color</Label>
+                <FieldContent>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={editBanner2Color}
+                      onChange={(e) => setEditBanner2Color(e.target.value)}
+                      className="w-16 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={editBanner2Color}
+                      onChange={(e) => setEditBanner2Color(e.target.value)}
+                      placeholder="#000000"
+                      className="flex-1"
+                    />
+                  </div>
+                </FieldContent>
+              </Field>
+
+              {/* Multi-Color Text Toggle */}
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={editBanner2MultiColor}
+                    onCheckedChange={setEditBanner2MultiColor}
+                  />
+                  <Label className="text-sm">Multi-Color Text (Auto Rainbow)</Label>
+                </div>
+                <FieldDescription>
+                  When enabled, text will automatically use multiple colors for visual appeal.
+                </FieldDescription>
+              </Field>
+
+              {/* Refresh Colors Button */}
+              {editBanner2MultiColor && (
+                <Field>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Generate new random colors for better visibility
+                      const newColors = [
+                        '#ff0000', '#ff4500', '#ff8c00', '#ffa500', '#ffd700',
+                        '#adff2f', '#32cd32', '#00ff7f', '#00ced1', '#1e90ff',
+                        '#4169e1', '#8a2be2', '#ff1493', '#dc143c', '#b22222',
+                        '#8b0000', '#006400', '#000080', '#800080', '#ff6347'
+                      ]
+                      // Shuffle the colors array
+                      const shuffledColors = newColors.sort(() => Math.random() - 0.5)
+                      setCustomColorPalette2(shuffledColors)
+                      console.log('🎨 New color palette for edit banner2 stored:', shuffledColors)
+                      alert(`New color palette generated! Colors will be applied when you save the banner.`)
+                    }}
+                    className="w-full"
+                  >
+                    🎨 Refresh Color Palette
+                  </Button>
+                  <FieldDescription>
+                    Click to generate new random colors for better visibility on different backgrounds.
+                  </FieldDescription>
+                </Field>
+              )}
+
+              {/* Bold Text Toggle */}
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={editBanner2Bold}
+                    onCheckedChange={setEditBanner2Bold}
+                  />
+                  <Label className="text-sm">Bold Text</Label>
+                </div>
+                <FieldDescription>
+                  When enabled, banner text will be displayed in bold.
+                </FieldDescription>
+              </Field>
+
+              {/* GIF URL Input */}
+              <Field>
+                <Label>GIF URL (Optional)</Label>
+                <FieldContent>
+                  <Input
+                    value={editBanner2GifUrl}
+                    onChange={(e) => setEditBanner2GifUrl(e.target.value)}
+                    placeholder="https://media.giphy.com/media/..."
+                    className="w-full"
+                  />
+                </FieldContent>
+                <FieldDescription>
+                  Add a GIF URL to display a small animated image next to the banner text.
+                </FieldDescription>
+              </Field>
+
+              {/* Modal Actions */}
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                <Button variant="outline" onClick={cancelEditBanner2}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={saveEditBanner2} 
+                  disabled={!editBanner2Text.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

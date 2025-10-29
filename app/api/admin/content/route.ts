@@ -8,7 +8,13 @@ import type { SiteContent } from "@/lib/types"
 export async function GET() {
   await requireAuth() // enforce auth by awaiting (throws/short-circuits if unauthorized)
   const content = await getSiteContent()
-  return NextResponse.json({ content }, { headers: { "Cache-Control": "no-store" } })
+  return NextResponse.json({ content }, { 
+    headers: { 
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0"
+    } 
+  })
 }
 
 export async function POST(req: Request) {
@@ -16,7 +22,13 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as SiteContent
     await saveSiteContent(body)
-    return NextResponse.json({ content: body }, { headers: { "Cache-Control": "no-store" } })
+    return NextResponse.json({ content: body }, { 
+      headers: { 
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+      } 
+    })
   } catch (err: any) {
     return NextResponse.json(
       { error: "Unable to save content. Please try again.", detail: err?.message },
