@@ -130,7 +130,7 @@ export function parseLiveResults(html: string): LiveResults {
     }
   })
 
-  console.log('Parsed live results:', results.length, 'items')
+  // Live results parsed successfully
   return { results }
 }
 
@@ -197,6 +197,6 @@ export function parseLiveResultsFast(html: string): LiveResults {
     }
   })
 
-  console.log('Parsed live results from satta-king-fast.com:', results.length, 'items')
+  // Live results from satta-king-fast.com parsed successfully
   return { results }
 }

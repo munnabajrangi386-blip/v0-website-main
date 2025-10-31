@@ -34,13 +34,10 @@ export default function AdminDashboard() {
   // Debug logging
   useEffect(() => {
     if (data?.content) {
-      console.log('🔍 Admin Dashboard - API Response:', {
-        bannersCount: data.content.banners?.length,
-        banners: data.content.banners?.map(b => ({ id: b.id, text: b.text.substring(0, 30) + '...', completeRow: b.completeRow }))
-      })
+      // Admin dashboard data loaded successfully
     }
   }, [data?.content])
-  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "banner3" | "footer-banner" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns" | "scraper-config" | "live-schedules">("ads")
+  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "banner3" | "footer-banner" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns" | "live-schedules">("ads")
   const [adsDraft, setAdsDraft] = useState(content.ads ?? [])
   const [categoriesDraft, setCategoriesDraft] = useState(content.categories ?? [])
   const [bannerText, setBannerText] = useState("")
@@ -84,53 +81,6 @@ export default function AdminDashboard() {
   const [footerBannerGifUrl, setFooterBannerGifUrl] = useState("")
   const [customColorPaletteFooter, setCustomColorPaletteFooter] = useState<string[]>([]) // Store custom color palette for footer banner
   
-  // Scraper configuration state
-  const [useFastScraper, setUseFastScraper] = useState(content.scraperConfig?.useFastScraper || false)
-  const [fastScraperUrl, setFastScraperUrl] = useState(content.scraperConfig?.fastScraperUrl || "https://satta-king-fast.com/")
-  const [originalScraperUrl, setOriginalScraperUrl] = useState(content.scraperConfig?.originalScraperUrl || "https://neghaziabad.com/")
-  
-  // Edit banner modal state
-  const [editingBanner, setEditingBanner] = useState<BannerBlock | null>(null)
-  const [editBannerText, setEditBannerText] = useState("")
-  const [editBannerColor, setEditBannerColor] = useState("#000000")
-  const [editBannerCompleteRow, setEditBannerCompleteRow] = useState(false)
-  const [editBannerBackgroundColor, setEditBannerBackgroundColor] = useState("#dc2626")
-  const [editBannerMultiColor, setEditBannerMultiColor] = useState(false)
-  const [editBannerBold, setEditBannerBold] = useState(false)
-  const [editBannerGifUrl, setEditBannerGifUrl] = useState("")
-  
-  // Banner2 edit modal state
-  const [editingBanner2, setEditingBanner2] = useState<BannerBlock | null>(null)
-  const [editBanner2Text, setEditBanner2Text] = useState("")
-  const [editBanner2Color, setEditBanner2Color] = useState("#000000")
-  const [editBanner2CompleteRow, setEditBanner2CompleteRow] = useState(false)
-  const [editBanner2BackgroundColor, setEditBanner2BackgroundColor] = useState("#dc2626")
-  const [editBanner2MultiColor, setEditBanner2MultiColor] = useState(false)
-  const [editBanner2Bold, setEditBanner2Bold] = useState(false)
-  const [editBanner2GifUrl, setEditBanner2GifUrl] = useState("")
-  
-  // Banner3 edit modal state
-  const [editingBanner3, setEditingBanner3] = useState<BannerBlock | null>(null)
-  const [editBanner3Text, setEditBanner3Text] = useState("")
-  const [editBanner3Color, setEditBanner3Color] = useState("#000000")
-  const [editBanner3CompleteRow, setEditBanner3CompleteRow] = useState(false)
-  const [editBanner3BackgroundColor, setEditBanner3BackgroundColor] = useState("#f3f4f6")
-  const [editBanner3MultiColor, setEditBanner3MultiColor] = useState(false)
-  const [editBanner3Bold, setEditBanner3Bold] = useState(false)
-  const [editBanner3GifUrl, setEditBanner3GifUrl] = useState("")
-  const [editCustomColorPalette3, setEditCustomColorPalette3] = useState<string[]>([])
-
-  // Footer Banner edit modal state
-  const [editingFooterBanner, setEditingFooterBanner] = useState<BannerBlock | null>(null)
-  const [editFooterBannerText, setEditFooterBannerText] = useState("")
-  const [editFooterBannerColor, setEditFooterBannerColor] = useState("#000000")
-  const [editFooterBannerCompleteRow, setEditFooterBannerCompleteRow] = useState(false)
-  const [editFooterBannerBackgroundColor, setEditFooterBannerBackgroundColor] = useState("#f3f4f6")
-  const [editFooterBannerMultiColor, setEditFooterBannerMultiColor] = useState(false)
-  const [editFooterBannerBold, setEditFooterBannerBold] = useState(false)
-  const [editFooterBannerGifUrl, setEditFooterBannerGifUrl] = useState("")
-  const [editCustomColorPaletteFooter, setEditCustomColorPaletteFooter] = useState<string[]>([])
-  
   // Live Schedules state
   const [liveSchedules, setLiveSchedules] = useState<LiveSchedule[]>([])
   const [newScheduleCategory, setNewScheduleCategory] = useState("GHAZIABAD1")
@@ -142,6 +92,11 @@ export default function AdminDashboard() {
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
   const [editCategoryLabel, setEditCategoryLabel] = useState("")
   const [editCategoryDefaultTime, setEditCategoryDefaultTime] = useState("")
+
+  const [editingBanner, setEditingBanner] = useState<BannerBlock | null>(null)
+  const [editingBanner2, setEditingBanner2] = useState<BannerBlock | null>(null)
+  const [editingBanner3, setEditingBanner3] = useState<BannerBlock | null>(null)
+  const [editingFooterBanner, setEditingFooterBanner] = useState<BannerBlock | null>(null)
 
   useEffect(() => {
     if (data?.content?.ads) setAdsDraft(data.content.ads)
@@ -388,14 +343,14 @@ export default function AdminDashboard() {
   }
 
 
-  // Scheduled list + search
+  // Scheduled list + search - refresh every 10 seconds to catch executed schedules
   const { data: schedData, mutate: schedMutate } = useSWR<{ items: ScheduleItem[] }>("/api/admin/schedules", fetcher, {
-    refreshInterval: 0,
-    revalidateOnFocus: false,
+    refreshInterval: 10000, // Refresh every 10 seconds
+    revalidateOnFocus: true, // Refresh when window regains focus
     dedupingInterval: 5_000, // Prevent duplicate requests
   })
 
-  // Removed console.log for performance
+  // Performance optimized
 
   const [search, setSearch] = useState("")
   const [editId, setEditId] = useState<string | null>(null)
@@ -934,7 +889,7 @@ export default function AdminDashboard() {
       multiColor: editFooterBannerMultiColor,
       bold: editFooterBannerBold,
       gifUrl: editFooterBannerGifUrl.trim() || undefined,
-      customColorPalette: customColorPaletteFooter.length > 0 ? customColorPaletteFooter : editingFooterBanner.customColorPalette
+      customColorPalette: editCustomColorPaletteFooter.length > 0 ? editCustomColorPaletteFooter : editingFooterBanner.customColorPalette
     }
     
     const nextContent = {
@@ -959,6 +914,50 @@ export default function AdminDashboard() {
     persist(nextContent)
   }
 
+  // Footer Banner edit modal fields
+  const [editFooterBannerText, setEditFooterBannerText] = useState("")
+  const [editFooterBannerColor, setEditFooterBannerColor] = useState("#000000")
+  const [editFooterBannerCompleteRow, setEditFooterBannerCompleteRow] = useState(false)
+  const [editFooterBannerBackgroundColor, setEditFooterBannerBackgroundColor] = useState("#f3f4f6")
+  const [editFooterBannerMultiColor, setEditFooterBannerMultiColor] = useState(false)
+  const [editFooterBannerBold, setEditFooterBannerBold] = useState(false)
+  const [editFooterBannerGifUrl, setEditFooterBannerGifUrl] = useState("")
+  const [editCustomColorPaletteFooter, setEditCustomColorPaletteFooter] = useState<string[]>([])
+
+  // ... after banner state variables
+  const [editBannerText, setEditBannerText] = useState("")
+  const [editBannerColor, setEditBannerColor] = useState("#000000")
+  const [editBannerCompleteRow, setEditBannerCompleteRow] = useState(false)
+  const [editBannerBackgroundColor, setEditBannerBackgroundColor] = useState("#dc2626")
+  const [editBannerMultiColor, setEditBannerMultiColor] = useState(false)
+  const [editBannerBold, setEditBannerBold] = useState(false)
+  const [editBannerGifUrl, setEditBannerGifUrl] = useState("")
+
+  // Banner2 edit fields
+  const [editBanner2Text, setEditBanner2Text] = useState("")
+  const [editBanner2Color, setEditBanner2Color] = useState("#000000")
+  const [editBanner2CompleteRow, setEditBanner2CompleteRow] = useState(false)
+  const [editBanner2BackgroundColor, setEditBanner2BackgroundColor] = useState("#dc2626")
+  const [editBanner2MultiColor, setEditBanner2MultiColor] = useState(false)
+  const [editBanner2Bold, setEditBanner2Bold] = useState(false)
+  const [editBanner2GifUrl, setEditBanner2GifUrl] = useState("")
+
+  // Banner3 edit fields
+  const [editBanner3Text, setEditBanner3Text] = useState("")
+  const [editBanner3Color, setEditBanner3Color] = useState("#000000")
+  const [editBanner3CompleteRow, setEditBanner3CompleteRow] = useState(false)
+  const [editBanner3BackgroundColor, setEditBanner3BackgroundColor] = useState("#dc2626")
+  const [editBanner3MultiColor, setEditBanner3MultiColor] = useState(false)
+  const [editBanner3Bold, setEditBanner3Bold] = useState(false)
+  const [editBanner3GifUrl, setEditBanner3GifUrl] = useState("")
+
+  // ... after Banner edit fields
+  const [editCustomColorPalette, setEditCustomColorPalette] = useState<string[]>([])
+  // ... after Banner2 edit fields
+  const [editCustomColorPalette2, setEditCustomColorPalette2] = useState<string[]>([])
+  // ... after Banner3 edit fields
+  const [editCustomColorPalette3, setEditCustomColorPalette3] = useState<string[]>([])
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
       {/* Left Sidebar - Compact */}
@@ -969,7 +968,7 @@ export default function AdminDashboard() {
         </div>
         
         <nav className="space-y-2 mb-6">
-                 {(["ads", "banners", "banner2", "banner3", "footer-banner", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns", "scraper-config"] as const).map((k) => (
+                 {(["ads", "banners", "banner2", "banner3", "footer-banner", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns", "live-schedules"] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -992,7 +991,6 @@ export default function AdminDashboard() {
               {k === "footer-note" && "📝 Footer Note"}
                      {k === "running-banner" && "🏃 Running Banner"}
                      {k === "text-columns" && "📝 Text Columns"}
-                     {k === "scraper-config" && "⚙️ Scraper Config"}
                      {k === "live-schedules" && "⏰ Live Schedules"}
             </button>
           ))}
@@ -1186,7 +1184,7 @@ export default function AdminDashboard() {
                            // Shuffle the colors array
                            const shuffledColors = newColors.sort(() => Math.random() - 0.5)
                            setCustomColorPalette(shuffledColors)
-                           console.log('🎨 New color palette stored:', shuffledColors)
+                           // New color palette generated
                            alert(`New color palette generated! Colors will be applied when you save the banner.`)
                          }}
                          className="w-full"
@@ -1264,8 +1262,7 @@ export default function AdminDashboard() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {(() => {
                     const banners = content.banners ?? []
-                    console.log('Admin Dashboard - Rendering banners:', banners.length, banners)
-                    console.log('🔍 Table rows being rendered:', banners.map((b, i) => `Row ${i + 1}: ${b.id}`))
+                    // Rendering banners table
                     return banners
                   })().map((b, index) => (
                     <tr key={b.id} className="hover:bg-gray-50">

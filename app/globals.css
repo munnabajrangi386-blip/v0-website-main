@@ -51,6 +51,15 @@
   --table-cell-fg: #000000;
 }
 
+/* Global font size increase by 3 points */
+html {
+  font-size: 19px; /* Increased from default 16px by 3px */
+}
+
+body {
+  font-size: 19px;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -209,4 +218,16 @@ img {
   image-rendering: auto;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+/* Fade animation for text - fade in, stay, then fade out */
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: fadeInOut 3s ease-in-out infinite;
 }

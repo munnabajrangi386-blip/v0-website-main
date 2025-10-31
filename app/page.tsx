@@ -7,12 +7,46 @@ import { useCombinedData } from "@/hooks/use-scrape"
 import type { SiteContent } from "@/lib/types"
 
 export default function HomePage() {
-  const [month, setMonth] = useState(10)
-  const [year, setYear] = useState(2025)
+  const [month, setMonth] = useState(new Date().getMonth() + 1) // Current month
+  const [year, setYear] = useState(new Date().getFullYear()) // Current year
   const [currentTime, setCurrentTime] = useState("")
+  const [formattedDateTime, setFormattedDateTime] = useState("")
   
   useEffect(() => {
-    setCurrentTime(new Date().toLocaleString())
+    // Update formatted date/time every second
+    const updateDateTime = () => {
+      const now = new Date()
+      const day = now.getDate()
+      const daySuffix = day === 1 || day === 21 || day === 31 ? 'st' : 
+                       day === 2 || day === 22 ? 'nd' : 
+                       day === 3 || day === 23 ? 'rd' : 'th'
+      const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+      const month = monthNames[now.getMonth()]
+      const year = now.getFullYear()
+      
+      const hours = now.getHours()
+      const minutes = now.getMinutes().toString().padStart(2, '0')
+      const seconds = now.getSeconds().toString().padStart(2, '0')
+      const ampm = hours >= 12 ? 'pm' : 'am'
+      const displayHours = hours % 12 || 12
+      
+      setFormattedDateTime(`${day}${daySuffix} ${month}, ${year} ${displayHours}:${minutes}:${seconds}${ampm}`)
+      setCurrentTime(new Date().toLocaleString())
+    }
+    updateDateTime()
+    const interval = setInterval(updateDateTime, 1000)
+    
+    // Load historical data
+    fetch('/api/load-historical-data', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Historical data loaded successfully
+        }
+      })
+      .catch(err => console.error('Failed to load historical data:', err))
+    
+    return () => clearInterval(interval)
   }, [])
   
   const { data: combinedData, error, isLoading } = useCombinedData(month, year)
@@ -38,11 +72,11 @@ export default function HomePage() {
   }, [todayData])
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-screen" style={{backgroundColor: '#8b5cf6'}}>
       {/* 1. Running Banner - Top of page - Fixed height */}
       {content?.runningBanner?.active && (
         <div 
-          className="w-full h-12 overflow-hidden flex items-center"
+          className="w-full h-12 overflow-hidden flex items-center sticky top-0 z-50"
           style={{
             backgroundColor: content.runningBanner.backgroundColor,
             color: content.runningBanner.textColor,
@@ -62,6 +96,102 @@ export default function HomePage() {
 
       {/* 2. Header Image - Full width */}
       <Header content={content} />
+
+      {/* 2.5. Static Red Banner - Between header and banners */}
+      <div 
+        className="w-full py-6 px-4"
+        style={{ backgroundColor: '#FF0000' }}
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 
+            className="animate-blink"
+            style={{ 
+              fontSize: '23px', 
+              fontWeight: 'bold', 
+              color: '#FFFFFF'
+            }}
+          >
+            SATTA KING CHART RESULT
+          </h1>
+        </div>
+      </div>
+
+      {/* 2.6. Static Black Banner - Below red banner */}
+      <div 
+        className="w-full py-6 px-4"
+        style={{ backgroundColor: '#000000' }}
+      >
+        <div className="max-w-7xl mx-auto text-center space-y-3">
+          {/* Date and Time - Yellow text, font size 18 */}
+          <div style={{ fontSize: '18px', color: '#FFD700' }}>
+            {formattedDateTime || 'Loading...'}
+          </div>
+          
+          {/* LIVE SATTA RESULT HERE - Yellow text, font size 18 */}
+          <div style={{ fontSize: '18px', color: '#FFD700' }}>
+            LIVE SATTA RESULT HERE
+          </div>
+          
+          {/* Hindi text - White text, font size 41 (23 + 18) */}
+          <div style={{ fontSize: '41px', color: '#FFFFFF' }}>
+            हन भाई यहीं आती है सबसे पहली खबर
+          </div>
+          
+          {/* All upcoming results - Show results with values or waiting items */}
+          {(() => {
+            // Get all items that either have results or are waiting
+            // Show items with results first, then waiting items
+            const itemsWithResults = todayItems.filter((item: any) => 
+              item.value && item.value !== '--' && item.status === 'pass'
+            )
+            const waitingItems = todayItems.filter((item: any) => 
+              item.status === 'wait' || !item.value || item.value === '--'
+            )
+            
+            // Combine: results first, then waiting items
+            const allUpcomingItems = [...itemsWithResults, ...waitingItems].slice(0, 10) // Show max 10 items
+            
+            if (allUpcomingItems.length > 0) {
+              return (
+                <div className="space-y-2 mt-4">
+                  {allUpcomingItems.map((item: any, index: number) => {
+                    const hasResult = item.value && item.value !== '--' && item.status === 'pass'
+                    const isWaiting = item.status === 'wait' || !item.value || item.value === '--'
+                    
+                    return (
+                      <div 
+                        key={`${item.title}-${index}`} 
+                        style={{ fontSize: '40px', color: '#FFD700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
+                      >
+                        <span>{item.title}</span>
+                        {isWaiting ? (
+                          // Show GIF for waiting results
+                          <img 
+                            src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXh1c2R3aDRyYXRpMGZoZmlmMnl3ZjZqbmNmMmFiaGVkM21zM3BscSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9dHM/aLFNpAGtT9Cucngzl9/giphy.gif"
+                            alt="Waiting"
+                            style={{ width: '40px', height: '40px', verticalAlign: 'middle' }}
+                          />
+                        ) : (
+                          // Show result value
+                          <span style={{ fontWeight: 'bold', fontSize: '40px' }}>
+                            {item.value}
+                          </span>
+                        )}
+                        {item.time && (
+                          <span style={{ fontSize: '32px', opacity: 0.8 }}>
+                            • {item.time}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            }
+            return null
+          })()}
+        </div>
+      </div>
 
       {/* 3. Banners - Mixed layout: Complete Row vs Side-by-Side */}
       {content?.banners && content.banners.length > 0 && (
@@ -613,49 +743,113 @@ function LiveResultsSection({ currentTime, todayItems, isLoading }: { currentTim
 }
 
 function FilterSection({ month, year, setMonth, setYear }: { month: number; year: number; setMonth: (m: number) => void; setYear: (y: number) => void }) {
+  const currentDate = new Date()
+  const currentYear = currentDate.getFullYear()
+  const currentMonth = currentDate.getMonth() + 1
+  
+  // Calculate previous month
+  const prevMonth = month === 1 ? 12 : month - 1
+  const prevYear = month === 1 ? year - 1 : year
+  
+  // Calculate next month
+  const nextMonth = month === 12 ? 1 : month + 1
+  const nextYear = month === 12 ? year + 1 : year
+  
+  // Check if we're at the current month/year
+  const isCurrentMonth = year === currentYear && month === currentMonth
+  
+  // Check if previous month is valid (not before 2015)
+  const isPrevMonthValid = prevYear >= 2015
+  
+  // Check if next month is valid (not beyond current month)
+  const isNextMonthValid = nextYear < currentYear || (nextYear === currentYear && nextMonth <= currentMonth)
+  
+  const handlePrevMonth = () => {
+    if (isPrevMonthValid) {
+      setMonth(prevMonth)
+      setYear(prevYear)
+    }
+  }
+  
+  const handleNextMonth = () => {
+    if (isNextMonthValid) {
+      setMonth(nextMonth)
+      setYear(nextYear)
+    }
+  }
+  
+  const getMonthName = (monthNum: number) => {
+    return new Date(0, monthNum - 1).toLocaleString('default', { month: 'long' })
+  }
+
   return (
-    <section aria-labelledby="filter" className="mt-8">
-      <h2 id="filter" className="text-center text-3xl font-black text-gray-800 mb-6 uppercase tracking-wide">📊 MONTHLY AND YEARLY CHART 📈</h2>
-      <form className="mx-auto flex max-w-md flex-col items-stretch gap-2 sm:gap-3 md:flex-row md:items-end" aria-label="Show monthly results">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="dd_month" className="text-xs sm:text-sm font-medium">Month</label>
-          <select 
-            id="dd_month" 
-            name="dd_month" 
-            value={month}
-            onChange={(e) => setMonth(parseInt(e.target.value))}
-            className="rounded-md border bg-background px-2 sm:px-3 py-2 text-foreground text-sm"
+    <section aria-labelledby="filter" className="mt-8 w-screen relative left-1/2 right-1/2 -translate-x-1/2 overflow-x-hidden p-0 m-0" style={{marginLeft:0, marginRight:0}}>
+      <div className="w-screen bg-black py-10 p-0 m-0 overflow-x-hidden" style={{marginLeft:0, marginRight:0}}>
+        <h2 id="filter" className="text-center text-3xl font-black text-white mb-6 uppercase tracking-wide">📊 MONTHLY AND YEARLY CHART 📈</h2>
+        <form className="w-full flex flex-wrap items-end justify-center gap-4 mt-6" aria-label="Show monthly results">
+          <button
+            onClick={handlePrevMonth}
+            type="button"
+            disabled={!isPrevMonthValid}
+            className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 ${
+              isPrevMonthValid ? 'bg-violet-600 text-white hover:bg-violet-800 shadow-lg animate-pulse' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            aria-label={`Go to ${getMonthName(prevMonth)} ${prevYear}`}
+            style={{marginRight:'8px'}}
           >
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString('default', { month: 'long' })}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="dd_year" className="text-xs sm:text-sm font-medium">Year</label>
-          <select 
-            id="dd_year" 
-            name="dd_year" 
-            value={year}
-            onChange={(e) => setYear(parseInt(e.target.value))}
-            className="rounded-md border bg-background px-2 sm:px-3 py-2 text-foreground text-sm"
+            {isPrevMonthValid ? `← ${getMonthName(prevMonth)} ${prevYear}` : '← Previous'}
+          </button>
+          {/* Month Dropdown */}
+          <div className="flex flex-col gap-1 min-w-[140px]">
+            <label htmlFor="dd_month" className="text-xs sm:text-sm font-medium text-white">Month</label>
+            <select
+              id="dd_month"
+              name="dd_month"
+              value={month}
+              onChange={(e) => setMonth(parseInt(e.target.value))}
+              className="rounded-lg border bg-black px-4 py-3 text-white font-bold text-base shadow outline-none focus:ring-2 focus:ring-violet-400 w-full"
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={i + 1} className="text-gray-800">{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
+              ))}
+            </select>
+          </div>
+          {/* Year Dropdown */}
+          <div className="flex flex-col gap-1 min-w-[120px]">
+            <label htmlFor="dd_year" className="text-xs sm:text-sm font-medium text-white">Year</label>
+            <select
+              id="dd_year"
+              name="dd_year"
+              value={year}
+              onChange={(e) => setYear(parseInt(e.target.value))}
+              className="rounded-lg border bg-black px-4 py-3 text-white font-bold text-base shadow outline-none focus:ring-2 focus:ring-violet-400 w-full"
+            >
+              {Array.from({ length: 11 }, (_, i) => (
+                <option key={2015 + i} value={2015 + i} className="text-gray-800">{2015 + i}</option>
+              ))}
+            </select>
+          </div>
+          <button type="submit" className="rounded-lg bg-gradient-to-r from-pink-500 to-yellow-400 px-6 py-3 font-extrabold text-white text-base shadow hover:from-yellow-500 hover:to-pink-400 transition-all">Show Result</button>
+          <button
+            onClick={handleNextMonth}
+            type="button"
+            disabled={!isNextMonthValid}
+            className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 ${
+              isNextMonthValid ? 'bg-violet-600 text-white hover:bg-violet-800 shadow-lg animate-pulse' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            aria-label={`Go to ${getMonthName(nextMonth)} ${nextYear}`}
+            style={{marginLeft:'8px'}}
           >
-            {Array.from({ length: 4 }, (_, i) => (
-              <option key={2022 + i} value={2022 + i}>{2022 + i}</option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className="rounded-md bg-primary px-3 sm:px-4 py-2 font-medium text-primary-foreground text-sm sm:text-base" aria-label="Show Result">
-          Show Result
-        </button>
-      </form>
+            {isNextMonthValid ? `${getMonthName(nextMonth)} ${nextYear} →` : 'Next →'}
+          </button>
+        </form>
+      </div>
     </section>
-  )
+  );
 }
 
 function MonthlyResultsSection({ monthlyData, isLoading }: { monthlyData?: any; isLoading: boolean }) {
+  
   return (
     <section aria-labelledby="monthly-table" className="mt-6">
       <h2 id="monthly-table" className="sr-only">Monthly Results</h2>

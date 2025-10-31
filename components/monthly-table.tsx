@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { MonthlyData } from "@/hooks/use-scrape"
+import { useState, useEffect } from "react"
 
 type Props = {
   data?: MonthlyData | null
@@ -18,40 +19,66 @@ export function MonthlyTable({ data, loading, error }: Props) {
     return <div className="text-sm text-muted-foreground">Choose a month and year, then click "Show Result".</div>
   }
 
-  // Custom column order: API data + admin categories
-  const customColumns = [
-    { key: 'faridabad', label: 'Faridabad', source: 'api' },
-    { key: 'faridabad1', label: 'Faridabad1', source: 'admin' },
-    { key: 'ghaziabad', label: 'Ghaziabad', source: 'api' },
-    { key: 'ghaziabad1', label: 'Ghaziabad1', source: 'admin' },
-    { key: 'gali', label: 'Gali', source: 'api' },
-    { key: 'gali1', label: 'Gali1', source: 'admin' },
-    { key: 'desawar', label: 'DESAWAR', source: 'api' },
-    { key: 'desawar1', label: 'Desawar1', source: 'admin' }
-  ]
+  // Use dynamic columns: admin categories (from API) are already at the left, followed by API columns
+  const columns = data.columns || []
+
+  // Generate rows for the month (1-31 days)
+  const generateMonthRows = () => {
+    const daysInMonth = new Date(data.year, data.month, 0).getDate()
+    const rows = []
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      rows.push({ day })
+    }
+    
+    return rows
+  }
+
+  const monthRows = generateMonthRows()
 
   return (
     <div className="overflow-x-auto -mx-2 sm:mx-0">
       <table className="newghaziabad-table w-full min-w-[800px]">
         <thead>
+                 {/* Yellow header row with current month & year */}
+                 <tr className="bg-yellow-500">
+            <td colSpan={columns.length + 1} className="text-center py-4">
+              <div className="text-2xl font-black text-gray-800">
+                {new Date(0, data.month - 1).toLocaleString('default', { month: 'long' })} {data.year}
+              </div>
+              <div className="text-sm font-bold text-gray-700 mt-1">
+                MONTHLY RESULTS CHART
+              </div>
+            </td>
+          </tr>
+          {/* Column headers */}
           <tr>
             <th className="sticky left-0 z-10 bg-[var(--table-header-bg)]">Date</th>
-            {customColumns.map((col) => (
-              <th key={col.key} className="whitespace-nowrap bg-[var(--table-header-bg)]">
-                {col.label}
+            {columns.map((label, idx) => (
+              <th key={`${label}-${idx}`} className="whitespace-nowrap bg-[var(--table-header-bg)]">
+                {label}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data.rows.map((r, rowIndex) => (
+          {monthRows.map((r, rowIndex) => (
             <tr key={`${r.day}-${rowIndex}`}>
               <td className="font-medium sticky left-0 z-10 bg-[var(--table-cell-bg)]">{r.day}</td>
-              {customColumns.map((col) => (
-                <td key={`${r.day}-${rowIndex}-${col.key}`} className="font-mono text-xs sm:text-sm text-center">
-                  --
-                </td>
-              ))}
+              {columns.map((_, colIdx) => {
+                const dayRow = data.rows.find(row => row.day === r.day)
+                const value = dayRow?.values?.[colIdx]
+                const display = value == null
+                  ? '--'
+                  : (typeof value === 'number' 
+                      ? value.toString().padStart(2, '0') 
+                      : String(value))
+                return (
+                  <td key={`${r.day}-${rowIndex}-${colIdx}`} className="font-mono text-xs sm:text-sm text-center">
+                    {display}
+                  </td>
+                )
+              })}
             </tr>
           ))}
         </tbody>

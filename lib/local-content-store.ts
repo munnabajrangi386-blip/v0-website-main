@@ -142,7 +142,7 @@ function loadPersistedContent() {
       if (savedContent) {
         localContent = JSON.parse(savedContent)
         contentUpdated = true
-        console.log('🌐 Loaded content from localStorage')
+        // Content loaded from localStorage
       }
     } else {
       // Server environment - use file system
@@ -151,11 +151,11 @@ function loadPersistedContent() {
         const savedContent = readFileSync(contentFile, 'utf8')
         localContent = JSON.parse(savedContent)
         contentUpdated = true
-        console.log('📁 Loaded persisted content from file:', localContent.headerImage?.imageUrl)
+        // Content loaded from file
       }
     }
   } catch (error) {
-    console.log('No persisted content found, using default:', error.message)
+    // Using default content
   }
 }
 
@@ -172,11 +172,10 @@ export async function getSiteContent(): Promise<SiteContent> {
         const fileContent = JSON.parse(savedContent)
         // Always load from file if it exists - file content takes precedence
         localContent = { ...DUMMY_CONTENT, ...fileContent }
-        console.log('🔄 Loaded content from file:', localContent.runningBanner?.active, localContent.fullWidthBanners?.length)
-        console.log('📊 Banners loaded:', localContent.banners?.length, localContent.banners?.map(b => ({ id: b.id, text: b.text.substring(0, 20) + '...', completeRow: b.completeRow })))
+        // Content reloaded from file
       }
     } catch (error) {
-      console.log('Could not reload from file:', error.message)
+      // Could not reload from file
     }
   }
   
@@ -188,25 +187,24 @@ export async function saveSiteContent(content: SiteContent): Promise<void> {
   localContent = { ...content, updatedAt: new Date().toISOString() }
   contentUpdated = true
   
-  console.log("🔄 Saving content with header image:", localContent.headerImage?.imageUrl)
+  // Saving content
   
   // Persist to localStorage in browser or file system on server
   try {
     if (typeof window !== 'undefined') {
       localStorage.setItem('site-content', JSON.stringify(localContent))
-      console.log('🌐 Content saved to localStorage')
+      // Content saved to localStorage
     } else {
       // Server environment - save to file
       const contentFile = join(process.cwd(), 'content.json')
       writeFileSync(contentFile, JSON.stringify(localContent, null, 2))
-      console.log('💾 Content saved to file:', contentFile)
-      console.log('📸 Header image URL:', localContent.headerImage?.imageUrl)
+      // Content saved to file
     }
   } catch (error) {
-    console.log('Could not persist content:', error)
+    // Could not persist content
   }
   
-  console.log("✅ Content saved successfully")
+  // Content saved successfully
 }
 
 export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {
@@ -218,98 +216,114 @@ export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults
 
 export async function saveMonthlyResults(data: MonthlyResults): Promise<void> {
   localMonthlyResults = { ...data, updatedAt: new Date().toISOString() }
-  console.log("✅ Monthly results saved locally:", localMonthlyResults)
+  // Monthly results saved locally
 }
 
+const SCHEDULES_FILE = join(process.cwd(), 'schedules.json')
+
+// Load persisted schedules on startup
+function loadPersistedSchedules() {
+  try {
+    if (typeof window === 'undefined') {
+      // Server environment - use file system
+      if (existsSync(SCHEDULES_FILE)) {
+        const savedSchedules = readFileSync(SCHEDULES_FILE, 'utf8')
+        const parsed = JSON.parse(savedSchedules)
+        if (Array.isArray(parsed)) {
+          localSchedules = parsed
+          // Schedules loaded from file
+        }
+      }
+    }
+  } catch (error) {
+    // Using default schedules
+  }
+}
+
+// Initialize schedules on startup
+loadPersistedSchedules()
+
 export async function getSchedules(): Promise<ScheduleItem[]> {
+  // Always reload from file on server to ensure fresh data
+  if (typeof window === 'undefined') {
+    try {
+      if (existsSync(SCHEDULES_FILE)) {
+        const savedSchedules = readFileSync(SCHEDULES_FILE, 'utf8')
+        const parsed = JSON.parse(savedSchedules)
+        if (Array.isArray(parsed)) {
+          localSchedules = parsed
+          // Schedules reloaded from file
+        }
+      }
+    } catch (error) {
+      // Could not reload from file
+    }
+  }
   return localSchedules
 }
 
 export async function saveSchedules(schedules: ScheduleItem[]): Promise<void> {
+  // Update the in-memory schedules
   localSchedules = [...schedules]
-  console.log("✅ Schedules saved locally:", localSchedules)
+  
+  // Persist to file system on server
+  try {
+    if (typeof window === 'undefined') {
+      // Server environment - save to file
+      writeFileSync(SCHEDULES_FILE, JSON.stringify(localSchedules, null, 2))
+      // Schedules saved to file
+    }
+  } catch (error) {
+    // Could not persist schedules
+  }
+  
+  // Schedules saved successfully
 }
 
 export async function appendActivity(activity: ActivityLog): Promise<void> {
-  console.log("✅ Activity logged:", activity)
+  // Activity logged
 }
 
 export async function runDueSchedules(): Promise<void> {
-  console.log("✅ Running due schedules...")
+  // Running due schedules
   
   const schedules = await getSchedules()
   const now = new Date()
   const today = now.toISOString().split('T')[0]
   
-  // Add a test schedule for immediate execution (for testing purposes)
-  const testSchedule = {
-    id: "test-schedule-" + Date.now(),
-    month: "2025-10" as MonthKey,
-    row: { date: today, gali1: "99" },
-    publishAt: new Date(now.getTime() - 1000).toISOString(), // 1 second ago
-    merge: false,
-    executed: false
-  }
-  
-  // Add test schedule if it doesn't exist
-  const hasTestSchedule = schedules.some(s => s.id.startsWith("test-schedule-"))
-  if (!hasTestSchedule) {
-    schedules.push(testSchedule)
-    await saveSchedules(schedules)
-    console.log("🧪 Added test schedule for immediate execution:", testSchedule)
-  } else {
-    console.log("🧪 Test schedule already exists")
-  }
-  
-  // Add a test FARIDABAD1 schedule for 6:05 PM (should have executed)
-  const faridabadTestSchedule = {
-    id: "faridabad-test-" + Date.now(),
-    month: "2025-10" as MonthKey,
-    row: { date: today, faridabad1: "88" },
-    publishAt: new Date(now.getTime() - 60000).toISOString(), // 1 minute ago
-    merge: false,
-    executed: false
-  }
-  
-  const hasFaridabadTest = schedules.some(s => s.id.startsWith("faridabad-test-"))
-  if (!hasFaridabadTest) {
-    schedules.push(faridabadTestSchedule)
-    await saveSchedules(schedules)
-    console.log("🧪 Added FARIDABAD1 test schedule:", faridabadTestSchedule)
-  }
-  
-  // Find due schedules for today
+  // Find due schedules for today or past dates that haven't been executed
   const dueSchedules = schedules.filter(schedule => {
     const scheduleTime = new Date(schedule.publishAt)
     const scheduleDate = schedule.row.date
-    return scheduleDate === today && scheduleTime <= now && !schedule.executed
+    return scheduleDate <= today && scheduleTime <= now && !schedule.executed
   })
   
-  console.log(`🔍 Found ${dueSchedules.length} due schedules for today`)
+  // Found due schedules for today
   
-  // Execute due schedules
+  // Execute due schedules and update incrementally
+  let currentSchedules = [...schedules] // Work with a copy that we update as we go
   for (const schedule of dueSchedules) {
-    console.log(`🚀 Executing schedule: ${schedule.id} with data:`, schedule.row)
+    // Executing schedule
     await upsertResultRow(schedule.month, schedule.row, !!schedule.merge)
     
-    // Mark as executed
-    const updatedSchedules = schedules.map(s => 
+    // Mark as executed in the current schedules array
+    currentSchedules = currentSchedules.map(s => 
       s.id === schedule.id ? { ...s, executed: true } : s
     )
-    await saveSchedules(updatedSchedules)
     
-    console.log(`✅ Executed schedule: ${schedule.id}`)
+    // Executed schedule
   }
   
+  // Save all updated schedules at once after processing all due schedules
   if (dueSchedules.length > 0) {
-    console.log(`✅ Executed ${dueSchedules.length} due schedules`)
-  } else {
-    console.log(`ℹ️ No due schedules found for today`)
+    await saveSchedules(currentSchedules)
   }
+  
+  // Due schedules execution completed
 }
 
 export async function upsertResultRow(month: MonthKey, row: any, merge: boolean): Promise<void> {
-  console.log("✅ Result row upserted:", { month, row, merge })
+  // Result row upserted
   
   try {
     // Get current monthly results
@@ -347,7 +361,7 @@ export async function upsertResultRow(month: MonthKey, row: any, merge: boolean)
     
     // Save the updated monthly results
     await saveMonthlyResults(monthlyResults)
-    console.log(`✅ Updated monthly results for ${month}`)
+    // Updated monthly results
   } catch (error) {
     console.error("❌ Error in upsertResultRow:", error)
     throw error
