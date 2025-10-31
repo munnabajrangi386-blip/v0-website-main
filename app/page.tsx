@@ -31,7 +31,7 @@ export default function HomePage() {
       const displayHours = hours % 12 || 12
       
       setFormattedDateTime(`${day}${daySuffix} ${month}, ${year} ${displayHours}:${minutes}:${seconds}${ampm}`)
-      setCurrentTime(new Date().toLocaleString())
+    setCurrentTime(new Date().toLocaleString())
     }
     updateDateTime()
     const interval = setInterval(updateDateTime, 1000)
@@ -76,7 +76,7 @@ export default function HomePage() {
       {/* 1. Running Banner - Top of page - Fixed height */}
       {content?.runningBanner?.active && (
         <div 
-          className="w-full h-12 overflow-hidden flex items-center sticky top-0 z-50"
+          className="w-full h-10 sm:h-12 overflow-hidden flex items-center sticky top-0 z-50"
           style={{
             backgroundColor: content.runningBanner.backgroundColor,
             color: content.runningBanner.textColor,
@@ -84,7 +84,7 @@ export default function HomePage() {
           } as React.CSSProperties}
         >
           <div 
-            className="animate-scroll font-bold text-lg"
+            className="animate-scroll font-bold text-xs sm:text-sm md:text-base lg:text-lg px-2"
             style={{
               animationDuration: `${content.runningBanner.speed || 30}s`
             }}
@@ -99,14 +99,13 @@ export default function HomePage() {
 
       {/* 2.5. Static Red Banner - Between header and banners */}
       <div 
-        className="w-full py-6 px-4"
+        className="w-full py-3 sm:py-4 md:py-6 px-2 sm:px-4"
         style={{ backgroundColor: '#FF0000' }}
       >
         <div className="max-w-7xl mx-auto text-center">
           <h1 
-            className="animate-blink"
+            className="animate-blink text-sm sm:text-base md:text-lg lg:text-xl xl:text-[23px] px-2"
             style={{ 
-              fontSize: '23px', 
               fontWeight: 'bold', 
               color: '#FFFFFF'
             }}
@@ -118,22 +117,22 @@ export default function HomePage() {
 
       {/* 2.6. Static Black Banner - Below red banner */}
       <div 
-        className="w-full py-6 px-4"
+        className="w-full py-3 sm:py-4 md:py-6 px-2 sm:px-4"
         style={{ backgroundColor: '#000000' }}
       >
-        <div className="max-w-7xl mx-auto text-center space-y-3">
-          {/* Date and Time - Yellow text, font size 18 */}
-          <div style={{ fontSize: '18px', color: '#FFD700' }}>
+        <div className="max-w-7xl mx-auto text-center space-y-2 sm:space-y-3">
+          {/* Date and Time - Yellow text, responsive font size */}
+          <div className="text-xs sm:text-sm md:text-base lg:text-lg px-2" style={{ color: '#FFD700' }}>
             {formattedDateTime || 'Loading...'}
           </div>
           
-          {/* LIVE SATTA RESULT HERE - Yellow text, font size 18 */}
-          <div style={{ fontSize: '18px', color: '#FFD700' }}>
+          {/* LIVE SATTA RESULT HERE - Yellow text, responsive font size */}
+          <div className="text-xs sm:text-sm md:text-base lg:text-lg px-2" style={{ color: '#FFD700' }}>
             LIVE SATTA RESULT HERE
           </div>
           
-          {/* Hindi text - White text, font size 41 (23 + 18) */}
-          <div style={{ fontSize: '41px', color: '#FFFFFF' }}>
+          {/* Hindi text - White text, responsive font size */}
+          <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl px-2" style={{ color: '#FFFFFF' }}>
             हन भाई यहीं आती है सबसे पहली खबर
           </div>
           
@@ -148,12 +147,12 @@ export default function HomePage() {
               item.status === 'wait' || !item.value || item.value === '--'
             )
             
-            // Combine: results first, then waiting items
-            const allUpcomingItems = [...itemsWithResults, ...waitingItems].slice(0, 10) // Show max 10 items
+            // Combine: results first, then waiting items - limit to 5 on mobile
+            const allUpcomingItems = [...itemsWithResults, ...waitingItems].slice(0, 5)
             
             if (allUpcomingItems.length > 0) {
               return (
-                <div className="space-y-2 mt-4">
+                <div className="space-y-1 sm:space-y-2 mt-2 sm:mt-4 px-2">
                   {allUpcomingItems.map((item: any, index: number) => {
                     const hasResult = item.value && item.value !== '--' && item.status === 'pass'
                     const isWaiting = item.status === 'wait' || !item.value || item.value === '--'
@@ -161,24 +160,25 @@ export default function HomePage() {
                     return (
                       <div 
                         key={`${item.title}-${index}`} 
-                        style={{ fontSize: '40px', color: '#FFD700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
+                        className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm md:text-base lg:text-lg xl:text-2xl"
+                        style={{ color: '#FFD700' }}
                       >
-                        <span>{item.title}</span>
+                        <span className="font-medium">{item.title}</span>
                         {isWaiting ? (
                           // Show GIF for waiting results
                           <img 
                             src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXh1c2R3aDRyYXRpMGZoZmlmMnl3ZjZqbmNmMmFiaGVkM21zM3BscSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9dHM/aLFNpAGtT9Cucngzl9/giphy.gif"
                             alt="Waiting"
-                            style={{ width: '40px', height: '40px', verticalAlign: 'middle' }}
+                            className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
                           />
                         ) : (
                           // Show result value
-                          <span style={{ fontWeight: 'bold', fontSize: '40px' }}>
+                          <span className="font-bold">
                             {item.value}
                           </span>
                         )}
                         {item.time && (
-                          <span style={{ fontSize: '32px', opacity: 0.8 }}>
+                          <span className="text-xs sm:text-sm md:text-base opacity-80">
                             • {item.time}
                           </span>
                         )}
@@ -318,7 +318,7 @@ export default function HomePage() {
                     >
                       <div className="max-w-7xl mx-auto px-4">
                              <div className="text-center">
-                               <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                               <p className="text-sm sm:text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
                                  {renderBannerText(currentBanner)}
                                </p>
                              </div>
@@ -350,7 +350,7 @@ export default function HomePage() {
                               }}
                             >
                                      <div className="text-center px-4">
-                                       <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                                       <p className="text-sm sm:text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
                                          {renderBannerText(banner)}
                                        </p>
                                      </div>
@@ -542,7 +542,7 @@ export default function HomePage() {
                     >
                       <div className="max-w-7xl mx-auto px-4">
                         <div className="text-center">
-                          <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                          <p className="text-sm sm:text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
                             {renderBannerText(currentBanner)}
                           </p>
                         </div>
@@ -574,7 +574,7 @@ export default function HomePage() {
                               }}
                             >
                               <div className="text-center px-4">
-                                <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                                <p className="text-sm sm:text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
                                   {renderBannerText(banner)}
                                 </p>
                               </div>
@@ -596,16 +596,16 @@ export default function HomePage() {
       )}
       
       <main className="w-full px-4 sm:px-6 py-2 sm:py-6">
-        <TodayNewsSection />
-        <LiveResultsSection currentTime={currentTime} todayItems={todayItems} isLoading={isLoading} />
+      <TodayNewsSection />
+      <LiveResultsSection currentTime={currentTime} todayItems={todayItems} isLoading={isLoading} />
       </main>
       
       {/* Banner3 Section - After live results, before table chart, outside main container for full-width coverage */}
       <Banner3Section content={content} />
       
       <main className="w-full px-4 sm:px-6 py-2 sm:py-6">
-        <FilterSection month={month} year={year} setMonth={setMonth} setYear={setYear} />
-        <MonthlyResultsSection monthlyData={monthlyData} isLoading={isLoading} />
+      <FilterSection month={month} year={year} setMonth={setMonth} setYear={setYear} />
+      <MonthlyResultsSection monthlyData={monthlyData} isLoading={isLoading} />
       </main>
       
       {/* Footer Banner Section - Outside main container for full-width coverage */}
@@ -617,12 +617,12 @@ export default function HomePage() {
 
 function Header({ content }: { content?: SiteContent }) {
   return (
-    <header className="w-full py-6" style={{ backgroundColor: '#000000' }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between gap-6">
+    <header className="w-full py-3 sm:py-4 md:py-6" style={{ backgroundColor: '#000000' }}>
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6">
+        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 sm:gap-4 md:gap-6">
           {/* Left White Box with Text */}
           {content?.leftTextColumn?.active && (
-            <div className="bg-white rounded-lg p-4 shadow-lg" style={{ width: '320px' }}>
+            <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg w-full sm:w-auto sm:min-w-[200px] md:w-64 lg:w-80">
               <div className="text-center space-y-2">
                 {content.leftTextColumn.lines?.map((line: any, index: number) => (
                   <div 
@@ -639,30 +639,30 @@ function Header({ content }: { content?: SiteContent }) {
           
           {/* Image Area - Square size */}
           {content?.headerImage?.active && content?.headerImage?.imageUrl ? (
-            <div className="flex-shrink-0">
-              <div className="w-64 h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg">
-                <img 
-                  src={`${content.headerImage.imageUrl}?t=${Date.now()}`} 
-                  alt={content.headerImage.alt || "Header Image"}
+            <div className="flex-shrink-0 w-full sm:w-auto">
+              <div className="w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-48 md:h-56 lg:h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg mx-auto">
+          <img 
+            src={`${content.headerImage.imageUrl}?t=${Date.now()}`} 
+            alt={content.headerImage.alt || "Header Image"}
                   className="w-full h-full object-cover"
-                  key={content.headerImage.imageUrl} // Force re-render when URL changes
-                />
+            key={content.headerImage.imageUrl} // Force re-render when URL changes
+          />
               </div>
             </div>
           ) : (
-            <div className="flex-shrink-0">
-              <div className="w-64 h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg">
+            <div className="flex-shrink-0 w-full sm:w-auto">
+              <div className="w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-48 md:h-56 lg:h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg mx-auto">
                 <div className="text-gray-400 text-center">
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <div className="text-sm">No image uploaded</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl mb-2">🖼️</div>
+                  <div className="text-xs sm:text-sm">No image uploaded</div>
                 </div>
               </div>
-            </div>
-          )}
-
+        </div>
+      )}
+      
           {/* Right White Box with Text */}
           {content?.rightTextColumn?.active && (
-            <div className="bg-white rounded-lg p-4 shadow-lg" style={{ width: '320px' }}>
+            <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg w-full sm:w-auto sm:min-w-[200px] md:w-64 lg:w-80">
               <div className="text-center space-y-2">
                 {content.rightTextColumn.lines?.map((line: any, index: number) => (
                   <div 
@@ -688,8 +688,8 @@ function TodayNewsSection() {
     <section aria-labelledby="today-news" className="mt-6 sm:mt-8">
       <div className="w-full px-4 py-3 rounded-lg" style={{ backgroundColor: '#FF8F00' }}>
         <h2 id="today-news" className="text-center font-extrabold tracking-wide text-white text-lg sm:text-xl md:text-2xl">
-          TODAY SATTA NEWS
-        </h2>
+        TODAY SATTA NEWS
+      </h2>
       </div>
     </section>
   )
@@ -710,18 +710,18 @@ function LiveResultsSection({ currentTime, todayItems, isLoading }: { currentTim
         {isLoading ? (
           <div className="text-sm text-[var(--color-muted-foreground)]">Loading live results…</div>
         ) : todayItems && todayItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
             {todayItems.map((item, index) => (
-              <div key={index} className="bg-white border-2 border-gray-200 rounded-lg p-3 shadow-sm min-h-[120px] flex flex-col justify-center">
+              <div key={index} className="bg-white border-2 border-gray-200 rounded-lg p-2 sm:p-3 shadow-sm min-h-[100px] sm:min-h-[120px] flex flex-col justify-center">
                 <div className="text-center">
-                  <h3 className="font-bold text-sm text-blue-600 mb-1 truncate">{item.title}</h3>
-                  <div className="text-xs text-gray-600 mb-2">TIME: {item.time}</div>
-                  <div className="flex justify-center items-center space-x-1 mb-2">
-                    <span className="text-green-600 font-bold text-lg">{item.yesterdayResult || '--'}🌐</span>
-                    <span className="text-red-600 font-bold text-xl">{`{ ${item.todayResult || '--'} }`}</span>
-                    <span className="text-green-600 text-sm">✔️</span>
+                  <h3 className="font-bold text-xs sm:text-sm text-blue-600 mb-1 truncate px-1">{item.title}</h3>
+                  <div className="text-[10px] sm:text-xs text-gray-600 mb-1 sm:mb-2">TIME: {item.time}</div>
+                  <div className="flex justify-center items-center space-x-0.5 sm:space-x-1 mb-1 sm:mb-2 flex-wrap gap-0.5">
+                    <span className="text-green-600 font-bold text-sm sm:text-base md:text-lg">{item.yesterdayResult || '--'}🌐</span>
+                    <span className="text-red-600 font-bold text-base sm:text-lg md:text-xl">{`{ ${item.todayResult || '--'} }`}</span>
+                    <span className="text-green-600 text-xs sm:text-sm">✔️</span>
                   </div>
-                  <div className={`text-xs font-semibold ${
+                  <div className={`text-[10px] sm:text-xs font-semibold ${
                     item.status === 'pass' ? 'text-green-600' : 
                     item.status === 'next' ? 'text-blue-600' : 'text-yellow-600'
                   }`}>
@@ -784,65 +784,63 @@ function FilterSection({ month, year, setMonth, setYear }: { month: number; year
 
   return (
     <section aria-labelledby="filter" className="mt-8 w-screen relative left-1/2 right-1/2 -translate-x-1/2 overflow-x-hidden p-0 m-0" style={{marginLeft:0, marginRight:0}}>
-      <div className="w-screen bg-black py-10 p-0 m-0 overflow-x-hidden" style={{marginLeft:0, marginRight:0}}>
-        <h2 id="filter" className="text-center text-3xl font-black text-white mb-6 uppercase tracking-wide">📊 MONTHLY AND YEARLY CHART 📈</h2>
-        <form className="w-full flex flex-wrap items-end justify-center gap-4 mt-6" aria-label="Show monthly results">
+      <div className="w-screen bg-black py-4 sm:py-6 md:py-8 lg:py-10 px-2 sm:px-4 p-0 m-0 overflow-x-hidden" style={{marginLeft:0, marginRight:0}}>
+        <h2 id="filter" className="text-center text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-white mb-3 sm:mb-4 md:mb-6 uppercase tracking-wide px-2">📊 MONTHLY AND YEARLY CHART 📈</h2>
+        <form className="w-full flex flex-col sm:flex-row flex-wrap items-center sm:items-end justify-center gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6 px-2" aria-label="Show monthly results">
           <button
             onClick={handlePrevMonth}
             type="button"
             disabled={!isPrevMonthValid}
-            className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 ${
+            className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-bold text-xs sm:text-sm md:text-base transition-all duration-300 transform hover:scale-105 w-full sm:w-auto ${
               isPrevMonthValid ? 'bg-violet-600 text-white hover:bg-violet-800 shadow-lg animate-pulse' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
             aria-label={`Go to ${getMonthName(prevMonth)} ${prevYear}`}
-            style={{marginRight:'8px'}}
           >
             {isPrevMonthValid ? `← ${getMonthName(prevMonth)} ${prevYear}` : '← Previous'}
           </button>
           {/* Month Dropdown */}
-          <div className="flex flex-col gap-1 min-w-[140px]">
+          <div className="flex flex-col gap-1 w-full sm:min-w-[140px] sm:w-auto">
             <label htmlFor="dd_month" className="text-xs sm:text-sm font-medium text-white">Month</label>
-            <select
-              id="dd_month"
-              name="dd_month"
-              value={month}
-              onChange={(e) => setMonth(parseInt(e.target.value))}
-              className="rounded-lg border bg-black px-4 py-3 text-white font-bold text-base shadow outline-none focus:ring-2 focus:ring-violet-400 w-full"
-            >
-              {Array.from({ length: 12 }, (_, i) => (
+          <select 
+            id="dd_month" 
+            name="dd_month" 
+            value={month}
+            onChange={(e) => setMonth(parseInt(e.target.value))}
+              className="rounded-lg border bg-black px-3 sm:px-4 py-2 sm:py-3 text-white font-bold text-sm sm:text-base shadow outline-none focus:ring-2 focus:ring-violet-400 w-full"
+          >
+            {Array.from({ length: 12 }, (_, i) => (
                 <option key={i + 1} value={i + 1} className="text-gray-800">{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
-              ))}
-            </select>
-          </div>
+            ))}
+          </select>
+        </div>
           {/* Year Dropdown */}
-          <div className="flex flex-col gap-1 min-w-[120px]">
+          <div className="flex flex-col gap-1 w-full sm:min-w-[120px] sm:w-auto">
             <label htmlFor="dd_year" className="text-xs sm:text-sm font-medium text-white">Year</label>
-            <select
-              id="dd_year"
-              name="dd_year"
-              value={year}
-              onChange={(e) => setYear(parseInt(e.target.value))}
-              className="rounded-lg border bg-black px-4 py-3 text-white font-bold text-base shadow outline-none focus:ring-2 focus:ring-violet-400 w-full"
-            >
+          <select 
+            id="dd_year" 
+            name="dd_year" 
+            value={year}
+            onChange={(e) => setYear(parseInt(e.target.value))}
+              className="rounded-lg border bg-black px-3 sm:px-4 py-2 sm:py-3 text-white font-bold text-sm sm:text-base shadow outline-none focus:ring-2 focus:ring-violet-400 w-full"
+          >
               {Array.from({ length: 11 }, (_, i) => (
                 <option key={2015 + i} value={2015 + i} className="text-gray-800">{2015 + i}</option>
-              ))}
-            </select>
-          </div>
-          <button type="submit" className="rounded-lg bg-gradient-to-r from-pink-500 to-yellow-400 px-6 py-3 font-extrabold text-white text-base shadow hover:from-yellow-500 hover:to-pink-400 transition-all">Show Result</button>
+            ))}
+          </select>
+        </div>
+          <button type="submit" className="rounded-lg bg-gradient-to-r from-pink-500 to-yellow-400 px-4 sm:px-6 py-2 sm:py-3 font-extrabold text-white text-xs sm:text-sm md:text-base shadow hover:from-yellow-500 hover:to-pink-400 transition-all w-full sm:w-auto">Show Result</button>
           <button
             onClick={handleNextMonth}
             type="button"
             disabled={!isNextMonthValid}
-            className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 ${
+            className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-bold text-xs sm:text-sm md:text-base transition-all duration-300 transform hover:scale-105 w-full sm:w-auto ${
               isNextMonthValid ? 'bg-violet-600 text-white hover:bg-violet-800 shadow-lg animate-pulse' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
             aria-label={`Go to ${getMonthName(nextMonth)} ${nextYear}`}
-            style={{marginLeft:'8px'}}
           >
             {isNextMonthValid ? `${getMonthName(nextMonth)} ${nextYear} →` : 'Next →'}
-          </button>
-        </form>
+        </button>
+      </form>
       </div>
     </section>
   );
@@ -1144,7 +1142,7 @@ function Footer({ content }: { content?: SiteContent }) {
     
     return result
   }
-
+  
   return (
     <footer>
       {/* Footer Banner Section */}

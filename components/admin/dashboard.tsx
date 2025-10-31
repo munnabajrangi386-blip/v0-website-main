@@ -38,6 +38,7 @@ export default function AdminDashboard() {
     }
   }, [data?.content])
   const [active, setActive] = useState<"ads" | "banners" | "banner2" | "banner3" | "footer-banner" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns" | "live-schedules">("ads")
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [adsDraft, setAdsDraft] = useState(content.ads ?? [])
   const [categoriesDraft, setCategoriesDraft] = useState(content.categories ?? [])
   const [bannerText, setBannerText] = useState("")
@@ -960,8 +961,19 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-2 rounded-lg shadow-lg"
+        aria-label="Toggle menu"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       {/* Left Sidebar - Compact */}
-      <aside className="w-full lg:w-64 bg-white border-r border-gray-200 p-4">
+      <aside className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 p-4 transition-transform duration-300 ease-in-out overflow-y-auto`}>
         <div className="mb-6">
           <h2 className="text-lg font-bold text-gray-900">Admin Panel</h2>
           <p className="text-xs text-gray-500">Manage your website content</p>
@@ -972,7 +984,10 @@ export default function AdminDashboard() {
             <button
               key={k}
               type="button"
-              onClick={() => setActive(k)}
+              onClick={() => {
+                setActive(k)
+                setMobileMenuOpen(false)
+              }}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 active === k 
                   ? "bg-blue-600 text-white shadow-sm" 
@@ -1008,11 +1023,19 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Main Content Area - Properly Sized */}
-      <main className="flex-1 p-6 bg-gray-50 overflow-auto">
+      <main className="flex-1 p-3 sm:p-4 md:p-6 bg-gray-50 overflow-auto mt-12 lg:mt-0">
         {/* ADS */}
         {active === "ads" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Advertisements</FieldLegend>
             <Field>
               <Label>Upload Image</Label>
@@ -1074,7 +1097,7 @@ export default function AdminDashboard() {
 
         {/* BANNERS */}
         {active === "banners" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Add Banner</FieldLegend>
             
             {/* Banner Text */}
@@ -1239,22 +1262,22 @@ export default function AdminDashboard() {
               <table className="w-full border-collapse border border-gray-300">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-gray-50">
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Text Preview
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Background
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Text Color
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       GIF
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -1266,7 +1289,7 @@ export default function AdminDashboard() {
                     return banners
                   })().map((b, index) => (
                     <tr key={b.id} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div 
                           className="max-w-xs text-ellipsis overflow-hidden leading-tight" 
                           style={{
@@ -1281,7 +1304,7 @@ export default function AdminDashboard() {
                           {b.text}
                   </div>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           b.completeRow 
                             ? 'bg-blue-100 text-blue-800' 
@@ -1290,7 +1313,7 @@ export default function AdminDashboard() {
                           {b.completeRow ? "Full Width Row" : "Button"}
                         </span>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-4 h-4 rounded border" 
@@ -1299,7 +1322,7 @@ export default function AdminDashboard() {
                           <span className="text-xs font-mono">{b.backgroundColor || "#dc2626"}</span>
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-4 h-4 rounded border" 
@@ -1308,7 +1331,7 @@ export default function AdminDashboard() {
                           <span className="text-xs font-mono">{b.color || "#000000"}</span>
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         {b.gifUrl ? (
                           <img 
                             src={b.gifUrl} 
@@ -1321,7 +1344,7 @@ export default function AdminDashboard() {
                           <span className="text-xs text-gray-400">No GIF</span>
                         )}
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div className="flex gap-2">
                           <Button 
                             size="sm" 
@@ -1374,7 +1397,7 @@ export default function AdminDashboard() {
 
         {/* BANNER2 */}
         {active === "banner2" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Add Banner2</FieldLegend>
             
             {/* Banner Text */}
@@ -1539,22 +1562,22 @@ export default function AdminDashboard() {
               <table className="w-full border-collapse border border-gray-300">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-gray-50">
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Text Preview
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Background
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Text Color
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       GIF
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -1562,7 +1585,7 @@ export default function AdminDashboard() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {(content.banner2 ?? []).map((b) => (
                     <tr key={b.id} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div 
                           className="max-w-xs text-ellipsis overflow-hidden leading-tight" 
                           style={{
@@ -1577,7 +1600,7 @@ export default function AdminDashboard() {
                           {b.text}
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           b.completeRow 
                             ? 'bg-blue-100 text-blue-800' 
@@ -1586,7 +1609,7 @@ export default function AdminDashboard() {
                           {b.completeRow ? "Full Width Row" : "Button"}
                         </span>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-4 h-4 rounded border" 
@@ -1595,7 +1618,7 @@ export default function AdminDashboard() {
                           <span className="text-xs font-mono">{b.backgroundColor || "#dc2626"}</span>
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-4 h-4 rounded border" 
@@ -1604,7 +1627,7 @@ export default function AdminDashboard() {
                           <span className="text-xs font-mono">{b.color || "#000000"}</span>
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         {b.gifUrl ? (
                           <img 
                             src={b.gifUrl} 
@@ -1617,7 +1640,7 @@ export default function AdminDashboard() {
                           <span className="text-xs text-gray-400">No GIF</span>
                         )}
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <td className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         <div className="flex gap-2">
                           <Button 
                             size="sm" 
@@ -1670,7 +1693,7 @@ export default function AdminDashboard() {
 
         {/* BANNER3 */}
         {active === "banner3" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Add Banner3</FieldLegend>
             
             {/* Banner Text */}
@@ -1822,12 +1845,12 @@ export default function AdminDashboard() {
                 <table className="w-full border-collapse border border-gray-300 bg-white">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT PREVIEW</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TYPE</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">BACKGROUND</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT COLOR</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">GIF</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">ACTIONS</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">TEXT PREVIEW</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">TYPE</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">BACKGROUND</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">TEXT COLOR</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">GIF</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1902,7 +1925,7 @@ export default function AdminDashboard() {
             {/* Banner3 Edit Modal */}
             {editingBanner3 && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 w-full max-w-md mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
                   <h3 className="text-lg font-semibold mb-4">Edit Banner3</h3>
                   
                   <Field>
@@ -2010,7 +2033,7 @@ export default function AdminDashboard() {
 
         {/* FOOTER BANNER */}
         {active === "footer-banner" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Add Footer Banner</FieldLegend>
             
             {/* Banner Text */}
@@ -2162,12 +2185,12 @@ export default function AdminDashboard() {
                 <table className="w-full border-collapse border border-gray-300 bg-white">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT PREVIEW</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TYPE</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">BACKGROUND</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">TEXT COLOR</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">GIF</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">ACTIONS</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">TEXT PREVIEW</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">TYPE</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">BACKGROUND</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">TEXT COLOR</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">GIF</th>
+                      <th className="border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-medium text-gray-700">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2242,7 +2265,7 @@ export default function AdminDashboard() {
             {/* Footer Banner Edit Modal */}
             {editingFooterBanner && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 w-full max-w-md mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
                   <h3 className="text-lg font-semibold mb-4">Edit Footer Banner</h3>
                   
                   <Field>
@@ -2350,7 +2373,7 @@ export default function AdminDashboard() {
 
         {/* CATEGORIES */}
         {active === "categories" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Categories Management</FieldLegend>
             <FieldDescription>
               Manage categories with default times. Key = machine name (e.g., ghaziabad). Label = what users see (e.g., GHAZIABAD). 
@@ -2482,7 +2505,7 @@ export default function AdminDashboard() {
 
         {/* SCHEDULE */}
         {active === "schedule" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Create Schedule</FieldLegend>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field>
@@ -2587,7 +2610,7 @@ export default function AdminDashboard() {
 
         {/* SCHEDULED LIST */}
         {active === "scheduled" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Past Results</FieldLegend>
             <Field>
               <Label>Search</Label>
@@ -2730,7 +2753,7 @@ export default function AdminDashboard() {
 
         {/* HEADER IMAGE */}
         {active === "header-image" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Header Image Management</FieldLegend>
             
             {/* Current Header Image */}
@@ -2862,7 +2885,7 @@ export default function AdminDashboard() {
 
         {/* RUNNING BANNER */}
         {active === "running-banner" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Running Banner Management</FieldLegend>
             
             {/* Banner Text */}
@@ -3110,7 +3133,7 @@ export default function AdminDashboard() {
 
         {/* TEXT COLUMNS */}
         {active === "text-columns" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Header Text Columns Management</FieldLegend>
             
             {/* Left Text Column */}
@@ -3439,7 +3462,7 @@ export default function AdminDashboard() {
 
         {/* LIVE SCHEDULES */}
         {active === "live-schedules" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Live Results Scheduling</FieldLegend>
             <FieldDescription>
               Schedule live results to be published at specific times today. These will override scraper data.
@@ -3584,7 +3607,7 @@ export default function AdminDashboard() {
 
         {/* FOOTER NOTE */}
         {active === "footer-note" && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
             <FieldLegend>Footer Note</FieldLegend>
             <Field>
               <Label>Footer Text</Label>
@@ -3631,8 +3654,8 @@ export default function AdminDashboard() {
       {/* Edit Banner Modal */}
       {editingBanner && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-3 sm:p-4 md:p-6">
               <h3 className="text-lg font-semibold mb-4">Edit Banner</h3>
               
               {/* Banner Text */}
@@ -3806,8 +3829,8 @@ export default function AdminDashboard() {
       {/* Edit Banner2 Modal */}
       {editingBanner2 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-3 sm:p-4 md:p-6">
               <h3 className="text-lg font-semibold mb-4">Edit Banner2</h3>
               
               {/* Banner Text */}
