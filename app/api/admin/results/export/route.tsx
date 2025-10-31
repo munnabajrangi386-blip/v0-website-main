@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server"
 import { requireAuth } from "@/lib/admin-auth"
-import { getMonthlyResults } from "@/lib/content-store"
+import { getMonthlyResults } from "@/lib/local-content-store"
 import type { MonthKey } from "@/lib/types"
 
 function toCSV(objArr: any[], headers?: string[]) {

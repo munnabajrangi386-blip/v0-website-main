@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server"
 import { requireAuth } from "@/lib/admin-auth"
-import { getMonthlyResults, saveMonthlyResults, upsertResultRow } from "@/lib/content-store"
+import { getMonthlyResults, saveMonthlyResults, upsertResultRow } from "@/lib/local-content-store"
 import type { MonthKey, MonthlyResults, ResultRow } from "@/lib/types"
 
 export async function GET(req: NextRequest) {
