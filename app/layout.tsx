@@ -7,13 +7,21 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.app',
+  title: 'SATTA MARKIT',
+  description: 'SATTA MARKIT - Live Satta Results, Charts and Updates for GHAZIABAD2, FARIDABAD2, DESAWAR2 & GALI2',
+  generator: 'SATTA MARKIT',
   viewport: {
     width: 'device-width',
     initialScale: 1,
     maximumScale: 5,
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: '/apple-icon.png',
   },
 }
 
