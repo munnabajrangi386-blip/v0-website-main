@@ -73,7 +73,10 @@ export default function HomePage() {
 
   return (
     <div className="w-full min-h-screen" style={{backgroundColor: '#8b5cf6'}}>
-      {/* 1. Running Banner - Top of page - Fixed height */}
+      {/* 2. Header Image - Full width */}
+      <Header content={content} />
+
+      {/* 1. Running Banner - After header, before chart result title */}
       {content?.runningBanner?.active && (
         <div 
           className="w-full h-10 sm:h-12 overflow-hidden flex items-center sticky top-0 z-50"
@@ -94,23 +97,23 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 2. Header Image - Full width */}
-      <Header content={content} />
-
-      {/* 2.5. Static Red Banner - Between header and banners */}
+      {/* 2.5. Static Yellow Banner - Chart Result Title */}
       <div 
         className="w-full py-3 sm:py-4 md:py-6 px-2 sm:px-4"
-        style={{ backgroundColor: '#FF0000' }}
+        style={{ backgroundColor: '#FFD700' }}
       >
-        <div className="max-w-7xl mx-auto text-center">
+        <div className="max-w-7xl mx-auto text-center overflow-x-auto">
           <h1 
-            className="animate-blink text-sm sm:text-base md:text-lg lg:text-xl xl:text-[23px] px-2"
+            className="animate-blink px-2 whitespace-nowrap"
             style={{ 
               fontWeight: 'bold', 
-              color: '#FFFFFF'
+              color: '#000000',
+              fontSize: 'clamp(14px, 3vw, 28px)',
+              lineHeight: '1.2',
+              whiteSpace: 'nowrap'
             }}
           >
-            SATTA KING CHART RESULT
+            SATTA MARKIT CHART RESULT- GHAZIABAD2, FARIDABAD2, DESAWAR2 & GALI2
           </h1>
         </div>
       </div>
@@ -604,8 +607,8 @@ export default function HomePage() {
       <Banner3Section content={content} />
       
       <main className="w-full px-4 sm:px-6 py-2 sm:py-6">
-      <FilterSection month={month} year={year} setMonth={setMonth} setYear={setYear} />
       <MonthlyResultsSection monthlyData={monthlyData} isLoading={isLoading} />
+      <FilterSection month={month} year={year} setMonth={setMonth} setYear={setYear} />
       </main>
       
       {/* Footer Banner Section - Outside main container for full-width coverage */}
@@ -718,7 +721,20 @@ function LiveResultsSection({ currentTime, todayItems, isLoading }: { currentTim
                   <div className="text-[10px] sm:text-xs text-gray-600 mb-1 sm:mb-2">TIME: {item.time}</div>
                   <div className="flex justify-center items-center space-x-0.5 sm:space-x-1 mb-1 sm:mb-2 flex-wrap gap-0.5">
                     <span className="text-green-600 font-bold text-sm sm:text-base md:text-lg">{item.yesterdayResult || '--'}🌐</span>
-                    <span className="text-red-600 font-bold text-base sm:text-lg md:text-xl">{`{ ${item.todayResult || '--'} }`}</span>
+                    {item.todayResult && item.todayResult !== '--' ? (
+                      <span className="text-red-600 font-bold text-base sm:text-lg md:text-xl">{`{ ${item.todayResult} }`}</span>
+                    ) : (
+                      <span className="text-red-600 font-bold text-base sm:text-lg md:text-xl flex items-center justify-center">
+                        {'{ '}
+                        <img 
+                          src="https://sattakingchartresult.com/_next/d386c.gif" 
+                          alt="Waiting for result" 
+                          className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7"
+                          style={{ display: 'inline-block', verticalAlign: 'middle' }}
+                        />
+                        {' }'}
+                      </span>
+                    )}
                     <span className="text-green-600 text-xs sm:text-sm">✔️</span>
                   </div>
                   <div className={`text-[10px] sm:text-xs font-semibold ${

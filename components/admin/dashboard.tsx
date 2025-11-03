@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import useSWR from "swr"
 import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey, TextColumn, TextColumnLine, LiveSchedule } from "@/lib/types"
 import { Input } from "@/components/ui/input"
@@ -107,11 +107,39 @@ export default function AdminDashboard() {
     if (data?.content?.categories) setCategoriesDraft(data.content.categories)
   }, [data?.content?.categories])
   
+  // Debounced persist with cancellation support
+  const persistTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pendingSaveRef = useRef<SiteContent | null>(null)
+  const isSavingRef = useRef(false)
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (persistTimeoutRef.current) {
+        clearTimeout(persistTimeoutRef.current)
+      }
+    }
+  }, [])
 
-  async function persist(next: SiteContent) {
+  async function persistImmediate(next: SiteContent) {
+    // Cancel any pending debounced save
+    if (persistTimeoutRef.current) {
+      clearTimeout(persistTimeoutRef.current)
+      persistTimeoutRef.current = null
+    }
+    
+    // If already saving, queue this save
+    if (isSavingRef.current) {
+      pendingSaveRef.current = next
+      return
+    }
+
+    isSavingRef.current = true
     setIsSaving(true)
     try {
+      // Optimistic update
       mutate({ content: next }, { revalidate: false })
+      
       const response = await fetch("/api/admin/content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,19 +148,50 @@ export default function AdminDashboard() {
       
       if (!response.ok) {
         alert("Failed to save content")
+        // Revert optimistic update on error
+        mutate(data, { revalidate: false })
         return
       }
       
       const result = await response.json() as ContentPayload
       mutate(result, { revalidate: false })
       setLastSaved(new Date())
+      
+      // Check if there's a pending save after this one completes
+      if (pendingSaveRef.current) {
+        const pending = pendingSaveRef.current
+        pendingSaveRef.current = null
+        // Recursively save pending changes
+        setTimeout(() => persistImmediate(pending), 50)
+        return
+      }
     } catch (error) {
       console.error("Save error:", error)
       alert("Failed to save content")
+      // Revert optimistic update on error
+      mutate(data, { revalidate: false })
     } finally {
+      isSavingRef.current = false
       setIsSaving(false)
     }
   }
+
+  // Debounced persist - waits 500ms after last change before saving
+  const persist = useCallback((next: SiteContent) => {
+    // Cancel any existing timeout
+    if (persistTimeoutRef.current) {
+      clearTimeout(persistTimeoutRef.current)
+    }
+    
+    // Update optimistic UI immediately (for instant feedback)
+    mutate({ content: next }, { revalidate: false })
+    
+    // Debounce the actual save
+    persistTimeoutRef.current = setTimeout(() => {
+      persistImmediate(next)
+      persistTimeoutRef.current = null
+    }, 500) // 500ms delay
+  }, [mutate, data])
 
   async function uploadAd(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -2445,17 +2504,17 @@ export default function AdminDashboard() {
                   {editingCategory === c.key ? (
                     // Edit Mode
                     <div className="space-y-4">
-                      <div className="grid gap-3 sm:grid-cols-[1fr_120px_120px]">
-                  <Field>
-                    <Label>Label</Label>
-                    <FieldContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Field>
+                          <Label>Label</Label>
+                          <FieldContent>
                             <Input 
                               value={editCategoryLabel} 
                               onChange={(e) => setEditCategoryLabel(e.target.value)}
                               placeholder="e.g., GHAZIABAD"
                             />
-                    </FieldContent>
-                  </Field>
+                          </FieldContent>
+                        </Field>
                         <Field>
                           <Label>Default Time</Label>
                           <FieldContent>
@@ -2467,14 +2526,14 @@ export default function AdminDashboard() {
                             />
                           </FieldContent>
                         </Field>
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={saveEditCategory} className="bg-green-600 hover:bg-green-700">
-                            Save
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={cancelEditCategory}>
-                            Cancel
-                          </Button>
-                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button size="sm" onClick={saveEditCategory} className="bg-green-600 hover:bg-green-700">
+                          Save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={cancelEditCategory}>
+                          Cancel
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -3456,6 +3515,31 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
               )}
+            </div>
+
+            {/* Save Button */}
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <Button 
+                  onClick={() => {
+                    setIsSaving(true)
+                    persist(content)
+                    setTimeout(() => {
+                      setIsSaving(false)
+                      setLastSaved(new Date())
+                    }, 1000)
+                  }}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? "Saving..." : "Save All Changes"}
+                </Button>
+                {lastSaved && (
+                  <span className="text-xs text-gray-500">
+                    Last saved: {lastSaved.toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}

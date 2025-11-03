@@ -1,0 +1,4649 @@
+{
+  "2025-11": {
+    "month": "2025-11",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-11-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2025-11-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2025-11-03",
+        "gali1": "78",
+        "desawar": "89"
+      },
+      {
+        "date": "2025-11-04"
+      },
+      {
+        "date": "2025-11-05"
+      },
+      {
+        "date": "2025-11-06"
+      },
+      {
+        "date": "2025-11-07"
+      },
+      {
+        "date": "2025-11-08"
+      },
+      {
+        "date": "2025-11-09"
+      },
+      {
+        "date": "2025-11-10"
+      },
+      {
+        "date": "2025-11-11"
+      },
+      {
+        "date": "2025-11-12"
+      },
+      {
+        "date": "2025-11-13"
+      },
+      {
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-15"
+      },
+      {
+        "date": "2025-11-16"
+      },
+      {
+        "date": "2025-11-17"
+      },
+      {
+        "date": "2025-11-18"
+      },
+      {
+        "date": "2025-11-19"
+      },
+      {
+        "date": "2025-11-20"
+      },
+      {
+        "date": "2025-11-21"
+      },
+      {
+        "date": "2025-11-22"
+      },
+      {
+        "date": "2025-11-23"
+      },
+      {
+        "date": "2025-11-24"
+      },
+      {
+        "date": "2025-11-25"
+      },
+      {
+        "date": "2025-11-26"
+      },
+      {
+        "date": "2025-11-27"
+      },
+      {
+        "date": "2025-11-28"
+      },
+      {
+        "date": "2025-11-29"
+      },
+      {
+        "date": "2025-11-30"
+      },
+      {
+        "date": "2025-11-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T11:15:57.413Z"
+  },
+  "2025-10": {
+    "month": "2025-10",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-10-01",
+        "firozabad": "19",
+        "disawar": "89",
+        "faridabad": "54",
+        "ghaziabad": "59",
+        "gali": "56"
+      },
+      {
+        "date": "2025-10-02",
+        "desawar": "41",
+        "firozabad": "24",
+        "disawar": "71",
+        "faridabad": "63",
+        "ghaziabad": "58",
+        "gali": "70"
+      },
+      {
+        "date": "2025-10-03",
+        "desawar": "96",
+        "firozabad": "30",
+        "disawar": "35",
+        "faridabad": "31",
+        "ghaziabad": "42",
+        "gali": "39"
+      },
+      {
+        "date": "2025-10-04",
+        "desawar": "87",
+        "firozabad": "42",
+        "disawar": "69",
+        "faridabad": "26",
+        "ghaziabad": "08",
+        "gali": "06"
+      },
+      {
+        "date": "2025-10-05",
+        "desawar": "62",
+        "firozabad": "32",
+        "disawar": "57",
+        "faridabad": "43",
+        "ghaziabad": "39",
+        "gali": "79"
+      },
+      {
+        "date": "2025-10-06",
+        "desawar": "55",
+        "firozabad": "04",
+        "disawar": "68",
+        "faridabad": "04",
+        "ghaziabad": "85",
+        "gali": "94"
+      },
+      {
+        "date": "2025-10-07",
+        "desawar": "25",
+        "firozabad": "81",
+        "disawar": "13",
+        "faridabad": "84",
+        "ghaziabad": "52",
+        "gali": "72"
+      },
+      {
+        "date": "2025-10-08",
+        "desawar": "45",
+        "firozabad": "34",
+        "disawar": "83",
+        "faridabad": "37",
+        "ghaziabad": "20",
+        "gali": "07"
+      },
+      {
+        "date": "2025-10-09",
+        "desawar": "85",
+        "firozabad": "71",
+        "disawar": "02",
+        "faridabad": "32",
+        "ghaziabad": "86",
+        "gali": "08"
+      },
+      {
+        "date": "2025-10-10",
+        "desawar": "73",
+        "firozabad": "12",
+        "disawar": "61",
+        "faridabad": "52",
+        "ghaziabad": "08",
+        "gali": "67"
+      },
+      {
+        "date": "2025-10-11",
+        "desawar": "22",
+        "firozabad": "44",
+        "disawar": "71",
+        "faridabad": "64",
+        "ghaziabad": "56",
+        "gali": "05"
+      },
+      {
+        "date": "2025-10-12",
+        "desawar": "88",
+        "firozabad": "46",
+        "disawar": "45",
+        "faridabad": "95",
+        "ghaziabad": "54",
+        "gali": "32"
+      },
+      {
+        "date": "2025-10-13",
+        "desawar": "75",
+        "firozabad": "50",
+        "disawar": "38",
+        "faridabad": "92",
+        "ghaziabad": "96",
+        "gali": "26"
+      },
+      {
+        "date": "2025-10-14",
+        "desawar": "24",
+        "firozabad": "54",
+        "disawar": "17",
+        "faridabad": "23",
+        "ghaziabad": "98",
+        "gali": "32"
+      },
+      {
+        "date": "2025-10-15",
+        "desawar": "92",
+        "firozabad": "40",
+        "disawar": "86",
+        "faridabad": "88",
+        "ghaziabad": "90",
+        "gali": "66"
+      },
+      {
+        "date": "2025-10-16",
+        "desawar": "50",
+        "firozabad": "73",
+        "disawar": "83",
+        "faridabad": "72",
+        "ghaziabad": "98",
+        "gali": "83"
+      },
+      {
+        "date": "2025-10-17",
+        "desawar": "60",
+        "firozabad": "83",
+        "disawar": "79",
+        "faridabad": "59",
+        "ghaziabad": "04",
+        "gali": "61"
+      },
+      {
+        "date": "2025-10-18",
+        "desawar": "55",
+        "firozabad": "16",
+        "disawar": "37",
+        "faridabad": "19",
+        "ghaziabad": "36",
+        "gali": "12"
+      },
+      {
+        "date": "2025-10-19",
+        "desawar": "04",
+        "firozabad": "78",
+        "disawar": "38",
+        "faridabad": "57",
+        "ghaziabad": "91",
+        "gali": "49"
+      },
+      {
+        "date": "2025-10-20",
+        "desawar": "75",
+        "firozabad": "06",
+        "disawar": "46",
+        "faridabad": "38",
+        "ghaziabad": "81",
+        "gali": "45"
+      },
+      {
+        "date": "2025-10-21",
+        "desawar": "88",
+        "firozabad": "80",
+        "disawar": "77",
+        "faridabad": "70",
+        "ghaziabad": "52",
+        "gali": "92"
+      },
+      {
+        "date": "2025-10-22",
+        "desawar": "38",
+        "firozabad": "16",
+        "disawar": "91",
+        "faridabad": "82",
+        "ghaziabad": "58",
+        "gali": "15"
+      },
+      {
+        "date": "2025-10-23",
+        "desawar": "68",
+        "firozabad": "93",
+        "disawar": "68",
+        "faridabad": "11",
+        "ghaziabad": "67",
+        "gali": "06"
+      },
+      {
+        "date": "2025-10-24",
+        "desawar": "50",
+        "firozabad": "77",
+        "disawar": "13",
+        "faridabad": "32",
+        "ghaziabad": "91",
+        "gali": "31"
+      },
+      {
+        "date": "2025-10-25",
+        "desawar": "96",
+        "firozabad": "05",
+        "disawar": "79",
+        "faridabad": "44",
+        "ghaziabad": "67",
+        "gali": "72"
+      },
+      {
+        "date": "2025-10-26",
+        "desawar": "61",
+        "firozabad": "76",
+        "disawar": "24",
+        "faridabad": "18",
+        "ghaziabad": "65",
+        "gali": "55"
+      },
+      {
+        "date": "2025-10-27",
+        "desawar": "33",
+        "firozabad": "31",
+        "disawar": "77",
+        "faridabad": "81",
+        "ghaziabad": "50",
+        "gali": "36"
+      },
+      {
+        "date": "2025-10-28",
+        "desawar": "68",
+        "firozabad": "80",
+        "disawar": "11",
+        "faridabad": "24",
+        "ghaziabad": "84",
+        "gali": "62"
+      },
+      {
+        "date": "2025-10-29",
+        "desawar": "37",
+        "firozabad": "27",
+        "disawar": "09",
+        "faridabad": "71",
+        "ghaziabad": "50",
+        "gali": "18"
+      },
+      {
+        "date": "2025-10-30",
+        "desawar": "40",
+        "firozabad": "51",
+        "disawar": "33",
+        "faridabad": "51",
+        "ghaziabad": "59",
+        "gali": "85"
+      },
+      {
+        "date": "2025-10-31",
+        "desawar": "36",
+        "firozabad": "36",
+        "disawar": "44"
+      }
+    ],
+    "updatedAt": "2025-11-03T11:15:46.817Z"
+  },
+  "2025-09": {
+    "month": "2025-09",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-09-01",
+        "firozabad": "91",
+        "disawar": "19",
+        "faridabad": "70",
+        "ghaziabad": "46",
+        "gali": "68"
+      },
+      {
+        "date": "2025-09-02",
+        "desawar": "66",
+        "firozabad": "53",
+        "disawar": "56",
+        "faridabad": "00",
+        "ghaziabad": "57",
+        "gali": "57"
+      },
+      {
+        "date": "2025-09-03",
+        "desawar": "70",
+        "firozabad": "64",
+        "disawar": "53",
+        "faridabad": "88",
+        "ghaziabad": "94",
+        "gali": "72"
+      },
+      {
+        "date": "2025-09-04",
+        "desawar": "73",
+        "firozabad": "80",
+        "disawar": "14",
+        "faridabad": "00",
+        "ghaziabad": "52",
+        "gali": "54"
+      },
+      {
+        "date": "2025-09-05",
+        "desawar": "72",
+        "firozabad": "88",
+        "disawar": "10",
+        "faridabad": "52",
+        "ghaziabad": "67",
+        "gali": "41"
+      },
+      {
+        "date": "2025-09-06",
+        "desawar": "04",
+        "firozabad": "58",
+        "disawar": "73",
+        "faridabad": "82",
+        "ghaziabad": "49",
+        "gali": "73"
+      },
+      {
+        "date": "2025-09-07",
+        "desawar": "96",
+        "firozabad": "36",
+        "disawar": "21",
+        "faridabad": "83",
+        "ghaziabad": "14",
+        "gali": "21"
+      },
+      {
+        "date": "2025-09-08",
+        "desawar": "64",
+        "firozabad": "32",
+        "disawar": "97",
+        "faridabad": "03",
+        "ghaziabad": "57",
+        "gali": "64"
+      },
+      {
+        "date": "2025-09-09",
+        "desawar": "03",
+        "firozabad": "67",
+        "disawar": "64",
+        "faridabad": "96",
+        "ghaziabad": "49",
+        "gali": "40"
+      },
+      {
+        "date": "2025-09-10",
+        "desawar": "48",
+        "firozabad": "31",
+        "disawar": "76",
+        "faridabad": "08",
+        "ghaziabad": "93",
+        "gali": "26"
+      },
+      {
+        "date": "2025-09-11",
+        "desawar": "36",
+        "firozabad": "25",
+        "disawar": "45",
+        "faridabad": "13",
+        "ghaziabad": "34",
+        "gali": "95"
+      },
+      {
+        "date": "2025-09-12",
+        "desawar": "23",
+        "firozabad": "55",
+        "disawar": "71",
+        "faridabad": "78",
+        "ghaziabad": "85",
+        "gali": "23"
+      },
+      {
+        "date": "2025-09-13",
+        "desawar": "93",
+        "firozabad": "14",
+        "disawar": "86",
+        "faridabad": "41",
+        "ghaziabad": "01",
+        "gali": "81"
+      },
+      {
+        "date": "2025-09-14",
+        "desawar": "05",
+        "firozabad": "84",
+        "disawar": "42",
+        "faridabad": "40",
+        "ghaziabad": "67",
+        "gali": "67"
+      },
+      {
+        "date": "2025-09-15",
+        "desawar": "87",
+        "firozabad": "62",
+        "disawar": "49",
+        "faridabad": "12",
+        "ghaziabad": "00",
+        "gali": "87"
+      },
+      {
+        "date": "2025-09-16",
+        "desawar": "73",
+        "firozabad": "93",
+        "disawar": "69",
+        "faridabad": "90",
+        "ghaziabad": "23",
+        "gali": "14"
+      },
+      {
+        "date": "2025-09-17",
+        "desawar": "63",
+        "firozabad": "98",
+        "disawar": "80",
+        "faridabad": "41",
+        "ghaziabad": "14",
+        "gali": "30"
+      },
+      {
+        "date": "2025-09-18",
+        "desawar": "09",
+        "firozabad": "93",
+        "disawar": "13",
+        "faridabad": "33",
+        "ghaziabad": "14",
+        "gali": "95"
+      },
+      {
+        "date": "2025-09-19",
+        "desawar": "71",
+        "firozabad": "88",
+        "disawar": "26",
+        "faridabad": "94",
+        "ghaziabad": "66",
+        "gali": "64"
+      },
+      {
+        "date": "2025-09-20",
+        "desawar": "36",
+        "firozabad": "15",
+        "disawar": "42",
+        "faridabad": "19",
+        "ghaziabad": "53",
+        "gali": "40"
+      },
+      {
+        "date": "2025-09-21",
+        "desawar": "24",
+        "firozabad": "22",
+        "disawar": "54",
+        "faridabad": "08",
+        "ghaziabad": "97",
+        "gali": "54"
+      },
+      {
+        "date": "2025-09-22",
+        "desawar": "70",
+        "firozabad": "86",
+        "disawar": "54",
+        "faridabad": "55",
+        "ghaziabad": "38",
+        "gali": "31"
+      },
+      {
+        "date": "2025-09-23",
+        "desawar": "42",
+        "firozabad": "41",
+        "disawar": "28",
+        "faridabad": "64",
+        "ghaziabad": "38",
+        "gali": "95"
+      },
+      {
+        "date": "2025-09-24",
+        "desawar": "63",
+        "firozabad": "55",
+        "disawar": "98",
+        "faridabad": "44",
+        "ghaziabad": "63",
+        "gali": "00"
+      },
+      {
+        "date": "2025-09-25",
+        "desawar": "62",
+        "firozabad": "49",
+        "disawar": "11",
+        "faridabad": "10",
+        "ghaziabad": "13",
+        "gali": "82"
+      },
+      {
+        "date": "2025-09-26",
+        "desawar": "48",
+        "firozabad": "26",
+        "disawar": "24",
+        "faridabad": "91",
+        "ghaziabad": "64",
+        "gali": "42"
+      },
+      {
+        "date": "2025-09-27",
+        "desawar": "96",
+        "firozabad": "57",
+        "disawar": "29",
+        "faridabad": "60",
+        "ghaziabad": "93",
+        "gali": "19"
+      },
+      {
+        "date": "2025-09-28",
+        "desawar": "84",
+        "firozabad": "55",
+        "disawar": "18",
+        "faridabad": "58",
+        "ghaziabad": "52",
+        "gali": "63"
+      },
+      {
+        "date": "2025-09-29",
+        "desawar": "48",
+        "firozabad": "28",
+        "disawar": "95",
+        "faridabad": "57",
+        "ghaziabad": "10",
+        "gali": "95"
+      },
+      {
+        "date": "2025-09-30",
+        "desawar": "17",
+        "firozabad": "36",
+        "disawar": "12"
+      },
+      {
+        "date": "2025-09-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T11:15:50.367Z"
+  },
+  "2025-08": {
+    "month": "2025-08",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-08-01",
+        "firozabad": "45",
+        "disawar": "21",
+        "faridabad": "23",
+        "ghaziabad": "88",
+        "gali": "13"
+      },
+      {
+        "date": "2025-08-02",
+        "desawar": "68",
+        "firozabad": "55",
+        "disawar": "41",
+        "faridabad": "80",
+        "ghaziabad": "98",
+        "gali": "71"
+      },
+      {
+        "date": "2025-08-03",
+        "desawar": "56",
+        "firozabad": "98",
+        "disawar": "14",
+        "faridabad": "00",
+        "ghaziabad": "64",
+        "gali": "59"
+      },
+      {
+        "date": "2025-08-04",
+        "desawar": "92",
+        "firozabad": "26",
+        "disawar": "24",
+        "faridabad": "22",
+        "ghaziabad": "61",
+        "gali": "22"
+      },
+      {
+        "date": "2025-08-05",
+        "desawar": "56",
+        "firozabad": "66",
+        "disawar": "60",
+        "faridabad": "14",
+        "ghaziabad": "82",
+        "gali": "28"
+      },
+      {
+        "date": "2025-08-06",
+        "desawar": "85",
+        "firozabad": "92",
+        "disawar": "20",
+        "faridabad": "66",
+        "ghaziabad": "89",
+        "gali": "45"
+      },
+      {
+        "date": "2025-08-07",
+        "desawar": "21",
+        "firozabad": "77",
+        "disawar": "48",
+        "faridabad": "71",
+        "ghaziabad": "83",
+        "gali": "99"
+      },
+      {
+        "date": "2025-08-08",
+        "desawar": "89",
+        "firozabad": "50",
+        "disawar": "88",
+        "faridabad": "14",
+        "ghaziabad": "79",
+        "gali": "87"
+      },
+      {
+        "date": "2025-08-09",
+        "desawar": "61",
+        "firozabad": "80",
+        "disawar": "68",
+        "faridabad": "84",
+        "ghaziabad": "98",
+        "gali": "82"
+      },
+      {
+        "date": "2025-08-10",
+        "desawar": "31",
+        "firozabad": "81",
+        "disawar": "24",
+        "faridabad": "26",
+        "ghaziabad": "43",
+        "gali": "57"
+      },
+      {
+        "date": "2025-08-11",
+        "desawar": "57",
+        "firozabad": "06",
+        "disawar": "31",
+        "faridabad": "37",
+        "ghaziabad": "89",
+        "gali": "36"
+      },
+      {
+        "date": "2025-08-12",
+        "desawar": "87",
+        "firozabad": "66",
+        "disawar": "84",
+        "faridabad": "12",
+        "ghaziabad": "81",
+        "gali": "32"
+      },
+      {
+        "date": "2025-08-13",
+        "desawar": "01",
+        "firozabad": "88",
+        "disawar": "10",
+        "faridabad": "73",
+        "ghaziabad": "18",
+        "gali": "83"
+      },
+      {
+        "date": "2025-08-14",
+        "desawar": "27",
+        "firozabad": "64",
+        "disawar": "27",
+        "faridabad": "62",
+        "ghaziabad": "37",
+        "gali": "46"
+      },
+      {
+        "date": "2025-08-15",
+        "desawar": "75",
+        "firozabad": "40",
+        "disawar": "14",
+        "faridabad": "01",
+        "ghaziabad": "71",
+        "gali": "64"
+      },
+      {
+        "date": "2025-08-16",
+        "desawar": "80",
+        "firozabad": "76",
+        "disawar": "79",
+        "faridabad": "63",
+        "ghaziabad": "29",
+        "gali": "48"
+      },
+      {
+        "date": "2025-08-17",
+        "desawar": "18",
+        "firozabad": "87",
+        "disawar": "69",
+        "faridabad": "11",
+        "ghaziabad": "61",
+        "gali": "32"
+      },
+      {
+        "date": "2025-08-18",
+        "desawar": "03",
+        "firozabad": "42",
+        "disawar": "21",
+        "faridabad": "00",
+        "ghaziabad": "28",
+        "gali": "44"
+      },
+      {
+        "date": "2025-08-19",
+        "desawar": "38",
+        "firozabad": "23",
+        "disawar": "05",
+        "faridabad": "60",
+        "ghaziabad": "20",
+        "gali": "72"
+      },
+      {
+        "date": "2025-08-20",
+        "desawar": "70",
+        "firozabad": "30",
+        "disawar": "40",
+        "faridabad": "28",
+        "ghaziabad": "77",
+        "gali": "11"
+      },
+      {
+        "date": "2025-08-21",
+        "desawar": "81",
+        "firozabad": "76",
+        "disawar": "03",
+        "faridabad": "14",
+        "ghaziabad": "44",
+        "gali": "95"
+      },
+      {
+        "date": "2025-08-22",
+        "desawar": "84",
+        "firozabad": "84",
+        "disawar": "66",
+        "faridabad": "01",
+        "ghaziabad": "70",
+        "gali": "34"
+      },
+      {
+        "date": "2025-08-23",
+        "desawar": "15",
+        "firozabad": "91",
+        "disawar": "04",
+        "faridabad": "84",
+        "ghaziabad": "51",
+        "gali": "28"
+      },
+      {
+        "date": "2025-08-24",
+        "desawar": "43",
+        "firozabad": "30",
+        "disawar": "28",
+        "faridabad": "49",
+        "ghaziabad": "96",
+        "gali": "29"
+      },
+      {
+        "date": "2025-08-25",
+        "desawar": "34",
+        "firozabad": "18",
+        "disawar": "59",
+        "faridabad": "58",
+        "ghaziabad": "81",
+        "gali": "94"
+      },
+      {
+        "date": "2025-08-26",
+        "desawar": "06",
+        "firozabad": "53",
+        "disawar": "79",
+        "faridabad": "09",
+        "ghaziabad": "59",
+        "gali": "07"
+      },
+      {
+        "date": "2025-08-27",
+        "desawar": "80",
+        "firozabad": "48",
+        "disawar": "79",
+        "faridabad": "26",
+        "ghaziabad": "15",
+        "gali": "69"
+      },
+      {
+        "date": "2025-08-28",
+        "desawar": "78",
+        "firozabad": "26",
+        "disawar": "89",
+        "faridabad": "44",
+        "ghaziabad": "11",
+        "gali": "55"
+      },
+      {
+        "date": "2025-08-29",
+        "desawar": "51",
+        "firozabad": "01",
+        "disawar": "73",
+        "faridabad": "67",
+        "ghaziabad": "69",
+        "gali": "49"
+      },
+      {
+        "date": "2025-08-30",
+        "desawar": "32",
+        "firozabad": "39",
+        "disawar": "55",
+        "faridabad": "64",
+        "ghaziabad": "90",
+        "gali": "84"
+      },
+      {
+        "date": "2025-08-31",
+        "desawar": "89",
+        "firozabad": "87",
+        "disawar": "27"
+      }
+    ],
+    "updatedAt": "2025-11-03T10:37:32.773Z"
+  },
+  "2024-10": {
+    "month": "2024-10",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2024-10-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2024-10-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2024-10-03",
+        "desawar": "89"
+      },
+      {
+        "date": "2024-10-04"
+      },
+      {
+        "date": "2024-10-05"
+      },
+      {
+        "date": "2024-10-06"
+      },
+      {
+        "date": "2024-10-07"
+      },
+      {
+        "date": "2024-10-08"
+      },
+      {
+        "date": "2024-10-09"
+      },
+      {
+        "date": "2024-10-10"
+      },
+      {
+        "date": "2024-10-11"
+      },
+      {
+        "date": "2024-10-12"
+      },
+      {
+        "date": "2024-10-13"
+      },
+      {
+        "date": "2024-10-14"
+      },
+      {
+        "date": "2024-10-15"
+      },
+      {
+        "date": "2024-10-16"
+      },
+      {
+        "date": "2024-10-17"
+      },
+      {
+        "date": "2024-10-18"
+      },
+      {
+        "date": "2024-10-19"
+      },
+      {
+        "date": "2024-10-20"
+      },
+      {
+        "date": "2024-10-21"
+      },
+      {
+        "date": "2024-10-22"
+      },
+      {
+        "date": "2024-10-23"
+      },
+      {
+        "date": "2024-10-24"
+      },
+      {
+        "date": "2024-10-25"
+      },
+      {
+        "date": "2024-10-26"
+      },
+      {
+        "date": "2024-10-27"
+      },
+      {
+        "date": "2024-10-28"
+      },
+      {
+        "date": "2024-10-29"
+      },
+      {
+        "date": "2024-10-30"
+      },
+      {
+        "date": "2024-10-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:12:43.122Z"
+  },
+  "2025-01": {
+    "month": "2025-01",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-01-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2025-01-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2025-01-03",
+        "desawar": "89"
+      },
+      {
+        "date": "2025-01-04"
+      },
+      {
+        "date": "2025-01-05"
+      },
+      {
+        "date": "2025-01-06"
+      },
+      {
+        "date": "2025-01-07"
+      },
+      {
+        "date": "2025-01-08"
+      },
+      {
+        "date": "2025-01-09"
+      },
+      {
+        "date": "2025-01-10"
+      },
+      {
+        "date": "2025-01-11"
+      },
+      {
+        "date": "2025-01-12"
+      },
+      {
+        "date": "2025-01-13"
+      },
+      {
+        "date": "2025-01-14"
+      },
+      {
+        "date": "2025-01-15"
+      },
+      {
+        "date": "2025-01-16"
+      },
+      {
+        "date": "2025-01-17"
+      },
+      {
+        "date": "2025-01-18"
+      },
+      {
+        "date": "2025-01-19"
+      },
+      {
+        "date": "2025-01-20"
+      },
+      {
+        "date": "2025-01-21"
+      },
+      {
+        "date": "2025-01-22"
+      },
+      {
+        "date": "2025-01-23"
+      },
+      {
+        "date": "2025-01-24"
+      },
+      {
+        "date": "2025-01-25"
+      },
+      {
+        "date": "2025-01-26"
+      },
+      {
+        "date": "2025-01-27"
+      },
+      {
+        "date": "2025-01-28"
+      },
+      {
+        "date": "2025-01-29"
+      },
+      {
+        "date": "2025-01-30"
+      },
+      {
+        "date": "2025-01-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:49:15.935Z"
+  },
+  "2025-04": {
+    "month": "2025-04",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-04-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2025-04-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2025-04-03",
+        "desawar": "89"
+      },
+      {
+        "date": "2025-04-04"
+      },
+      {
+        "date": "2025-04-05"
+      },
+      {
+        "date": "2025-04-06"
+      },
+      {
+        "date": "2025-04-07"
+      },
+      {
+        "date": "2025-04-08"
+      },
+      {
+        "date": "2025-04-09"
+      },
+      {
+        "date": "2025-04-10"
+      },
+      {
+        "date": "2025-04-11"
+      },
+      {
+        "date": "2025-04-12"
+      },
+      {
+        "date": "2025-04-13"
+      },
+      {
+        "date": "2025-04-14"
+      },
+      {
+        "date": "2025-04-15"
+      },
+      {
+        "date": "2025-04-16"
+      },
+      {
+        "date": "2025-04-17"
+      },
+      {
+        "date": "2025-04-18"
+      },
+      {
+        "date": "2025-04-19"
+      },
+      {
+        "date": "2025-04-20"
+      },
+      {
+        "date": "2025-04-21"
+      },
+      {
+        "date": "2025-04-22"
+      },
+      {
+        "date": "2025-04-23"
+      },
+      {
+        "date": "2025-04-24"
+      },
+      {
+        "date": "2025-04-25"
+      },
+      {
+        "date": "2025-04-26"
+      },
+      {
+        "date": "2025-04-27"
+      },
+      {
+        "date": "2025-04-28"
+      },
+      {
+        "date": "2025-04-29"
+      },
+      {
+        "date": "2025-04-30"
+      },
+      {
+        "date": "2025-04-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:42:30.448Z"
+  },
+  "2025-03": {
+    "month": "2025-03",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-03-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2025-03-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2025-03-03",
+        "desawar": "89"
+      },
+      {
+        "date": "2025-03-04"
+      },
+      {
+        "date": "2025-03-05"
+      },
+      {
+        "date": "2025-03-06"
+      },
+      {
+        "date": "2025-03-07"
+      },
+      {
+        "date": "2025-03-08"
+      },
+      {
+        "date": "2025-03-09"
+      },
+      {
+        "date": "2025-03-10"
+      },
+      {
+        "date": "2025-03-11"
+      },
+      {
+        "date": "2025-03-12"
+      },
+      {
+        "date": "2025-03-13"
+      },
+      {
+        "date": "2025-03-14"
+      },
+      {
+        "date": "2025-03-15"
+      },
+      {
+        "date": "2025-03-16"
+      },
+      {
+        "date": "2025-03-17"
+      },
+      {
+        "date": "2025-03-18"
+      },
+      {
+        "date": "2025-03-19"
+      },
+      {
+        "date": "2025-03-20"
+      },
+      {
+        "date": "2025-03-21"
+      },
+      {
+        "date": "2025-03-22"
+      },
+      {
+        "date": "2025-03-23"
+      },
+      {
+        "date": "2025-03-24"
+      },
+      {
+        "date": "2025-03-25"
+      },
+      {
+        "date": "2025-03-26"
+      },
+      {
+        "date": "2025-03-27"
+      },
+      {
+        "date": "2025-03-28"
+      },
+      {
+        "date": "2025-03-29"
+      },
+      {
+        "date": "2025-03-30"
+      },
+      {
+        "date": "2025-03-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:42:30.414Z"
+  },
+  "2025-02": {
+    "month": "2025-02",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-02-01",
+        "firozabad": "07",
+        "disawar": "85",
+        "faridabad": "76",
+        "ghaziabad": "39",
+        "gali": "52"
+      },
+      {
+        "date": "2025-02-02",
+        "desawar": "13",
+        "firozabad": "95",
+        "disawar": "68",
+        "faridabad": "00",
+        "ghaziabad": "11",
+        "gali": "60"
+      },
+      {
+        "date": "2025-02-03",
+        "desawar": "90",
+        "firozabad": "12",
+        "disawar": "22",
+        "faridabad": "76",
+        "ghaziabad": "75",
+        "gali": "96"
+      },
+      {
+        "date": "2025-02-04",
+        "desawar": "79",
+        "firozabad": "66",
+        "disawar": "50",
+        "faridabad": "98",
+        "ghaziabad": "33",
+        "gali": "57"
+      },
+      {
+        "date": "2025-02-05",
+        "desawar": "50",
+        "firozabad": "81",
+        "disawar": "38",
+        "faridabad": "46",
+        "ghaziabad": "29",
+        "gali": "19"
+      },
+      {
+        "date": "2025-02-06",
+        "desawar": "86",
+        "firozabad": "85",
+        "disawar": "92",
+        "faridabad": "88",
+        "ghaziabad": "53",
+        "gali": "50"
+      },
+      {
+        "date": "2025-02-07",
+        "desawar": "68",
+        "firozabad": "84",
+        "disawar": "81",
+        "faridabad": "19",
+        "ghaziabad": "63",
+        "gali": "45"
+      },
+      {
+        "date": "2025-02-08",
+        "desawar": "54",
+        "firozabad": "95",
+        "disawar": "92",
+        "faridabad": "15",
+        "ghaziabad": "94",
+        "gali": "93"
+      },
+      {
+        "date": "2025-02-09",
+        "desawar": "03",
+        "firozabad": "04",
+        "disawar": "73",
+        "faridabad": "77",
+        "ghaziabad": "35",
+        "gali": "11"
+      },
+      {
+        "date": "2025-02-10",
+        "desawar": "40",
+        "firozabad": "01",
+        "disawar": "78",
+        "faridabad": "04",
+        "ghaziabad": "75",
+        "gali": "28"
+      },
+      {
+        "date": "2025-02-11",
+        "desawar": "37",
+        "firozabad": "59",
+        "disawar": "56",
+        "faridabad": "05",
+        "ghaziabad": "17",
+        "gali": "03"
+      },
+      {
+        "date": "2025-02-12",
+        "desawar": "96",
+        "firozabad": "11",
+        "disawar": "44",
+        "faridabad": "02",
+        "ghaziabad": "62",
+        "gali": "05"
+      },
+      {
+        "date": "2025-02-13",
+        "desawar": "21",
+        "firozabad": "82",
+        "disawar": "26",
+        "faridabad": "83",
+        "ghaziabad": "87",
+        "gali": "93"
+      },
+      {
+        "date": "2025-02-14",
+        "desawar": "95",
+        "firozabad": "41",
+        "disawar": "25",
+        "faridabad": "12",
+        "ghaziabad": "04",
+        "gali": "67"
+      },
+      {
+        "date": "2025-02-15",
+        "desawar": "74",
+        "firozabad": "01",
+        "disawar": "24",
+        "faridabad": "24",
+        "ghaziabad": "12",
+        "gali": "23"
+      },
+      {
+        "date": "2025-02-16",
+        "desawar": "20",
+        "firozabad": "83",
+        "disawar": "17",
+        "faridabad": "71",
+        "ghaziabad": "21",
+        "gali": "71"
+      },
+      {
+        "date": "2025-02-17",
+        "desawar": "04",
+        "firozabad": "24",
+        "disawar": "59",
+        "faridabad": "82",
+        "ghaziabad": "24",
+        "gali": "67"
+      },
+      {
+        "date": "2025-02-18",
+        "desawar": "94",
+        "firozabad": "89",
+        "disawar": "13",
+        "faridabad": "82",
+        "ghaziabad": "75",
+        "gali": "75"
+      },
+      {
+        "date": "2025-02-19",
+        "desawar": "46",
+        "firozabad": "39",
+        "disawar": "03",
+        "faridabad": "95",
+        "ghaziabad": "89",
+        "gali": "31"
+      },
+      {
+        "date": "2025-02-20",
+        "desawar": "53",
+        "firozabad": "91",
+        "disawar": "21",
+        "faridabad": "41",
+        "ghaziabad": "13",
+        "gali": "81"
+      },
+      {
+        "date": "2025-02-21",
+        "desawar": "59",
+        "firozabad": "66",
+        "disawar": "83",
+        "faridabad": "49",
+        "ghaziabad": "83",
+        "gali": "55"
+      },
+      {
+        "date": "2025-02-22",
+        "desawar": "36",
+        "firozabad": "48",
+        "disawar": "17",
+        "faridabad": "76",
+        "ghaziabad": "23",
+        "gali": "47"
+      },
+      {
+        "date": "2025-02-23",
+        "desawar": "96",
+        "firozabad": "94",
+        "disawar": "06",
+        "faridabad": "01",
+        "ghaziabad": "92",
+        "gali": "73"
+      },
+      {
+        "date": "2025-02-24",
+        "desawar": "58",
+        "firozabad": "94",
+        "disawar": "87",
+        "faridabad": "74",
+        "ghaziabad": "09",
+        "gali": "82"
+      },
+      {
+        "date": "2025-02-25",
+        "desawar": "91",
+        "firozabad": "98",
+        "disawar": "57",
+        "faridabad": "13",
+        "ghaziabad": "95",
+        "gali": "24"
+      },
+      {
+        "date": "2025-02-26",
+        "desawar": "00",
+        "firozabad": "87",
+        "disawar": "88",
+        "faridabad": "29",
+        "ghaziabad": "03",
+        "gali": "99"
+      },
+      {
+        "date": "2025-02-27",
+        "desawar": "94",
+        "firozabad": "95",
+        "disawar": "79",
+        "faridabad": "70",
+        "ghaziabad": "59",
+        "gali": "12"
+      },
+      {
+        "date": "2025-02-28",
+        "desawar": "11",
+        "firozabad": "65",
+        "disawar": "41"
+      },
+      {
+        "date": "2025-02-29"
+      },
+      {
+        "date": "2025-02-30"
+      },
+      {
+        "date": "2025-02-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:56:35.372Z"
+  },
+  "2025-05": {
+    "month": "2025-05",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-05-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2025-05-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2025-05-03",
+        "desawar": "89"
+      },
+      {
+        "date": "2025-05-04"
+      },
+      {
+        "date": "2025-05-05"
+      },
+      {
+        "date": "2025-05-06"
+      },
+      {
+        "date": "2025-05-07"
+      },
+      {
+        "date": "2025-05-08"
+      },
+      {
+        "date": "2025-05-09"
+      },
+      {
+        "date": "2025-05-10"
+      },
+      {
+        "date": "2025-05-11"
+      },
+      {
+        "date": "2025-05-12"
+      },
+      {
+        "date": "2025-05-13"
+      },
+      {
+        "date": "2025-05-14"
+      },
+      {
+        "date": "2025-05-15"
+      },
+      {
+        "date": "2025-05-16"
+      },
+      {
+        "date": "2025-05-17"
+      },
+      {
+        "date": "2025-05-18"
+      },
+      {
+        "date": "2025-05-19"
+      },
+      {
+        "date": "2025-05-20"
+      },
+      {
+        "date": "2025-05-21"
+      },
+      {
+        "date": "2025-05-22"
+      },
+      {
+        "date": "2025-05-23"
+      },
+      {
+        "date": "2025-05-24"
+      },
+      {
+        "date": "2025-05-25"
+      },
+      {
+        "date": "2025-05-26"
+      },
+      {
+        "date": "2025-05-27"
+      },
+      {
+        "date": "2025-05-28"
+      },
+      {
+        "date": "2025-05-29"
+      },
+      {
+        "date": "2025-05-30"
+      },
+      {
+        "date": "2025-05-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:48:50.960Z"
+  },
+  "2025-07": {
+    "month": "2025-07",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-07-01",
+        "firozabad": "81",
+        "disawar": "34",
+        "faridabad": "27",
+        "ghaziabad": "54",
+        "gali": "57"
+      },
+      {
+        "date": "2025-07-02",
+        "desawar": "42",
+        "firozabad": "43",
+        "disawar": "50",
+        "faridabad": "11",
+        "ghaziabad": "56",
+        "gali": "23"
+      },
+      {
+        "date": "2025-07-03",
+        "desawar": "73",
+        "firozabad": "38",
+        "disawar": "46",
+        "faridabad": "32",
+        "ghaziabad": "27",
+        "gali": "21"
+      },
+      {
+        "date": "2025-07-04",
+        "desawar": "36",
+        "firozabad": "61",
+        "disawar": "29",
+        "faridabad": "77",
+        "ghaziabad": "36",
+        "gali": "01"
+      },
+      {
+        "date": "2025-07-05",
+        "desawar": "88",
+        "firozabad": "36",
+        "disawar": "64",
+        "faridabad": "74",
+        "ghaziabad": "56",
+        "gali": "14"
+      },
+      {
+        "date": "2025-07-06",
+        "desawar": "65",
+        "firozabad": "21",
+        "disawar": "79",
+        "faridabad": "56",
+        "ghaziabad": "71",
+        "gali": "91"
+      },
+      {
+        "date": "2025-07-07",
+        "desawar": "15",
+        "firozabad": "06",
+        "disawar": "37",
+        "faridabad": "69",
+        "ghaziabad": "38",
+        "gali": "30"
+      },
+      {
+        "date": "2025-07-08",
+        "desawar": "04",
+        "firozabad": "26",
+        "disawar": "61",
+        "faridabad": "29",
+        "ghaziabad": "14",
+        "gali": "08"
+      },
+      {
+        "date": "2025-07-09",
+        "desawar": "85",
+        "firozabad": "56",
+        "disawar": "99",
+        "faridabad": "33",
+        "ghaziabad": "24",
+        "gali": "04"
+      },
+      {
+        "date": "2025-07-10",
+        "desawar": "38",
+        "firozabad": "35",
+        "disawar": "31",
+        "faridabad": "40",
+        "ghaziabad": "41",
+        "gali": "07"
+      },
+      {
+        "date": "2025-07-11",
+        "desawar": "51",
+        "firozabad": "35",
+        "disawar": "97",
+        "faridabad": "45",
+        "ghaziabad": "88",
+        "gali": "27"
+      },
+      {
+        "date": "2025-07-12",
+        "desawar": "91",
+        "firozabad": "66",
+        "disawar": "22",
+        "faridabad": "22",
+        "ghaziabad": "52",
+        "gali": "80"
+      },
+      {
+        "date": "2025-07-13",
+        "desawar": "08",
+        "firozabad": "72",
+        "disawar": "58",
+        "faridabad": "33",
+        "ghaziabad": "68",
+        "gali": "41"
+      },
+      {
+        "date": "2025-07-14",
+        "desawar": "29",
+        "firozabad": "76",
+        "disawar": "94",
+        "faridabad": "03",
+        "ghaziabad": "11",
+        "gali": "28"
+      },
+      {
+        "date": "2025-07-15",
+        "desawar": "24",
+        "firozabad": "39",
+        "disawar": "80",
+        "faridabad": "99",
+        "ghaziabad": "94",
+        "gali": "15"
+      },
+      {
+        "date": "2025-07-16",
+        "desawar": "98",
+        "firozabad": "85",
+        "disawar": "02",
+        "faridabad": "57",
+        "ghaziabad": "87",
+        "gali": "84"
+      },
+      {
+        "date": "2025-07-17",
+        "desawar": "55",
+        "firozabad": "86",
+        "disawar": "94",
+        "faridabad": "56",
+        "ghaziabad": "99",
+        "gali": "78"
+      },
+      {
+        "date": "2025-07-18",
+        "desawar": "38",
+        "firozabad": "29",
+        "disawar": "37",
+        "faridabad": "52",
+        "ghaziabad": "86",
+        "gali": "09"
+      },
+      {
+        "date": "2025-07-19",
+        "desawar": "67",
+        "firozabad": "93",
+        "disawar": "60",
+        "faridabad": "54",
+        "ghaziabad": "71",
+        "gali": "90"
+      },
+      {
+        "date": "2025-07-20",
+        "desawar": "25",
+        "firozabad": "04",
+        "disawar": "25",
+        "faridabad": "42",
+        "ghaziabad": "90",
+        "gali": "39"
+      },
+      {
+        "date": "2025-07-21",
+        "desawar": "84",
+        "firozabad": "75",
+        "disawar": "93",
+        "faridabad": "77",
+        "ghaziabad": "96",
+        "gali": "95"
+      },
+      {
+        "date": "2025-07-22",
+        "desawar": "63",
+        "firozabad": "13",
+        "disawar": "18",
+        "faridabad": "92",
+        "ghaziabad": "15",
+        "gali": "96"
+      },
+      {
+        "date": "2025-07-23",
+        "desawar": "25",
+        "firozabad": "77",
+        "disawar": "20",
+        "faridabad": "77",
+        "ghaziabad": "20",
+        "gali": "96"
+      },
+      {
+        "date": "2025-07-24",
+        "desawar": "55",
+        "firozabad": "01",
+        "disawar": "98",
+        "faridabad": "20",
+        "ghaziabad": "64",
+        "gali": "37"
+      },
+      {
+        "date": "2025-07-25",
+        "desawar": "18",
+        "firozabad": "56",
+        "disawar": "55",
+        "faridabad": "21",
+        "ghaziabad": "23",
+        "gali": "13"
+      },
+      {
+        "date": "2025-07-26",
+        "desawar": "14",
+        "firozabad": "51",
+        "disawar": "23",
+        "faridabad": "80",
+        "ghaziabad": "73",
+        "gali": "80"
+      },
+      {
+        "date": "2025-07-27",
+        "desawar": "21",
+        "firozabad": "78",
+        "disawar": "23",
+        "faridabad": "24",
+        "ghaziabad": "20",
+        "gali": "11"
+      },
+      {
+        "date": "2025-07-28",
+        "desawar": "67",
+        "firozabad": "08",
+        "disawar": "23",
+        "faridabad": "59",
+        "ghaziabad": "29",
+        "gali": "57"
+      },
+      {
+        "date": "2025-07-29",
+        "desawar": "96",
+        "firozabad": "45",
+        "disawar": "80",
+        "faridabad": "10",
+        "ghaziabad": "86",
+        "gali": "81"
+      },
+      {
+        "date": "2025-07-30",
+        "desawar": "71",
+        "firozabad": "37",
+        "disawar": "84",
+        "faridabad": "06",
+        "ghaziabad": "40",
+        "gali": "17"
+      },
+      {
+        "date": "2025-07-31",
+        "desawar": "96",
+        "firozabad": "85",
+        "disawar": "33"
+      }
+    ],
+    "updatedAt": "2025-11-03T10:37:33.448Z"
+  },
+  "2025-06": {
+    "month": "2025-06",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-06-01",
+        "firozabad": "58",
+        "disawar": "95",
+        "faridabad": "26",
+        "ghaziabad": "89",
+        "gali": "40"
+      },
+      {
+        "date": "2025-06-02",
+        "desawar": "37",
+        "firozabad": "48",
+        "disawar": "56",
+        "faridabad": "08",
+        "ghaziabad": "69",
+        "gali": "75"
+      },
+      {
+        "date": "2025-06-03",
+        "desawar": "89"
+      },
+      {
+        "date": "2025-06-04"
+      },
+      {
+        "date": "2025-06-05"
+      },
+      {
+        "date": "2025-06-06"
+      },
+      {
+        "date": "2025-06-07"
+      },
+      {
+        "date": "2025-06-08"
+      },
+      {
+        "date": "2025-06-09"
+      },
+      {
+        "date": "2025-06-10"
+      },
+      {
+        "date": "2025-06-11"
+      },
+      {
+        "date": "2025-06-12"
+      },
+      {
+        "date": "2025-06-13"
+      },
+      {
+        "date": "2025-06-14"
+      },
+      {
+        "date": "2025-06-15"
+      },
+      {
+        "date": "2025-06-16"
+      },
+      {
+        "date": "2025-06-17"
+      },
+      {
+        "date": "2025-06-18"
+      },
+      {
+        "date": "2025-06-19"
+      },
+      {
+        "date": "2025-06-20"
+      },
+      {
+        "date": "2025-06-21"
+      },
+      {
+        "date": "2025-06-22"
+      },
+      {
+        "date": "2025-06-23"
+      },
+      {
+        "date": "2025-06-24"
+      },
+      {
+        "date": "2025-06-25"
+      },
+      {
+        "date": "2025-06-26"
+      },
+      {
+        "date": "2025-06-27"
+      },
+      {
+        "date": "2025-06-28"
+      },
+      {
+        "date": "2025-06-29"
+      },
+      {
+        "date": "2025-06-30"
+      },
+      {
+        "date": "2025-06-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:48:49.650Z"
+  },
+  "2022-09": {
+    "month": "2022-09",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2022-09-01",
+        "desawar": "09",
+        "firozabad": "37",
+        "disawar": "18",
+        "faridabad": "17",
+        "ghaziabad": "93",
+        "gali": "89"
+      },
+      {
+        "date": "2022-09-02",
+        "desawar": "65",
+        "firozabad": "71",
+        "disawar": "74",
+        "faridabad": "66",
+        "ghaziabad": "30",
+        "gali": "56"
+      },
+      {
+        "date": "2022-09-03",
+        "desawar": "75",
+        "firozabad": "43",
+        "disawar": "84",
+        "faridabad": "58",
+        "ghaziabad": "30",
+        "gali": "75"
+      },
+      {
+        "date": "2022-09-04",
+        "desawar": "49",
+        "firozabad": "38",
+        "disawar": "58",
+        "faridabad": "00",
+        "ghaziabad": "16",
+        "gali": "03"
+      },
+      {
+        "date": "2022-09-05",
+        "desawar": "89",
+        "firozabad": "00",
+        "disawar": "98",
+        "faridabad": "86",
+        "ghaziabad": "15",
+        "gali": "70"
+      },
+      {
+        "date": "2022-09-06",
+        "desawar": "03",
+        "firozabad": "64",
+        "disawar": "12",
+        "faridabad": "71",
+        "ghaziabad": "46",
+        "gali": "95"
+      },
+      {
+        "date": "2022-09-07",
+        "desawar": "82",
+        "firozabad": "42",
+        "disawar": "91",
+        "faridabad": "26",
+        "ghaziabad": "68",
+        "gali": "67"
+      },
+      {
+        "date": "2022-09-08",
+        "desawar": "75",
+        "firozabad": "50",
+        "disawar": "84",
+        "faridabad": "32",
+        "ghaziabad": "83",
+        "gali": "02"
+      },
+      {
+        "date": "2022-09-09",
+        "desawar": "73",
+        "firozabad": "48",
+        "disawar": "82",
+        "faridabad": "09",
+        "ghaziabad": "74",
+        "gali": "93"
+      },
+      {
+        "date": "2022-09-10",
+        "desawar": "49",
+        "firozabad": "60",
+        "disawar": "58",
+        "faridabad": "42",
+        "ghaziabad": "64",
+        "gali": "33"
+      },
+      {
+        "date": "2022-09-11",
+        "desawar": "79",
+        "firozabad": "42",
+        "disawar": "88",
+        "faridabad": "86",
+        "ghaziabad": "00",
+        "gali": "82"
+      },
+      {
+        "date": "2022-09-12",
+        "desawar": "66",
+        "firozabad": "60",
+        "disawar": "75",
+        "faridabad": "65",
+        "ghaziabad": "33",
+        "gali": "82"
+      },
+      {
+        "date": "2022-09-13",
+        "desawar": "32",
+        "firozabad": "67",
+        "disawar": "41",
+        "faridabad": "54",
+        "ghaziabad": "66",
+        "gali": "90"
+      },
+      {
+        "date": "2022-09-14",
+        "desawar": "52",
+        "firozabad": "08",
+        "disawar": "61",
+        "faridabad": "86",
+        "ghaziabad": "94",
+        "gali": "00"
+      },
+      {
+        "date": "2022-09-15",
+        "desawar": "09",
+        "firozabad": "17",
+        "disawar": "18",
+        "faridabad": "08",
+        "ghaziabad": "36",
+        "gali": "75"
+      },
+      {
+        "date": "2022-09-16",
+        "desawar": "60",
+        "firozabad": "30",
+        "disawar": "69",
+        "faridabad": "63",
+        "ghaziabad": "34",
+        "gali": "62"
+      },
+      {
+        "date": "2022-09-17",
+        "desawar": "15",
+        "firozabad": "88",
+        "disawar": "24",
+        "faridabad": "06",
+        "ghaziabad": "55",
+        "gali": "04"
+      },
+      {
+        "date": "2022-09-18",
+        "desawar": "15",
+        "firozabad": "67",
+        "disawar": "24",
+        "faridabad": "48",
+        "ghaziabad": "92",
+        "gali": "68"
+      },
+      {
+        "date": "2022-09-19",
+        "desawar": "13",
+        "firozabad": "11",
+        "disawar": "22",
+        "faridabad": "20",
+        "ghaziabad": "45",
+        "gali": "85"
+      },
+      {
+        "date": "2022-09-20",
+        "desawar": "66",
+        "firozabad": "04",
+        "disawar": "75",
+        "faridabad": "03",
+        "ghaziabad": "16",
+        "gali": "70"
+      },
+      {
+        "date": "2022-09-21",
+        "desawar": "24",
+        "firozabad": "75",
+        "disawar": "33",
+        "faridabad": "38",
+        "ghaziabad": "21",
+        "gali": "34"
+      },
+      {
+        "date": "2022-09-22",
+        "desawar": "15",
+        "firozabad": "00",
+        "disawar": "24",
+        "faridabad": "61",
+        "ghaziabad": "44",
+        "gali": "36"
+      },
+      {
+        "date": "2022-09-23",
+        "desawar": "76",
+        "firozabad": "02",
+        "disawar": "85",
+        "faridabad": "43",
+        "ghaziabad": "54",
+        "gali": "48"
+      },
+      {
+        "date": "2022-09-24",
+        "desawar": "03",
+        "firozabad": "66",
+        "disawar": "12",
+        "faridabad": "61",
+        "ghaziabad": "71",
+        "gali": "30"
+      },
+      {
+        "date": "2022-09-25",
+        "desawar": "67",
+        "firozabad": "41",
+        "disawar": "76",
+        "faridabad": "78",
+        "ghaziabad": "13",
+        "gali": "06"
+      },
+      {
+        "date": "2022-09-26",
+        "desawar": "05",
+        "firozabad": "27",
+        "disawar": "14",
+        "faridabad": "46",
+        "ghaziabad": "86",
+        "gali": "94"
+      },
+      {
+        "date": "2022-09-27",
+        "desawar": "80",
+        "firozabad": "47",
+        "disawar": "89",
+        "faridabad": "85",
+        "ghaziabad": "80",
+        "gali": "28"
+      },
+      {
+        "date": "2022-09-28",
+        "desawar": "72",
+        "firozabad": "32",
+        "disawar": "81",
+        "faridabad": "54",
+        "ghaziabad": "86",
+        "gali": "58"
+      },
+      {
+        "date": "2022-09-29",
+        "desawar": "17",
+        "firozabad": "99",
+        "disawar": "26",
+        "faridabad": "13",
+        "ghaziabad": "76",
+        "gali": "34"
+      },
+      {
+        "date": "2022-09-30",
+        "desawar": "79",
+        "firozabad": "88",
+        "disawar": "88",
+        "faridabad": "87",
+        "ghaziabad": "24"
+      },
+      {
+        "date": "2022-09-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:56:22.194Z"
+  },
+  "2022-12": {
+    "month": "2022-12",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2022-12-01",
+        "desawar": "67",
+        "firozabad": "15",
+        "disawar": "29",
+        "faridabad": "22",
+        "ghaziabad": "58",
+        "gali": "32"
+      },
+      {
+        "date": "2022-12-02",
+        "desawar": "92",
+        "firozabad": "85",
+        "disawar": "97",
+        "faridabad": "49",
+        "ghaziabad": "29",
+        "gali": "79"
+      },
+      {
+        "date": "2022-12-03",
+        "desawar": "48",
+        "firozabad": "00",
+        "disawar": "03",
+        "faridabad": "45",
+        "ghaziabad": "41",
+        "gali": "94"
+      },
+      {
+        "date": "2022-12-04",
+        "desawar": "34",
+        "firozabad": "99",
+        "disawar": "99",
+        "faridabad": "19",
+        "ghaziabad": "86",
+        "gali": "74"
+      },
+      {
+        "date": "2022-12-05",
+        "desawar": "64",
+        "firozabad": "98",
+        "disawar": "63",
+        "faridabad": "85",
+        "ghaziabad": "11",
+        "gali": "31"
+      },
+      {
+        "date": "2022-12-06",
+        "desawar": "77",
+        "firozabad": "49",
+        "disawar": "96",
+        "faridabad": "18",
+        "ghaziabad": "72",
+        "gali": "84"
+      },
+      {
+        "date": "2022-12-07",
+        "desawar": "66",
+        "firozabad": "58",
+        "disawar": "47",
+        "faridabad": "05",
+        "ghaziabad": "45",
+        "gali": "19"
+      },
+      {
+        "date": "2022-12-08",
+        "desawar": "44",
+        "firozabad": "32",
+        "disawar": "34",
+        "faridabad": "28",
+        "ghaziabad": "94",
+        "gali": "68"
+      },
+      {
+        "date": "2022-12-09",
+        "desawar": "16",
+        "firozabad": "87",
+        "disawar": "60",
+        "faridabad": "29",
+        "ghaziabad": "17",
+        "gali": "24"
+      },
+      {
+        "date": "2022-12-10",
+        "desawar": "92",
+        "firozabad": "14",
+        "disawar": "94",
+        "faridabad": "81",
+        "ghaziabad": "96",
+        "gali": "13"
+      },
+      {
+        "date": "2022-12-11",
+        "desawar": "24",
+        "firozabad": "34",
+        "disawar": "46",
+        "faridabad": "98",
+        "ghaziabad": "23",
+        "gali": "62"
+      },
+      {
+        "date": "2022-12-12",
+        "desawar": "06",
+        "firozabad": "95",
+        "disawar": "37",
+        "faridabad": "53",
+        "ghaziabad": "66",
+        "gali": "91"
+      },
+      {
+        "date": "2022-12-13",
+        "desawar": "73",
+        "firozabad": "67",
+        "disawar": "70",
+        "faridabad": "52",
+        "ghaziabad": "82",
+        "gali": "15"
+      },
+      {
+        "date": "2022-12-14",
+        "desawar": "66",
+        "firozabad": "34",
+        "disawar": "93",
+        "faridabad": "95",
+        "ghaziabad": "35",
+        "gali": "74"
+      },
+      {
+        "date": "2022-12-15",
+        "desawar": "96",
+        "firozabad": "85",
+        "disawar": "15",
+        "faridabad": "91",
+        "ghaziabad": "94",
+        "gali": "84"
+      },
+      {
+        "date": "2022-12-16",
+        "desawar": "73",
+        "firozabad": "43",
+        "disawar": "70",
+        "faridabad": "77",
+        "ghaziabad": "18",
+        "gali": "33"
+      },
+      {
+        "date": "2022-12-17",
+        "desawar": "56",
+        "firozabad": "56",
+        "disawar": "56",
+        "faridabad": "61",
+        "ghaziabad": "08",
+        "gali": "00"
+      },
+      {
+        "date": "2022-12-18",
+        "desawar": "08",
+        "firozabad": "47",
+        "disawar": "75",
+        "faridabad": "58",
+        "ghaziabad": "77",
+        "gali": "20"
+      },
+      {
+        "date": "2022-12-19",
+        "desawar": "66",
+        "firozabad": "91",
+        "disawar": "63",
+        "faridabad": "09",
+        "ghaziabad": "53",
+        "gali": "54"
+      },
+      {
+        "date": "2022-12-20",
+        "desawar": "34",
+        "firozabad": "37",
+        "disawar": "55",
+        "faridabad": "42",
+        "ghaziabad": "93",
+        "gali": "65"
+      },
+      {
+        "date": "2022-12-21",
+        "desawar": "03",
+        "firozabad": "02",
+        "disawar": "68",
+        "faridabad": "32",
+        "ghaziabad": "09",
+        "gali": "29"
+      },
+      {
+        "date": "2022-12-22",
+        "desawar": "24",
+        "firozabad": "77",
+        "disawar": "87",
+        "faridabad": "47",
+        "ghaziabad": "01",
+        "gali": "70"
+      },
+      {
+        "date": "2022-12-23",
+        "desawar": "39",
+        "firozabad": "01",
+        "disawar": "40",
+        "faridabad": "59",
+        "ghaziabad": "07",
+        "gali": "61"
+      },
+      {
+        "date": "2022-12-24",
+        "desawar": "70",
+        "firozabad": "11",
+        "disawar": "43",
+        "faridabad": "36",
+        "ghaziabad": "31",
+        "gali": "32"
+      },
+      {
+        "date": "2022-12-25",
+        "desawar": "91",
+        "firozabad": "79",
+        "disawar": "92",
+        "faridabad": "31",
+        "ghaziabad": "35",
+        "gali": "49"
+      },
+      {
+        "date": "2022-12-26",
+        "desawar": "56",
+        "firozabad": "19",
+        "disawar": "93",
+        "faridabad": "90",
+        "ghaziabad": "06",
+        "gali": "97"
+      },
+      {
+        "date": "2022-12-27",
+        "desawar": "40",
+        "firozabad": "72",
+        "disawar": "94",
+        "faridabad": "20",
+        "ghaziabad": "15",
+        "gali": "41"
+      },
+      {
+        "date": "2022-12-28",
+        "desawar": "16",
+        "firozabad": "32",
+        "disawar": "61",
+        "faridabad": "27",
+        "ghaziabad": "05",
+        "gali": "18"
+      },
+      {
+        "date": "2022-12-29",
+        "desawar": "51",
+        "firozabad": "57",
+        "disawar": "53",
+        "faridabad": "98",
+        "ghaziabad": "89",
+        "gali": "73"
+      },
+      {
+        "date": "2022-12-30",
+        "desawar": "44",
+        "firozabad": "76",
+        "disawar": "93",
+        "faridabad": "07",
+        "ghaziabad": "91",
+        "gali": "64"
+      },
+      {
+        "date": "2022-12-31",
+        "desawar": "52",
+        "firozabad": "72",
+        "disawar": "74",
+        "faridabad": "17",
+        "ghaziabad": "08",
+        "gali": "85"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:57:27.676Z"
+  },
+  "2025-12": {
+    "month": "2025-12",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2025-12-01"
+      },
+      {
+        "date": "2025-12-02"
+      },
+      {
+        "date": "2025-12-03"
+      },
+      {
+        "date": "2025-12-04"
+      },
+      {
+        "date": "2025-12-05"
+      },
+      {
+        "date": "2025-12-06"
+      },
+      {
+        "date": "2025-12-07"
+      },
+      {
+        "date": "2025-12-08"
+      },
+      {
+        "date": "2025-12-09"
+      },
+      {
+        "date": "2025-12-10"
+      },
+      {
+        "date": "2025-12-11"
+      },
+      {
+        "date": "2025-12-12"
+      },
+      {
+        "date": "2025-12-13"
+      },
+      {
+        "date": "2025-12-14"
+      },
+      {
+        "date": "2025-12-15"
+      },
+      {
+        "date": "2025-12-16"
+      },
+      {
+        "date": "2025-12-17"
+      },
+      {
+        "date": "2025-12-18"
+      },
+      {
+        "date": "2025-12-19"
+      },
+      {
+        "date": "2025-12-20"
+      },
+      {
+        "date": "2025-12-21"
+      },
+      {
+        "date": "2025-12-22"
+      },
+      {
+        "date": "2025-12-23"
+      },
+      {
+        "date": "2025-12-24"
+      },
+      {
+        "date": "2025-12-25"
+      },
+      {
+        "date": "2025-12-26"
+      },
+      {
+        "date": "2025-12-27"
+      },
+      {
+        "date": "2025-12-28"
+      },
+      {
+        "date": "2025-12-29"
+      },
+      {
+        "date": "2025-12-30"
+      },
+      {
+        "date": "2025-12-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T07:56:28.778Z"
+  },
+  "2022-10": {
+    "month": "2022-10",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2022-10-01",
+        "desawar": "79",
+        "firozabad": "81",
+        "disawar": "21",
+        "faridabad": "58",
+        "ghaziabad": "71",
+        "gali": "63"
+      },
+      {
+        "date": "2022-10-02",
+        "desawar": "66",
+        "firozabad": "91",
+        "disawar": "34",
+        "faridabad": "95",
+        "ghaziabad": "98",
+        "gali": "85"
+      },
+      {
+        "date": "2022-10-03",
+        "desawar": "81",
+        "firozabad": "66",
+        "disawar": "19",
+        "faridabad": "58",
+        "ghaziabad": "38",
+        "gali": "78"
+      },
+      {
+        "date": "2022-10-04",
+        "desawar": "55",
+        "firozabad": "10",
+        "disawar": "00",
+        "faridabad": "93",
+        "ghaziabad": "00",
+        "gali": "47"
+      },
+      {
+        "date": "2022-10-05",
+        "desawar": "52",
+        "firozabad": "39",
+        "disawar": "48",
+        "faridabad": "74",
+        "ghaziabad": "74",
+        "gali": "45"
+      },
+      {
+        "date": "2022-10-06",
+        "desawar": "91",
+        "firozabad": "03",
+        "disawar": "09",
+        "faridabad": "03",
+        "ghaziabad": "00",
+        "gali": "50"
+      },
+      {
+        "date": "2022-10-07",
+        "desawar": "82",
+        "firozabad": "43",
+        "disawar": "18",
+        "faridabad": "87",
+        "ghaziabad": "51",
+        "gali": "73"
+      },
+      {
+        "date": "2022-10-08",
+        "desawar": "30",
+        "firozabad": "00",
+        "disawar": "70",
+        "faridabad": "81",
+        "ghaziabad": "95",
+        "gali": "28"
+      },
+      {
+        "date": "2022-10-09",
+        "desawar": "15",
+        "firozabad": "25",
+        "disawar": "85",
+        "faridabad": "44",
+        "ghaziabad": "29",
+        "gali": "78"
+      },
+      {
+        "date": "2022-10-10",
+        "desawar": "87",
+        "firozabad": "98",
+        "disawar": "13",
+        "faridabad": "40",
+        "ghaziabad": "34",
+        "gali": "20"
+      },
+      {
+        "date": "2022-10-11",
+        "desawar": "43",
+        "firozabad": "57",
+        "disawar": "57",
+        "faridabad": "94",
+        "ghaziabad": "27",
+        "gali": "19"
+      },
+      {
+        "date": "2022-10-12",
+        "desawar": "77",
+        "firozabad": "50",
+        "disawar": "23",
+        "faridabad": "31",
+        "ghaziabad": "02",
+        "gali": "18"
+      },
+      {
+        "date": "2022-10-13",
+        "desawar": "93",
+        "firozabad": "30",
+        "disawar": "07",
+        "faridabad": "49",
+        "ghaziabad": "56",
+        "gali": "58"
+      },
+      {
+        "date": "2022-10-14",
+        "desawar": "19",
+        "firozabad": "10",
+        "disawar": "81",
+        "faridabad": "87",
+        "ghaziabad": "13",
+        "gali": "31"
+      },
+      {
+        "date": "2022-10-15",
+        "desawar": "12",
+        "firozabad": "07",
+        "disawar": "88",
+        "faridabad": "76",
+        "ghaziabad": "70",
+        "gali": "95"
+      },
+      {
+        "date": "2022-10-16",
+        "desawar": "78",
+        "firozabad": "69",
+        "disawar": "22",
+        "faridabad": "67",
+        "ghaziabad": "63",
+        "gali": "94"
+      },
+      {
+        "date": "2022-10-17",
+        "desawar": "57",
+        "firozabad": "42",
+        "disawar": "43",
+        "faridabad": "99",
+        "ghaziabad": "20",
+        "gali": "57"
+      },
+      {
+        "date": "2022-10-18",
+        "desawar": "91",
+        "firozabad": "75",
+        "disawar": "09",
+        "faridabad": "40",
+        "ghaziabad": "51",
+        "gali": "16"
+      },
+      {
+        "date": "2022-10-19",
+        "desawar": "59",
+        "firozabad": "17",
+        "disawar": "41",
+        "faridabad": "96",
+        "ghaziabad": "21",
+        "gali": "42"
+      },
+      {
+        "date": "2022-10-20",
+        "desawar": "45",
+        "firozabad": "77",
+        "disawar": "55",
+        "faridabad": "55",
+        "ghaziabad": "36",
+        "gali": "96"
+      },
+      {
+        "date": "2022-10-21",
+        "desawar": "28",
+        "firozabad": "43",
+        "disawar": "72",
+        "faridabad": "20",
+        "ghaziabad": "20",
+        "gali": "20"
+      },
+      {
+        "date": "2022-10-22",
+        "desawar": "76",
+        "firozabad": "45",
+        "disawar": "24",
+        "faridabad": "04",
+        "ghaziabad": "59",
+        "gali": "80"
+      },
+      {
+        "date": "2022-10-23",
+        "desawar": "59",
+        "firozabad": "58",
+        "disawar": "41",
+        "faridabad": "47",
+        "ghaziabad": "66",
+        "gali": "27"
+      },
+      {
+        "date": "2022-10-24",
+        "desawar": "89",
+        "firozabad": "83",
+        "disawar": "38",
+        "faridabad": "48",
+        "ghaziabad": "32",
+        "gali": "95"
+      },
+      {
+        "date": "2022-10-25",
+        "desawar": "81",
+        "firozabad": "86",
+        "disawar": "71",
+        "faridabad": "23",
+        "ghaziabad": "00",
+        "gali": "63"
+      },
+      {
+        "date": "2022-10-26",
+        "desawar": "94",
+        "firozabad": "77",
+        "disawar": "06",
+        "faridabad": "30",
+        "ghaziabad": "11",
+        "gali": "43"
+      },
+      {
+        "date": "2022-10-27",
+        "desawar": "72",
+        "firozabad": "84",
+        "disawar": "99",
+        "faridabad": "39",
+        "ghaziabad": "32",
+        "gali": "39"
+      },
+      {
+        "date": "2022-10-28",
+        "desawar": "69",
+        "firozabad": "16",
+        "disawar": "01",
+        "faridabad": "65",
+        "ghaziabad": "71",
+        "gali": "15"
+      },
+      {
+        "date": "2022-10-29",
+        "desawar": "22",
+        "firozabad": "14",
+        "disawar": "44",
+        "faridabad": "60",
+        "ghaziabad": "74",
+        "gali": "76"
+      },
+      {
+        "date": "2022-10-30",
+        "desawar": "86",
+        "firozabad": "86",
+        "disawar": "56",
+        "faridabad": "28",
+        "ghaziabad": "60",
+        "gali": "72"
+      },
+      {
+        "date": "2022-10-31",
+        "desawar": "27",
+        "firozabad": "86",
+        "disawar": "64"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:56:41.350Z"
+  },
+  "2022-11": {
+    "month": "2022-11",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2022-11-01",
+        "desawar": "27",
+        "firozabad": "32",
+        "disawar": "39",
+        "faridabad": "62",
+        "ghaziabad": "70",
+        "gali": "13"
+      },
+      {
+        "date": "2022-11-02",
+        "desawar": "47",
+        "firozabad": "82",
+        "disawar": "89",
+        "faridabad": "32",
+        "ghaziabad": "83",
+        "gali": "04"
+      },
+      {
+        "date": "2022-11-03",
+        "desawar": "91",
+        "firozabad": "62",
+        "disawar": "69",
+        "faridabad": "80",
+        "ghaziabad": "07",
+        "gali": "03"
+      },
+      {
+        "date": "2022-11-04",
+        "desawar": "02",
+        "firozabad": "42",
+        "disawar": "86",
+        "faridabad": "62",
+        "ghaziabad": "71",
+        "gali": "27"
+      },
+      {
+        "date": "2022-11-05",
+        "desawar": "42",
+        "firozabad": "04",
+        "disawar": "47",
+        "faridabad": "63",
+        "ghaziabad": "11",
+        "gali": "04"
+      },
+      {
+        "date": "2022-11-06",
+        "desawar": "64",
+        "firozabad": "08",
+        "disawar": "23",
+        "faridabad": "42",
+        "ghaziabad": "51",
+        "gali": "42"
+      },
+      {
+        "date": "2022-11-07",
+        "desawar": "41",
+        "firozabad": "90",
+        "disawar": "10",
+        "faridabad": "33",
+        "ghaziabad": "96",
+        "gali": "69"
+      },
+      {
+        "date": "2022-11-08",
+        "desawar": "41",
+        "firozabad": "23",
+        "disawar": "10",
+        "faridabad": "27",
+        "ghaziabad": "57",
+        "gali": "38"
+      },
+      {
+        "date": "2022-11-09",
+        "desawar": "90",
+        "firozabad": "56",
+        "disawar": "24",
+        "faridabad": "77",
+        "ghaziabad": "26",
+        "gali": "90"
+      },
+      {
+        "date": "2022-11-10",
+        "desawar": "18",
+        "firozabad": "72",
+        "disawar": "79",
+        "faridabad": "21",
+        "ghaziabad": "69",
+        "gali": "02"
+      },
+      {
+        "date": "2022-11-11",
+        "desawar": "83",
+        "firozabad": "18",
+        "disawar": "62",
+        "faridabad": "40",
+        "ghaziabad": "88",
+        "gali": "60"
+      },
+      {
+        "date": "2022-11-12",
+        "desawar": "81",
+        "firozabad": "95",
+        "disawar": "34",
+        "faridabad": "89",
+        "ghaziabad": "85",
+        "gali": "05"
+      },
+      {
+        "date": "2022-11-13",
+        "desawar": "70",
+        "firozabad": "90",
+        "disawar": "85",
+        "faridabad": "71",
+        "ghaziabad": "21",
+        "gali": "84"
+      },
+      {
+        "date": "2022-11-14",
+        "desawar": "67",
+        "firozabad": "87",
+        "disawar": "13",
+        "faridabad": "00",
+        "ghaziabad": "27",
+        "gali": "83"
+      },
+      {
+        "date": "2022-11-15",
+        "desawar": "20",
+        "firozabad": "82",
+        "disawar": "04",
+        "faridabad": "09",
+        "ghaziabad": "79",
+        "gali": "76"
+      },
+      {
+        "date": "2022-11-16",
+        "desawar": "38",
+        "firozabad": "69",
+        "disawar": "75",
+        "faridabad": "05",
+        "ghaziabad": "25",
+        "gali": "04"
+      },
+      {
+        "date": "2022-11-17",
+        "desawar": "70",
+        "firozabad": "45",
+        "disawar": "66",
+        "faridabad": "62",
+        "ghaziabad": "84",
+        "gali": "15"
+      },
+      {
+        "date": "2022-11-18",
+        "desawar": "34",
+        "firozabad": "61",
+        "disawar": "47",
+        "faridabad": "25",
+        "ghaziabad": "81",
+        "gali": "23"
+      },
+      {
+        "date": "2022-11-19",
+        "desawar": "09",
+        "firozabad": "41",
+        "disawar": "65",
+        "faridabad": "93",
+        "ghaziabad": "73",
+        "gali": "95"
+      },
+      {
+        "date": "2022-11-20",
+        "desawar": "86",
+        "firozabad": "10",
+        "disawar": "69",
+        "faridabad": "84",
+        "ghaziabad": "99",
+        "gali": "90"
+      },
+      {
+        "date": "2022-11-21",
+        "desawar": "99",
+        "firozabad": "83",
+        "disawar": "98",
+        "faridabad": "30",
+        "ghaziabad": "59",
+        "gali": "33"
+      },
+      {
+        "date": "2022-11-22",
+        "desawar": "44",
+        "firozabad": "22",
+        "disawar": "98",
+        "faridabad": "81",
+        "ghaziabad": "03",
+        "gali": "69"
+      },
+      {
+        "date": "2022-11-23",
+        "desawar": "30",
+        "firozabad": "15",
+        "disawar": "48",
+        "faridabad": "48",
+        "ghaziabad": "63",
+        "gali": "84"
+      },
+      {
+        "date": "2022-11-24",
+        "desawar": "98",
+        "firozabad": "28",
+        "disawar": "84",
+        "faridabad": "04",
+        "ghaziabad": "79",
+        "gali": "66"
+      },
+      {
+        "date": "2022-11-25",
+        "desawar": "51",
+        "firozabad": "66",
+        "disawar": "27",
+        "faridabad": "73",
+        "ghaziabad": "03",
+        "gali": "04"
+      },
+      {
+        "date": "2022-11-26",
+        "desawar": "68",
+        "firozabad": "82",
+        "disawar": "84",
+        "faridabad": "03",
+        "ghaziabad": "83",
+        "gali": "24"
+      },
+      {
+        "date": "2022-11-27",
+        "desawar": "89",
+        "firozabad": "27",
+        "disawar": "11",
+        "faridabad": "67",
+        "ghaziabad": "65",
+        "gali": "45"
+      },
+      {
+        "date": "2022-11-28",
+        "desawar": "77",
+        "firozabad": "22",
+        "disawar": "01",
+        "faridabad": "29",
+        "ghaziabad": "45",
+        "gali": "73"
+      },
+      {
+        "date": "2022-11-29",
+        "desawar": "48",
+        "firozabad": "65",
+        "disawar": "45",
+        "faridabad": "63",
+        "ghaziabad": "56",
+        "gali": "37"
+      },
+      {
+        "date": "2022-11-30",
+        "desawar": "33",
+        "firozabad": "21",
+        "disawar": "12"
+      },
+      {
+        "date": "2022-11-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:57:26.463Z"
+  },
+  "2023-01": {
+    "month": "2023-01",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2023-01-01",
+        "firozabad": "29",
+        "disawar": "45",
+        "faridabad": "60",
+        "ghaziabad": "26",
+        "gali": "39"
+      },
+      {
+        "date": "2023-01-02",
+        "desawar": "30",
+        "firozabad": "08",
+        "disawar": "90",
+        "faridabad": "68",
+        "ghaziabad": "77",
+        "gali": "97"
+      },
+      {
+        "date": "2023-01-03",
+        "desawar": "60",
+        "firozabad": "03",
+        "disawar": "68",
+        "faridabad": "62",
+        "ghaziabad": "51",
+        "gali": "15"
+      },
+      {
+        "date": "2023-01-04",
+        "desawar": "77",
+        "firozabad": "71",
+        "disawar": "35",
+        "faridabad": "34",
+        "ghaziabad": "06",
+        "gali": "00"
+      },
+      {
+        "date": "2023-01-05",
+        "desawar": "65",
+        "firozabad": "69",
+        "disawar": "69",
+        "faridabad": "63",
+        "ghaziabad": "83",
+        "gali": "81"
+      },
+      {
+        "date": "2023-01-06",
+        "desawar": "72",
+        "firozabad": "10",
+        "disawar": "13",
+        "faridabad": "45",
+        "ghaziabad": "63",
+        "gali": "41"
+      },
+      {
+        "date": "2023-01-07",
+        "desawar": "17",
+        "firozabad": "21",
+        "disawar": "28",
+        "faridabad": "79",
+        "ghaziabad": "15",
+        "gali": "31"
+      },
+      {
+        "date": "2023-01-08",
+        "desawar": "74",
+        "firozabad": "61",
+        "disawar": "47",
+        "faridabad": "89",
+        "ghaziabad": "46",
+        "gali": "96"
+      },
+      {
+        "date": "2023-01-09",
+        "desawar": "95",
+        "firozabad": "60",
+        "disawar": "19",
+        "faridabad": "20",
+        "ghaziabad": "63",
+        "gali": "43"
+      },
+      {
+        "date": "2023-01-10",
+        "desawar": "51",
+        "firozabad": "25",
+        "disawar": "24",
+        "faridabad": "39",
+        "ghaziabad": "11",
+        "gali": "79"
+      },
+      {
+        "date": "2023-01-11",
+        "desawar": "71",
+        "firozabad": "67",
+        "disawar": "60",
+        "faridabad": "87",
+        "ghaziabad": "23",
+        "gali": "29"
+      },
+      {
+        "date": "2023-01-12",
+        "desawar": "99",
+        "firozabad": "08",
+        "disawar": "11",
+        "faridabad": "11",
+        "ghaziabad": "55",
+        "gali": "23"
+      },
+      {
+        "date": "2023-01-13",
+        "desawar": "98",
+        "firozabad": "28",
+        "disawar": "89",
+        "faridabad": "65",
+        "ghaziabad": "65",
+        "gali": "04"
+      },
+      {
+        "date": "2023-01-14",
+        "desawar": "68",
+        "firozabad": "48",
+        "disawar": "38",
+        "faridabad": "23",
+        "ghaziabad": "08",
+        "gali": "89"
+      },
+      {
+        "date": "2023-01-15",
+        "desawar": "78",
+        "firozabad": "99",
+        "disawar": "72",
+        "faridabad": "13",
+        "ghaziabad": "02",
+        "gali": "32"
+      },
+      {
+        "date": "2023-01-16",
+        "desawar": "29",
+        "firozabad": "68",
+        "disawar": "44",
+        "faridabad": "78",
+        "ghaziabad": "83",
+        "gali": "27"
+      },
+      {
+        "date": "2023-01-17",
+        "desawar": "15",
+        "firozabad": "78",
+        "disawar": "79",
+        "faridabad": "47",
+        "ghaziabad": "47",
+        "gali": "38"
+      },
+      {
+        "date": "2023-01-18",
+        "desawar": "73",
+        "firozabad": "29",
+        "disawar": "64",
+        "faridabad": "44",
+        "ghaziabad": "13",
+        "gali": "60"
+      },
+      {
+        "date": "2023-01-19",
+        "desawar": "73",
+        "firozabad": "02",
+        "disawar": "92",
+        "faridabad": "76",
+        "ghaziabad": "47",
+        "gali": "07"
+      },
+      {
+        "date": "2023-01-20",
+        "desawar": "16",
+        "firozabad": "86",
+        "disawar": "89",
+        "faridabad": "97",
+        "ghaziabad": "41",
+        "gali": "11"
+      },
+      {
+        "date": "2023-01-21",
+        "desawar": "94",
+        "firozabad": "93",
+        "disawar": "53",
+        "faridabad": "55",
+        "ghaziabad": "62",
+        "gali": "63"
+      },
+      {
+        "date": "2023-01-22",
+        "desawar": "49",
+        "firozabad": "33",
+        "disawar": "93",
+        "faridabad": "29",
+        "ghaziabad": "02",
+        "gali": "41"
+      },
+      {
+        "date": "2023-01-23",
+        "desawar": "98",
+        "firozabad": "39",
+        "disawar": "42",
+        "faridabad": "70",
+        "ghaziabad": "17",
+        "gali": "09"
+      },
+      {
+        "date": "2023-01-24",
+        "desawar": "93",
+        "firozabad": "05",
+        "disawar": "87",
+        "faridabad": "53",
+        "ghaziabad": "39",
+        "gali": "11"
+      },
+      {
+        "date": "2023-01-25",
+        "desawar": "62",
+        "firozabad": "93",
+        "disawar": "59",
+        "faridabad": "88",
+        "ghaziabad": "43",
+        "gali": "09"
+      },
+      {
+        "date": "2023-01-26",
+        "desawar": "39",
+        "firozabad": "06",
+        "disawar": "58",
+        "faridabad": "46",
+        "ghaziabad": "22",
+        "gali": "27"
+      },
+      {
+        "date": "2023-01-27",
+        "desawar": "32",
+        "firozabad": "90",
+        "disawar": "67",
+        "faridabad": "96",
+        "ghaziabad": "52",
+        "gali": "06"
+      },
+      {
+        "date": "2023-01-28",
+        "desawar": "97",
+        "firozabad": "66",
+        "disawar": "51",
+        "faridabad": "14",
+        "ghaziabad": "41",
+        "gali": "52"
+      },
+      {
+        "date": "2023-01-29",
+        "desawar": "93",
+        "firozabad": "13",
+        "disawar": "65",
+        "faridabad": "70",
+        "ghaziabad": "54",
+        "gali": "90"
+      },
+      {
+        "date": "2023-01-30",
+        "desawar": "14",
+        "firozabad": "95",
+        "disawar": "64",
+        "faridabad": "96",
+        "ghaziabad": "11",
+        "gali": "52"
+      },
+      {
+        "date": "2023-01-31",
+        "desawar": "50",
+        "firozabad": "86",
+        "disawar": "41"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:57:28.584Z"
+  },
+  "2023-02": {
+    "month": "2023-02",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2023-02-01",
+        "firozabad": "71",
+        "disawar": "73",
+        "faridabad": "93",
+        "ghaziabad": "75",
+        "gali": "46"
+      },
+      {
+        "date": "2023-02-02",
+        "desawar": "78",
+        "firozabad": "17",
+        "disawar": "02",
+        "faridabad": "64",
+        "ghaziabad": "09",
+        "gali": "80"
+      },
+      {
+        "date": "2023-02-03",
+        "desawar": "04",
+        "firozabad": "32",
+        "disawar": "06",
+        "faridabad": "54",
+        "ghaziabad": "53",
+        "gali": "76"
+      },
+      {
+        "date": "2023-02-04",
+        "desawar": "92",
+        "firozabad": "59",
+        "disawar": "09",
+        "faridabad": "67",
+        "ghaziabad": "62",
+        "gali": "62"
+      },
+      {
+        "date": "2023-02-05",
+        "desawar": "52",
+        "firozabad": "58",
+        "disawar": "50",
+        "faridabad": "40",
+        "ghaziabad": "96",
+        "gali": "07"
+      },
+      {
+        "date": "2023-02-06",
+        "desawar": "56",
+        "firozabad": "13",
+        "disawar": "22",
+        "faridabad": "30",
+        "ghaziabad": "79",
+        "gali": "32"
+      },
+      {
+        "date": "2023-02-07",
+        "desawar": "87",
+        "firozabad": "43",
+        "disawar": "21",
+        "faridabad": "42",
+        "ghaziabad": "20",
+        "gali": "65"
+      },
+      {
+        "date": "2023-02-08",
+        "desawar": "52",
+        "firozabad": "29",
+        "disawar": "00",
+        "faridabad": "94",
+        "ghaziabad": "97",
+        "gali": "28"
+      },
+      {
+        "date": "2023-02-09",
+        "desawar": "42",
+        "firozabad": "14",
+        "disawar": "39",
+        "faridabad": "40",
+        "ghaziabad": "78",
+        "gali": "53"
+      },
+      {
+        "date": "2023-02-10",
+        "desawar": "17",
+        "firozabad": "00",
+        "disawar": "23",
+        "faridabad": "83",
+        "ghaziabad": "82",
+        "gali": "17"
+      },
+      {
+        "date": "2023-02-11",
+        "desawar": "70",
+        "firozabad": "68",
+        "disawar": "88",
+        "faridabad": "14",
+        "ghaziabad": "54",
+        "gali": "05"
+      },
+      {
+        "date": "2023-02-12",
+        "desawar": "64",
+        "firozabad": "70",
+        "disawar": "18",
+        "faridabad": "38",
+        "ghaziabad": "13",
+        "gali": "08"
+      },
+      {
+        "date": "2023-02-13",
+        "desawar": "35",
+        "firozabad": "92",
+        "disawar": "07",
+        "faridabad": "87",
+        "ghaziabad": "90",
+        "gali": "41"
+      },
+      {
+        "date": "2023-02-14",
+        "desawar": "48",
+        "firozabad": "28",
+        "disawar": "70",
+        "faridabad": "13",
+        "ghaziabad": "28",
+        "gali": "13"
+      },
+      {
+        "date": "2023-02-15",
+        "desawar": "97",
+        "firozabad": "95",
+        "disawar": "95",
+        "faridabad": "42",
+        "ghaziabad": "16",
+        "gali": "04"
+      },
+      {
+        "date": "2023-02-16",
+        "desawar": "10",
+        "firozabad": "06",
+        "disawar": "51",
+        "faridabad": "47",
+        "ghaziabad": "53",
+        "gali": "73"
+      },
+      {
+        "date": "2023-02-17",
+        "desawar": "35",
+        "firozabad": "59",
+        "disawar": "94",
+        "faridabad": "60",
+        "ghaziabad": "31",
+        "gali": "85"
+      },
+      {
+        "date": "2023-02-18",
+        "desawar": "01",
+        "firozabad": "37",
+        "disawar": "07",
+        "faridabad": "26",
+        "ghaziabad": "73",
+        "gali": "71"
+      },
+      {
+        "date": "2023-02-19",
+        "desawar": "53",
+        "firozabad": "38",
+        "disawar": "13",
+        "faridabad": "39",
+        "ghaziabad": "91",
+        "gali": "39"
+      },
+      {
+        "date": "2023-02-20",
+        "desawar": "65",
+        "firozabad": "35",
+        "disawar": "59",
+        "faridabad": "09",
+        "ghaziabad": "65",
+        "gali": "49"
+      },
+      {
+        "date": "2023-02-21",
+        "desawar": "06",
+        "firozabad": "73",
+        "disawar": "28",
+        "faridabad": "83",
+        "ghaziabad": "68",
+        "gali": "34"
+      },
+      {
+        "date": "2023-02-22",
+        "desawar": "67",
+        "firozabad": "86",
+        "disawar": "24",
+        "faridabad": "18",
+        "ghaziabad": "01",
+        "gali": "35"
+      },
+      {
+        "date": "2023-02-23",
+        "desawar": "63",
+        "firozabad": "18",
+        "disawar": "16",
+        "faridabad": "02",
+        "ghaziabad": "14",
+        "gali": "24"
+      },
+      {
+        "date": "2023-02-24",
+        "desawar": "22",
+        "firozabad": "28",
+        "disawar": "62",
+        "faridabad": "28",
+        "ghaziabad": "51",
+        "gali": "08"
+      },
+      {
+        "date": "2023-02-25",
+        "desawar": "65",
+        "firozabad": "21",
+        "disawar": "97",
+        "faridabad": "80",
+        "ghaziabad": "50",
+        "gali": "65"
+      },
+      {
+        "date": "2023-02-26",
+        "desawar": "64",
+        "firozabad": "18",
+        "disawar": "34",
+        "faridabad": "23",
+        "ghaziabad": "38",
+        "gali": "39"
+      },
+      {
+        "date": "2023-02-27",
+        "desawar": "44",
+        "firozabad": "04",
+        "disawar": "51",
+        "faridabad": "62",
+        "ghaziabad": "10",
+        "gali": "74"
+      },
+      {
+        "date": "2023-02-28",
+        "desawar": "70",
+        "firozabad": "72",
+        "disawar": "51"
+      },
+      {
+        "date": "2023-02-29"
+      },
+      {
+        "date": "2023-02-30"
+      },
+      {
+        "date": "2023-02-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:57:29.456Z"
+  },
+  "2023-03": {
+    "month": "2023-03",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2023-03-01",
+        "firozabad": "23",
+        "disawar": "40",
+        "faridabad": "50",
+        "ghaziabad": "59",
+        "gali": "76"
+      },
+      {
+        "date": "2023-03-02",
+        "desawar": "62",
+        "firozabad": "56",
+        "disawar": "80",
+        "faridabad": "16",
+        "ghaziabad": "77",
+        "gali": "22"
+      },
+      {
+        "date": "2023-03-03",
+        "desawar": "05",
+        "firozabad": "55",
+        "disawar": "70",
+        "faridabad": "81",
+        "ghaziabad": "36",
+        "gali": "79"
+      },
+      {
+        "date": "2023-03-04",
+        "desawar": "14",
+        "firozabad": "36",
+        "disawar": "23",
+        "faridabad": "90",
+        "ghaziabad": "88",
+        "gali": "74"
+      },
+      {
+        "date": "2023-03-05",
+        "desawar": "91",
+        "firozabad": "09",
+        "disawar": "57",
+        "faridabad": "22",
+        "ghaziabad": "74",
+        "gali": "28"
+      },
+      {
+        "date": "2023-03-06",
+        "desawar": "17",
+        "firozabad": "48",
+        "disawar": "73",
+        "faridabad": "11",
+        "ghaziabad": "40",
+        "gali": "25"
+      },
+      {
+        "date": "2023-03-07",
+        "desawar": "91",
+        "firozabad": "72",
+        "disawar": "17",
+        "faridabad": "87",
+        "ghaziabad": "25",
+        "gali": "86"
+      },
+      {
+        "date": "2023-03-08",
+        "desawar": "48",
+        "firozabad": "38",
+        "disawar": "84",
+        "faridabad": "68",
+        "ghaziabad": "38",
+        "gali": "97"
+      },
+      {
+        "date": "2023-03-09",
+        "desawar": "26",
+        "firozabad": "61",
+        "disawar": "87",
+        "faridabad": "32",
+        "ghaziabad": "23",
+        "gali": "63"
+      },
+      {
+        "date": "2023-03-10",
+        "desawar": "28",
+        "firozabad": "98",
+        "disawar": "83",
+        "faridabad": "84",
+        "ghaziabad": "58",
+        "gali": "60"
+      },
+      {
+        "date": "2023-03-11",
+        "desawar": "60",
+        "firozabad": "15",
+        "disawar": "51",
+        "faridabad": "55",
+        "ghaziabad": "88",
+        "gali": "38"
+      },
+      {
+        "date": "2023-03-12",
+        "desawar": "01",
+        "firozabad": "10",
+        "disawar": "56",
+        "faridabad": "92",
+        "ghaziabad": "87",
+        "gali": "32"
+      },
+      {
+        "date": "2023-03-13",
+        "desawar": "34",
+        "firozabad": "89",
+        "disawar": "78",
+        "faridabad": "55",
+        "ghaziabad": "07",
+        "gali": "99"
+      },
+      {
+        "date": "2023-03-14",
+        "desawar": "16",
+        "firozabad": "51",
+        "disawar": "61",
+        "faridabad": "41",
+        "ghaziabad": "85",
+        "gali": "43"
+      },
+      {
+        "date": "2023-03-15",
+        "desawar": "41",
+        "firozabad": "82",
+        "disawar": "50",
+        "faridabad": "43",
+        "ghaziabad": "68",
+        "gali": "37"
+      },
+      {
+        "date": "2023-03-16",
+        "desawar": "11",
+        "firozabad": "41",
+        "disawar": "43",
+        "faridabad": "38",
+        "ghaziabad": "85",
+        "gali": "59"
+      },
+      {
+        "date": "2023-03-17",
+        "desawar": "08",
+        "firozabad": "66",
+        "disawar": "40",
+        "faridabad": "94",
+        "ghaziabad": "61",
+        "gali": "67"
+      },
+      {
+        "date": "2023-03-18",
+        "desawar": "49",
+        "firozabad": "49",
+        "disawar": "93",
+        "faridabad": "32",
+        "ghaziabad": "08",
+        "gali": "71"
+      },
+      {
+        "date": "2023-03-19",
+        "desawar": "06",
+        "firozabad": "04",
+        "disawar": "55",
+        "faridabad": "19",
+        "ghaziabad": "58",
+        "gali": "82"
+      },
+      {
+        "date": "2023-03-20",
+        "desawar": "72",
+        "firozabad": "58",
+        "disawar": "72",
+        "faridabad": "80",
+        "ghaziabad": "07",
+        "gali": "68"
+      },
+      {
+        "date": "2023-03-21",
+        "desawar": "11",
+        "firozabad": "11",
+        "disawar": "26",
+        "faridabad": "41",
+        "ghaziabad": "03",
+        "gali": "53"
+      },
+      {
+        "date": "2023-03-22",
+        "desawar": "57",
+        "firozabad": "75",
+        "disawar": "52",
+        "faridabad": "73",
+        "ghaziabad": "87",
+        "gali": "62"
+      },
+      {
+        "date": "2023-03-23",
+        "desawar": "46",
+        "firozabad": "29",
+        "disawar": "88",
+        "faridabad": "66",
+        "ghaziabad": "40",
+        "gali": "99"
+      },
+      {
+        "date": "2023-03-24",
+        "desawar": "82",
+        "firozabad": "43",
+        "disawar": "73",
+        "faridabad": "09",
+        "ghaziabad": "20",
+        "gali": "16"
+      },
+      {
+        "date": "2023-03-25",
+        "desawar": "58",
+        "firozabad": "90",
+        "disawar": "80",
+        "faridabad": "64",
+        "ghaziabad": "07",
+        "gali": "20"
+      },
+      {
+        "date": "2023-03-26",
+        "desawar": "04",
+        "firozabad": "19",
+        "disawar": "77",
+        "faridabad": "73",
+        "ghaziabad": "94",
+        "gali": "77"
+      },
+      {
+        "date": "2023-03-27",
+        "desawar": "58",
+        "firozabad": "04",
+        "disawar": "29",
+        "faridabad": "30",
+        "ghaziabad": "99",
+        "gali": "90"
+      },
+      {
+        "date": "2023-03-28",
+        "desawar": "96",
+        "firozabad": "23",
+        "disawar": "58",
+        "faridabad": "23",
+        "ghaziabad": "79",
+        "gali": "48"
+      },
+      {
+        "date": "2023-03-29",
+        "desawar": "76",
+        "firozabad": "48",
+        "disawar": "96",
+        "faridabad": "17",
+        "ghaziabad": "96",
+        "gali": "19"
+      },
+      {
+        "date": "2023-03-30",
+        "desawar": "39",
+        "firozabad": "30",
+        "disawar": "31",
+        "faridabad": "57",
+        "ghaziabad": "01",
+        "gali": "75"
+      },
+      {
+        "date": "2023-03-31",
+        "desawar": "08",
+        "firozabad": "95",
+        "disawar": "45"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:57:30.415Z"
+  },
+  "2023-04": {
+    "month": "2023-04",
+    "fields": [
+      "Desawar",
+      "Firozabad",
+      "Disawar",
+      "Faridabad",
+      "Ghaziabad",
+      "Gali"
+    ],
+    "rows": [
+      {
+        "date": "2023-04-01",
+        "firozabad": "62",
+        "disawar": "98",
+        "faridabad": "33",
+        "ghaziabad": "82",
+        "gali": "18"
+      },
+      {
+        "date": "2023-04-02",
+        "desawar": "39",
+        "firozabad": "90",
+        "disawar": "13",
+        "faridabad": "16",
+        "ghaziabad": "13",
+        "gali": "30"
+      },
+      {
+        "date": "2023-04-03",
+        "desawar": "01",
+        "firozabad": "84",
+        "disawar": "57",
+        "faridabad": "86",
+        "ghaziabad": "72",
+        "gali": "66"
+      },
+      {
+        "date": "2023-04-04",
+        "desawar": "80",
+        "firozabad": "36",
+        "disawar": "62",
+        "faridabad": "88",
+        "ghaziabad": "03",
+        "gali": "50"
+      },
+      {
+        "date": "2023-04-05",
+        "desawar": "27",
+        "firozabad": "76",
+        "disawar": "54",
+        "faridabad": "63",
+        "ghaziabad": "55",
+        "gali": "11"
+      },
+      {
+        "date": "2023-04-06",
+        "desawar": "84",
+        "firozabad": "11",
+        "disawar": "25",
+        "faridabad": "53",
+        "ghaziabad": "73",
+        "gali": "48"
+      },
+      {
+        "date": "2023-04-07",
+        "desawar": "85",
+        "firozabad": "52",
+        "disawar": "65",
+        "faridabad": "94",
+        "ghaziabad": "96",
+        "gali": "57"
+      },
+      {
+        "date": "2023-04-08",
+        "desawar": "22",
+        "firozabad": "18",
+        "disawar": "04",
+        "faridabad": "87",
+        "ghaziabad": "72",
+        "gali": "81"
+      },
+      {
+        "date": "2023-04-09",
+        "desawar": "87",
+        "firozabad": "58",
+        "disawar": "13",
+        "faridabad": "81",
+        "ghaziabad": "62",
+        "gali": "95"
+      },
+      {
+        "date": "2023-04-10",
+        "desawar": "15",
+        "firozabad": "35",
+        "disawar": "69",
+        "faridabad": "51",
+        "ghaziabad": "63",
+        "gali": "97"
+      },
+      {
+        "date": "2023-04-11",
+        "desawar": "82",
+        "firozabad": "56",
+        "disawar": "43",
+        "faridabad": "20",
+        "ghaziabad": "67",
+        "gali": "35"
+      },
+      {
+        "date": "2023-04-12",
+        "desawar": "95",
+        "firozabad": "56",
+        "disawar": "57",
+        "faridabad": "41",
+        "ghaziabad": "72",
+        "gali": "30"
+      },
+      {
+        "date": "2023-04-13",
+        "desawar": "96",
+        "firozabad": "53",
+        "disawar": "98",
+        "faridabad": "96",
+        "ghaziabad": "36",
+        "gali": "19"
+      },
+      {
+        "date": "2023-04-14",
+        "desawar": "26",
+        "firozabad": "46",
+        "disawar": "14",
+        "faridabad": "34",
+        "ghaziabad": "60",
+        "gali": "55"
+      },
+      {
+        "date": "2023-04-15",
+        "desawar": "16",
+        "firozabad": "63",
+        "disawar": "40",
+        "faridabad": "99",
+        "ghaziabad": "97",
+        "gali": "13"
+      },
+      {
+        "date": "2023-04-16",
+        "desawar": "79",
+        "firozabad": "89",
+        "disawar": "66",
+        "faridabad": "53",
+        "ghaziabad": "59",
+        "gali": "25"
+      },
+      {
+        "date": "2023-04-17",
+        "desawar": "28",
+        "firozabad": "78",
+        "disawar": "66",
+        "faridabad": "04",
+        "ghaziabad": "57",
+        "gali": "58"
+      },
+      {
+        "date": "2023-04-18",
+        "desawar": "35",
+        "firozabad": "21",
+        "disawar": "12",
+        "faridabad": "01",
+        "ghaziabad": "79",
+        "gali": "22"
+      },
+      {
+        "date": "2023-04-19",
+        "desawar": "62",
+        "firozabad": "22",
+        "disawar": "04",
+        "faridabad": "01",
+        "ghaziabad": "50",
+        "gali": "57"
+      },
+      {
+        "date": "2023-04-20",
+        "desawar": "42",
+        "firozabad": "73",
+        "disawar": "92",
+        "faridabad": "41",
+        "ghaziabad": "01",
+        "gali": "25"
+      },
+      {
+        "date": "2023-04-21",
+        "desawar": "99",
+        "firozabad": "24",
+        "disawar": "09",
+        "faridabad": "54",
+        "ghaziabad": "76",
+        "gali": "61"
+      },
+      {
+        "date": "2023-04-22",
+        "desawar": "55",
+        "firozabad": "08",
+        "disawar": "15",
+        "faridabad": "07",
+        "ghaziabad": "99",
+        "gali": "74"
+      },
+      {
+        "date": "2023-04-23",
+        "desawar": "39",
+        "firozabad": "79",
+        "disawar": "56",
+        "faridabad": "19",
+        "ghaziabad": "14",
+        "gali": "90"
+      },
+      {
+        "date": "2023-04-24",
+        "desawar": "79",
+        "firozabad": "17",
+        "disawar": "21",
+        "faridabad": "78",
+        "ghaziabad": "16",
+        "gali": "37"
+      },
+      {
+        "date": "2023-04-25",
+        "desawar": "47",
+        "firozabad": "74",
+        "disawar": "42",
+        "faridabad": "57",
+        "ghaziabad": "52",
+        "gali": "88"
+      },
+      {
+        "date": "2023-04-26",
+        "desawar": "27",
+        "firozabad": "08",
+        "disawar": "67",
+        "faridabad": "99",
+        "ghaziabad": "01",
+        "gali": "37"
+      },
+      {
+        "date": "2023-04-27",
+        "desawar": "58",
+        "firozabad": "95",
+        "disawar": "53",
+        "faridabad": "05",
+        "ghaziabad": "12",
+        "gali": "74"
+      },
+      {
+        "date": "2023-04-28",
+        "desawar": "46",
+        "firozabad": "50",
+        "disawar": "30",
+        "faridabad": "76",
+        "ghaziabad": "96",
+        "gali": "06"
+      },
+      {
+        "date": "2023-04-29",
+        "desawar": "67",
+        "firozabad": "72",
+        "disawar": "21",
+        "faridabad": "57",
+        "ghaziabad": "40",
+        "gali": "32"
+      },
+      {
+        "date": "2023-04-30",
+        "desawar": "01",
+        "firozabad": "42",
+        "disawar": "42"
+      },
+      {
+        "date": "2023-04-31"
+      }
+    ],
+    "updatedAt": "2025-11-03T09:57:31.215Z"
+  }
+}

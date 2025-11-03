@@ -127,7 +127,6 @@ const DUMMY_SCHEDULES: ScheduleItem[] = [
 
 // Local storage simulation - Initialize with dummy content
 let localContent = { ...DUMMY_CONTENT }
-let localMonthlyResults = { ...DUMMY_MONTHLY_RESULTS }
 let localSchedules = [...DUMMY_SCHEDULES]
 
 // Track if content has been updated
@@ -207,16 +206,68 @@ export async function saveSiteContent(content: SiteContent): Promise<void> {
   // Content saved successfully
 }
 
-export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {
-  if (month === "2025-10") {
-    return localMonthlyResults
+// Store monthly results by month key (e.g., "2025-10")
+const MONTHLY_RESULTS_FILE = join(process.cwd(), 'monthly_results.json')
+
+// Load persisted monthly results on startup
+let monthlyResultsCache: Record<MonthKey, MonthlyResults> = {}
+function loadPersistedMonthlyResults() {
+  try {
+    if (typeof window === 'undefined') {
+      // Server environment - use file system
+      if (existsSync(MONTHLY_RESULTS_FILE)) {
+        const saved = readFileSync(MONTHLY_RESULTS_FILE, 'utf8')
+        const parsed = JSON.parse(saved)
+        if (parsed && typeof parsed === 'object') {
+          monthlyResultsCache = parsed
+          // Monthly results loaded from file
+        }
+      }
+    }
+  } catch (error) {
+    // Using empty cache
   }
-  return null
+}
+
+// Initialize monthly results on startup
+loadPersistedMonthlyResults()
+
+export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {
+  // Always reload from file on server to ensure fresh data
+  if (typeof window === 'undefined') {
+    try {
+      if (existsSync(MONTHLY_RESULTS_FILE)) {
+        const saved = readFileSync(MONTHLY_RESULTS_FILE, 'utf8')
+        const parsed = JSON.parse(saved)
+        if (parsed && typeof parsed === 'object') {
+          monthlyResultsCache = parsed
+          // Monthly results reloaded from file
+        }
+      }
+    } catch (error) {
+      // Could not reload from file
+    }
+  }
+  
+  return monthlyResultsCache[month] || null
 }
 
 export async function saveMonthlyResults(data: MonthlyResults): Promise<void> {
-  localMonthlyResults = { ...data, updatedAt: new Date().toISOString() }
-  // Monthly results saved locally
+  // Update the in-memory cache
+  monthlyResultsCache[data.month] = { ...data, updatedAt: new Date().toISOString() }
+  
+  // Persist to file system on server
+  try {
+    if (typeof window === 'undefined') {
+      // Server environment - save to file
+      writeFileSync(MONTHLY_RESULTS_FILE, JSON.stringify(monthlyResultsCache, null, 2))
+      // Monthly results saved to file
+    }
+  } catch (error) {
+    // Could not persist monthly results
+  }
+  
+  // Monthly results saved successfully
 }
 
 const SCHEDULES_FILE = join(process.cwd(), 'schedules.json')

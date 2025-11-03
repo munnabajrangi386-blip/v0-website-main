@@ -4,11 +4,14 @@ import { cookies } from "next/headers"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { secret } = body
+    const { username, password } = body
     
-    const expected = process.env.ADMIN_SECRET || "change-me-to-a-strong-secret"
+    // Admin credentials
+    const expectedUsername = process.env.ADMIN_USERNAME || "Admin"
+    const expectedPassword = process.env.ADMIN_PASSWORD || "Satta@Markit123"
     
-    if (secret === expected) {
+    // Validate username and password
+    if (username === expectedUsername && password === expectedPassword) {
       const cookieStore = await cookies()
       cookieStore.set("admin_session", "1", {
         httpOnly: true,
@@ -20,7 +23,7 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({ success: true })
     } else {
-      return NextResponse.json({ error: "Invalid secret" }, { status: 401 })
+      return NextResponse.json({ error: "Invalid username or password" }, { status: 401 })
     }
   } catch (error) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })

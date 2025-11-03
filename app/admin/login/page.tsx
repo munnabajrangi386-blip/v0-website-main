@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AdminLoginPage() {
-  const [secret, setSecret] = useState("")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -23,13 +24,14 @@ export default function AdminLoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ secret }),
+        body: JSON.stringify({ username, password }),
       })
 
       if (response.ok) {
         router.push("/admin")
       } else {
-        setError("Invalid secret. Please try again.")
+        const data = await response.json()
+        setError(data.error || "Invalid credentials. Please try again.")
       }
     } catch (error) {
       setError("Login failed. Please try again.")
@@ -52,15 +54,30 @@ export default function AdminLoginPage() {
           ) : null}
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-2">
-              <label htmlFor="secret" className="text-sm text-[var(--color-muted-foreground)]">
-                Admin Secret
+              <label htmlFor="username" className="text-sm text-[var(--color-muted-foreground)]">
+                Username
               </label>
               <Input
-                id="secret"
-                type="password"
-                value={secret}
-                onChange={(e) => setSecret(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
+                placeholder="Enter username"
+                className="rounded-[var(--radius)] border-input"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="password" className="text-sm text-[var(--color-muted-foreground)]">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter password"
                 className="rounded-[var(--radius)] border-input"
               />
             </div>

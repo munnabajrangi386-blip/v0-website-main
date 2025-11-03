@@ -22,16 +22,58 @@ export function MonthlyTable({ data, loading, error }: Props) {
   // Use dynamic columns: admin categories (from API) are already at the left, followed by API columns
   const columns = data.columns || []
 
-  // Generate rows for the month (1-31 days)
+  // Generate rows for the month - only show days that have at least some data
   const generateMonthRows = () => {
-    const daysInMonth = new Date(data.year, data.month, 0).getDate()
-    const rows = []
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth() + 1
+    const currentDay = today.getDate()
     
-    for (let day = 1; day <= daysInMonth; day++) {
-      rows.push({ day })
+    const isCurrentMonth = data.year === currentYear && data.month === currentMonth
+    const isPastMonth = data.year < currentYear || (data.year === currentYear && data.month < currentMonth)
+    const isFutureMonth = data.year > currentYear || (data.year === currentYear && data.month > currentMonth)
+    
+    const daysInMonth = new Date(data.year, data.month, 0).getDate()
+    const rows: Array<{ day: number; hasData: boolean }> = []
+    
+    // Get all days that have at least one non-null value
+    const daysWithData = new Set<number>()
+    data.rows.forEach(row => {
+      const hasAnyData = row.values && row.values.some(val => val !== null && val !== undefined)
+      if (hasAnyData && row.day >= 1 && row.day <= daysInMonth) {
+        daysWithData.add(row.day)
+      }
+    })
+    
+    if (isCurrentMonth) {
+      // For current month: show days 1 through today (even if blank), plus any future days with data
+      for (let day = 1; day <= Math.min(currentDay, daysInMonth); day++) {
+        rows.push({ day, hasData: daysWithData.has(day) })
+      }
+      // Add future days only if they have data
+      for (let day = currentDay + 1; day <= daysInMonth; day++) {
+        if (daysWithData.has(day)) {
+          rows.push({ day, hasData: true })
+        }
+      }
+    } else if (isPastMonth) {
+      // For past months: show only days that have data
+      for (let day = 1; day <= daysInMonth; day++) {
+        if (daysWithData.has(day)) {
+          rows.push({ day, hasData: true })
+        }
+      }
+    } else {
+      // For future months: show only days that have data
+      for (let day = 1; day <= daysInMonth; day++) {
+        if (daysWithData.has(day)) {
+          rows.push({ day, hasData: true })
+        }
+      }
     }
     
-    return rows
+    // Sort by day number
+    return rows.sort((a, b) => a.day - b.day)
   }
 
   const monthRows = generateMonthRows()
