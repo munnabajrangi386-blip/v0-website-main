@@ -74,7 +74,23 @@ export default function HomePage() {
   return (
     <div className="w-full min-h-screen" style={{backgroundColor: '#8b5cf6'}}>
       {/* 2. Header Image - Full width */}
-      <Header content={content} />
+      {!isLoading && <Header content={content} />}
+      {isLoading && (
+        <header className="w-full py-3 sm:py-4 md:py-6" style={{ backgroundColor: '#000000' }}>
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6">
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 sm:gap-4 md:gap-6">
+              <div className="flex-shrink-0 w-full sm:w-auto">
+                <div className="w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-48 md:h-56 lg:h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg mx-auto animate-pulse">
+                  <div className="text-gray-400 text-center">
+                    <div className="text-2xl sm:text-3xl md:text-4xl mb-2">⏳</div>
+                    <div className="text-xs sm:text-sm">Loading...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      )}
 
       {/* 1. Running Banner - After header, before chart result title */}
       {content?.runningBanner?.active && (
@@ -643,13 +659,48 @@ function Header({ content }: { content?: SiteContent }) {
           {/* Image Area - Square size */}
           {content?.headerImage?.active && content?.headerImage?.imageUrl ? (
             <div className="flex-shrink-0 w-full sm:w-auto">
-              <div className="w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-48 md:h-56 lg:h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg mx-auto">
-          <img 
-            src={`${content.headerImage.imageUrl}?t=${Date.now()}`} 
-            alt={content.headerImage.alt || "Header Image"}
+              <div className="w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-48 md:h-56 lg:h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-lg mx-auto relative">
+                <img 
+                  src={content.headerImage.imageUrl.startsWith('http') || content.headerImage.imageUrl.startsWith('/')
+                    ? content.headerImage.imageUrl 
+                    : `/${content.headerImage.imageUrl}`
+                  } 
+                  alt={content.headerImage.alt || "Header Image"}
                   className="w-full h-full object-cover"
-            key={content.headerImage.imageUrl} // Force re-render when URL changes
-          />
+                  key={content.headerImage.imageUrl}
+                  loading="eager"
+                  onLoad={(e) => {
+                    // Hide any loading placeholder when image loads successfully
+                    const placeholder = e.currentTarget.parentElement?.querySelector('.image-placeholder') as HTMLElement | null
+                    if (placeholder) {
+                      placeholder.style.display = 'none'
+                    }
+                  }}
+                  onError={(e) => {
+                    // Hide image on error, show placeholder
+                    e.currentTarget.style.display = 'none'
+                    const parent = e.currentTarget.parentElement
+                    if (parent) {
+                      const placeholder = parent.querySelector('.image-placeholder') as HTMLElement | null
+                      if (!placeholder) {
+                        parent.innerHTML = `
+                          <div class="image-placeholder text-gray-400 text-center">
+                            <div class="text-2xl sm:text-3xl md:text-4xl mb-2">🖼️</div>
+                            <div class="text-xs sm:text-sm">Image failed to load</div>
+                          </div>
+                        `
+                      } else {
+                        placeholder.style.display = 'flex'
+                      }
+                    }
+                  }}
+                />
+                <div className="image-placeholder absolute inset-0 bg-gray-100 flex items-center justify-center" style={{ display: 'none' }}>
+                  <div className="text-gray-400 text-center">
+                    <div className="text-2xl sm:text-3xl md:text-4xl mb-2">⏳</div>
+                    <div className="text-xs sm:text-sm">Loading...</div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
@@ -660,8 +711,8 @@ function Header({ content }: { content?: SiteContent }) {
                   <div className="text-xs sm:text-sm">No image uploaded</div>
                 </div>
               </div>
-        </div>
-      )}
+            </div>
+          )}
       
           {/* Right White Box with Text */}
           {content?.rightTextColumn?.active && (

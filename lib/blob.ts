@@ -20,6 +20,9 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
 }
 
 export async function putJSON(path: string, data: any) {
+  if (!TOKEN) {
+    throw new Error('BLOB_READ_WRITE_TOKEN not set, cannot save to Blob')
+  }
   const body = JSON.stringify(data, null, 2)
   const res = await withRetry(() =>
     put(path, body, {
@@ -34,6 +37,10 @@ export async function putJSON(path: string, data: any) {
 }
 
 export async function getJSON<T>(path: string): Promise<T | null> {
+  if (!TOKEN) {
+    console.warn('BLOB_READ_WRITE_TOKEN not set, cannot load from Blob')
+    return null
+  }
   try {
     const { blobs } = await withRetry(() => list({ prefix: path, token: TOKEN, limit: 1 }))
     const found = blobs.find((b) => b.pathname === path)
@@ -41,7 +48,8 @@ export async function getJSON<T>(path: string): Promise<T | null> {
     const res = await withRetry(() => fetch(found.url, { cache: "no-cache" }))
     if (!res.ok) return null
     return (await res.json()) as T
-  } catch {
+  } catch (error) {
+    console.error(`Failed to get JSON from Blob (${path}):`, error)
     return null
   }
 }

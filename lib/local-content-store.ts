@@ -1,6 +1,7 @@
 import type { SiteContent, MonthlyResults, ScheduleItem, ActivityLog, MonthKey, LiveSchedule } from './types'
 import { writeFileSync, readFileSync, existsSync } from 'fs'
 import { join } from 'path'
+import { saveToStorage, loadFromStorage, storageExists } from './storage-adapter'
 
 // Local fallback data for testing
 const DUMMY_CONTENT: SiteContent = {
@@ -162,19 +163,26 @@ function loadPersistedContent() {
 loadPersistedContent()
 
 export async function getSiteContent(): Promise<SiteContent> {
-  // Force reload from file on server to ensure fresh data
+  // Force reload from storage on server to ensure fresh data
   if (typeof window === 'undefined') {
     try {
-      const contentFile = join(process.cwd(), 'content.json')
-      if (existsSync(contentFile)) {
-        const savedContent = readFileSync(contentFile, 'utf8')
-        const fileContent = JSON.parse(savedContent)
-        // Always load from file if it exists - file content takes precedence
-        localContent = { ...DUMMY_CONTENT, ...fileContent }
-        // Content reloaded from file
+      const storedContent = await loadFromStorage<SiteContent>('content.json')
+      if (storedContent) {
+        // Always load from storage if it exists - stored content takes precedence
+        localContent = { ...DUMMY_CONTENT, ...storedContent }
+        // Content reloaded from storage
+      } else {
+        // If storage doesn't exist, try local file as fallback
+        const contentFile = join(process.cwd(), 'content.json')
+        if (existsSync(contentFile)) {
+          const savedContent = readFileSync(contentFile, 'utf8')
+          const fileContent = JSON.parse(savedContent)
+          localContent = { ...DUMMY_CONTENT, ...fileContent }
+        }
       }
     } catch (error) {
-      // Could not reload from file
+      // Could not reload from storage
+      console.error('Error loading content:', error)
     }
   }
   
@@ -188,19 +196,23 @@ export async function saveSiteContent(content: SiteContent): Promise<void> {
   
   // Saving content
   
-  // Persist to localStorage in browser or file system on server
+  // Persist to localStorage in browser or storage on server
   try {
     if (typeof window !== 'undefined') {
       localStorage.setItem('site-content', JSON.stringify(localContent))
       // Content saved to localStorage
     } else {
-      // Server environment - save to file
-      const contentFile = join(process.cwd(), 'content.json')
-      writeFileSync(contentFile, JSON.stringify(localContent, null, 2))
-      // Content saved to file
+      // Server environment - save to storage (Blob in production, file in dev)
+      await saveToStorage('content.json', localContent)
+      // Also save to local file as backup in development
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        const contentFile = join(process.cwd(), 'content.json')
+        writeFileSync(contentFile, JSON.stringify(localContent, null, 2))
+      }
     }
   } catch (error) {
-    // Could not persist content
+    console.error('Failed to save content:', error)
+    throw error // Re-throw so caller knows it failed
   }
   
   // Content saved successfully
@@ -233,19 +245,23 @@ function loadPersistedMonthlyResults() {
 loadPersistedMonthlyResults()
 
 export async function getMonthlyResults(month: MonthKey): Promise<MonthlyResults | null> {
-  // Always reload from file on server to ensure fresh data
+  // Always reload from storage on server to ensure fresh data
   if (typeof window === 'undefined') {
     try {
-      if (existsSync(MONTHLY_RESULTS_FILE)) {
+      const storedResults = await loadFromStorage<Record<string, MonthlyResults>>('monthly_results.json')
+      if (storedResults && typeof storedResults === 'object') {
+        monthlyResultsCache = storedResults
+        // Monthly results reloaded from storage
+      } else if (existsSync(MONTHLY_RESULTS_FILE)) {
+        // Fallback to local file
         const saved = readFileSync(MONTHLY_RESULTS_FILE, 'utf8')
         const parsed = JSON.parse(saved)
         if (parsed && typeof parsed === 'object') {
           monthlyResultsCache = parsed
-          // Monthly results reloaded from file
         }
       }
     } catch (error) {
-      // Could not reload from file
+      console.error('Error loading monthly results:', error)
     }
   }
   
@@ -256,15 +272,20 @@ export async function saveMonthlyResults(data: MonthlyResults): Promise<void> {
   // Update the in-memory cache
   monthlyResultsCache[data.month] = { ...data, updatedAt: new Date().toISOString() }
   
-  // Persist to file system on server
+  // Persist to storage on server
   try {
     if (typeof window === 'undefined') {
-      // Server environment - save to file
-      writeFileSync(MONTHLY_RESULTS_FILE, JSON.stringify(monthlyResultsCache, null, 2))
-      // Monthly results saved to file
+      // Server environment - save to storage (Blob in production, file in dev)
+      await saveToStorage('monthly_results.json', monthlyResultsCache)
+      // Also save to local file as backup in development
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        writeFileSync(MONTHLY_RESULTS_FILE, JSON.stringify(monthlyResultsCache, null, 2))
+      }
+      // Monthly results saved to storage
     }
   } catch (error) {
-    // Could not persist monthly results
+    console.error('Failed to save monthly results:', error)
+    throw error // Re-throw so caller knows it failed
   }
   
   // Monthly results saved successfully
@@ -295,19 +316,23 @@ function loadPersistedSchedules() {
 loadPersistedSchedules()
 
 export async function getSchedules(): Promise<ScheduleItem[]> {
-  // Always reload from file on server to ensure fresh data
+  // Always reload from storage on server to ensure fresh data
   if (typeof window === 'undefined') {
     try {
-      if (existsSync(SCHEDULES_FILE)) {
+      const storedSchedules = await loadFromStorage<ScheduleItem[]>('schedules.json')
+      if (storedSchedules && Array.isArray(storedSchedules)) {
+        localSchedules = storedSchedules
+        // Schedules reloaded from storage
+      } else if (existsSync(SCHEDULES_FILE)) {
+        // Fallback to local file
         const savedSchedules = readFileSync(SCHEDULES_FILE, 'utf8')
         const parsed = JSON.parse(savedSchedules)
         if (Array.isArray(parsed)) {
           localSchedules = parsed
-          // Schedules reloaded from file
         }
       }
     } catch (error) {
-      // Could not reload from file
+      console.error('Error loading schedules:', error)
     }
   }
   return localSchedules
@@ -317,15 +342,20 @@ export async function saveSchedules(schedules: ScheduleItem[]): Promise<void> {
   // Update the in-memory schedules
   localSchedules = [...schedules]
   
-  // Persist to file system on server
+  // Persist to storage on server
   try {
     if (typeof window === 'undefined') {
-      // Server environment - save to file
-      writeFileSync(SCHEDULES_FILE, JSON.stringify(localSchedules, null, 2))
-      // Schedules saved to file
+      // Server environment - save to storage (Blob in production, file in dev)
+      await saveToStorage('schedules.json', localSchedules)
+      // Also save to local file as backup in development
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        writeFileSync(SCHEDULES_FILE, JSON.stringify(localSchedules, null, 2))
+      }
+      // Schedules saved to storage
     }
   } catch (error) {
-    // Could not persist schedules
+    console.error('Failed to save schedules:', error)
+    throw error // Re-throw so caller knows it failed
   }
   
   // Schedules saved successfully
@@ -423,12 +453,21 @@ export async function upsertResultRow(month: MonthKey, row: any, merge: boolean)
 const LIVE_SCHEDULES_FILE = join(process.cwd(), 'live-schedules.json')
 
 export async function getLiveSchedules(): Promise<LiveSchedule[]> {
+  if (typeof window !== 'undefined') {
+    return []
+  }
+  
   try {
-    if (!existsSync(LIVE_SCHEDULES_FILE)) {
-      return []
+    const storedSchedules = await loadFromStorage<LiveSchedule[]>('live-schedules.json')
+    let schedules: LiveSchedule[] = []
+    
+    if (storedSchedules && Array.isArray(storedSchedules)) {
+      schedules = storedSchedules
+    } else if (existsSync(LIVE_SCHEDULES_FILE)) {
+      // Fallback to local file
+      const data = readFileSync(LIVE_SCHEDULES_FILE, 'utf-8')
+      schedules = JSON.parse(data) as LiveSchedule[]
     }
-    const data = readFileSync(LIVE_SCHEDULES_FILE, 'utf-8')
-    const schedules = JSON.parse(data) as LiveSchedule[]
     
     // Filter out expired schedules (older than 24 hours)
     const now = new Date()
@@ -462,9 +501,17 @@ export async function getLiveSchedules(): Promise<LiveSchedule[]> {
 
 export async function saveLiveSchedules(schedules: LiveSchedule[]): Promise<void> {
   try {
-    writeFileSync(LIVE_SCHEDULES_FILE, JSON.stringify(schedules, null, 2))
+    if (typeof window === 'undefined') {
+      // Server environment - save to storage (Blob in production, file in dev)
+      await saveToStorage('live-schedules.json', schedules)
+      // Also save to local file as backup in development
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        writeFileSync(LIVE_SCHEDULES_FILE, JSON.stringify(schedules, null, 2))
+      }
+    }
   } catch (error) {
-    console.error('Error saving live schedules:', error)
+    console.error('Failed to save live schedules:', error)
+    throw error // Re-throw so caller knows it failed
   }
 }
 
