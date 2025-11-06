@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import useSWR from "swr"
-import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey, TextColumn, TextColumnLine, LiveSchedule } from "@/lib/types"
+import type { SiteContent, BannerBlock, AdItem, ScheduleItem, ResultRow, MonthKey, TextColumn, TextColumnLine } from "@/lib/types"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -37,7 +37,26 @@ export default function AdminDashboard() {
       // Admin dashboard data loaded successfully
     }
   }, [data?.content])
-  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "banner3" | "footer-banner" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns" | "live-schedules">("ads")
+  // Initialize with "ads" to avoid hydration mismatch (server always renders "ads")
+  const [active, setActive] = useState<"ads" | "banners" | "banner2" | "banner3" | "footer-banner" | "categories" | "schedule" | "scheduled" | "header-image" | "footer-note" | "running-banner" | "text-columns">("ads")
+  
+  // Load active section from localStorage after mount (client-side only, prevents hydration mismatch)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_active_section')
+      const validSections: string[] = ["ads", "banners", "banner2", "banner3", "footer-banner", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns"]
+      if (saved && validSections.includes(saved)) {
+        setActive(saved as typeof validSections[number])
+      }
+    }
+  }, []) // Only run once on mount
+  
+  // Save active section to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_active_section', active)
+    }
+  }, [active])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [adsDraft, setAdsDraft] = useState(content.ads ?? [])
   const [categoriesDraft, setCategoriesDraft] = useState(content.categories ?? [])
@@ -82,12 +101,6 @@ export default function AdminDashboard() {
   const [footerBannerGifUrl, setFooterBannerGifUrl] = useState("")
   const [customColorPaletteFooter, setCustomColorPaletteFooter] = useState<string[]>([]) // Store custom color palette for footer banner
   
-  // Live Schedules state
-  const [liveSchedules, setLiveSchedules] = useState<LiveSchedule[]>([])
-  const [newScheduleCategory, setNewScheduleCategory] = useState("GHAZIABAD1")
-  const [newScheduleTime, setNewScheduleTime] = useState("")
-  const [newScheduleResult, setNewScheduleResult] = useState("")
-  const [newScheduleYesterdayResult, setNewScheduleYesterdayResult] = useState("")
   
   // Category editing state
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
@@ -383,6 +396,7 @@ export default function AdminDashboard() {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "add", item: { month, row, publishAt } }),
+        cache: "no-store", // Force fresh request
       })
       const j = await res.json().catch(() => ({}))
 
@@ -394,11 +408,17 @@ export default function AdminDashboard() {
         alert(j?.error || `Failed to save schedule (${res.status}).`)
         return
       }
+      
+      // Refresh from server to get the actual saved data (no optimistic update to avoid duplicates)
       await schedMutate()
+      
       setSchedValue("")
+      alert("Schedule added successfully!")
       // Stay on the same page after adding schedule
     } catch (err: any) {
       alert(`Network error while saving schedule: ${err?.message || "unknown error"}`)
+      // Revert optimistic update on error
+      await schedMutate()
     }
   }
 
@@ -407,7 +427,9 @@ export default function AdminDashboard() {
   const { data: schedData, mutate: schedMutate } = useSWR<{ items: ScheduleItem[] }>("/api/admin/schedules", fetcher, {
     refreshInterval: 10000, // Refresh every 10 seconds
     revalidateOnFocus: true, // Refresh when window regains focus
-    dedupingInterval: 5_000, // Prevent duplicate requests
+    dedupingInterval: 0, // Always fetch fresh data (no deduplication)
+    revalidateIfStale: true, // Always revalidate stale data
+    keepPreviousData: false, // Don't keep previous data to avoid stale UI
   })
 
   // Performance optimized
@@ -420,13 +442,23 @@ export default function AdminDashboard() {
   const [editTime, setEditTime] = useState("10:00")
 
   const scheduled = useMemo(() => {
-    const items = (schedData?.items ?? []).slice().sort((a, b) => {
+    const items = (schedData?.items ?? []).slice()
+    
+    // Remove duplicates based on ID (in case of duplicates)
+    const uniqueItems = items.filter((item, index, self) => 
+      index === self.findIndex(t => t.id === item.id)
+    )
+    
+    // Sort by publish date (newest first)
+    uniqueItems.sort((a, b) => {
       return Date.parse(b.publishAt) - Date.parse(a.publishAt)
     })
+    
+    // Apply search filter
     const q = search.trim().toLowerCase()
     return !q
-      ? items
-      : items.filter((i) => {
+      ? uniqueItems
+      : uniqueItems.filter((i) => {
           const v = JSON.stringify(i).toLowerCase()
           return v.includes(q)
         })
@@ -452,8 +484,11 @@ export default function AdminDashboard() {
     setEditTime("10:00")
   }
 
-  async function saveEdit(it: ScheduleItem) {
-    if (!editId || !editCat || !editValue || !editDate) return
+  async function saveEdit() {
+    if (!editId || !editCat || !editValue || !editDate) {
+      alert("Please fill in all required fields.")
+      return
+    }
     const safeDate = normalizeDateInput(editDate)
     const safeTime = normalizeTimeInput(editTime)
     if (!safeDate || !safeTime) {
@@ -483,6 +518,7 @@ export default function AdminDashboard() {
       }
       cancelEdit()
       await schedMutate()
+      alert("Schedule updated successfully!")
     } catch (err: any) {
       alert(`Network error while updating schedule: ${err?.message || "unknown error"}`)
     }
@@ -491,141 +527,40 @@ export default function AdminDashboard() {
   async function deleteSchedule(id: string) {
     if (!confirm("Are you sure you want to delete this schedule?")) return
     
+    // Optimistic update: Remove from UI immediately
+    const currentItems = schedData?.items || []
+    const optimisticItems = currentItems.filter(item => item.id !== id)
+    schedMutate({ items: optimisticItems }, { revalidate: false })
+    
     try {
       const res = await fetch("/api/admin/schedules", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store", // Force fresh request
         body: JSON.stringify({ action: "delete", id }),
       })
       const j = await res.json().catch(() => null)
       if (!res.ok) {
+        // Revert optimistic update on error
+        await schedMutate()
         alert(j?.error || `Failed to delete schedule (${res.status})`)
         return
       }
-      await schedMutate()
+      
+      // If response includes updated items, use them; otherwise revalidate
+      if (j?.items && Array.isArray(j.items)) {
+        schedMutate({ items: j.items }, { revalidate: false })
+      } else {
+        // Force revalidation with cache busting
+        await schedMutate(undefined, { revalidate: true })
+      }
     } catch (err: any) {
+      // Revert optimistic update on error
+      await schedMutate()
       alert(`Network error while deleting schedule: ${err?.message || "unknown error"}`)
     }
   }
-
-  // Live Schedule functions
-  async function loadLiveSchedules() {
-    try {
-      const response = await fetch("/api/admin/live-schedules", { credentials: "include" })
-      const data = await response.json()
-      if (response.ok) {
-        setLiveSchedules(data.schedules || [])
-      }
-    } catch (error) {
-      console.error("Error loading live schedules:", error)
-    }
-  }
-
-  async function addLiveSchedule() {
-    if (!newScheduleCategory || !newScheduleTime || !newScheduleResult) {
-      alert("Please fill in all required fields")
-      return
-    }
-
-    // Create ISO datetime for today with the specified time
-    const today = new Date()
-    const [hours, minutes] = newScheduleTime.split(':').map(Number)
-    const scheduledTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes)
-    
-    // Check if the time is in the future
-    if (scheduledTime <= new Date()) {
-      alert("Scheduled time must be in the future")
-      return
-    }
-
-    try {
-      const response = await fetch("/api/admin/live-schedules", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "add",
-          schedule: {
-            category: newScheduleCategory,
-            scheduledTime: scheduledTime.toISOString(),
-            result: newScheduleResult,
-            yesterdayResult: newScheduleYesterdayResult || undefined,
-            todayResult: newScheduleResult,
-            status: "scheduled"
-          }
-        })
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        await loadLiveSchedules()
-        setNewScheduleCategory("GHAZIABAD1")
-        setNewScheduleTime("")
-        setNewScheduleResult("")
-        setNewScheduleYesterdayResult("")
-        alert("Live schedule added successfully!")
-      } else {
-        alert(data.error || "Failed to add live schedule")
-      }
-    } catch (error) {
-      console.error("Error adding live schedule:", error)
-      alert("Failed to add live schedule")
-    }
-  }
-
-  async function deleteLiveSchedule(id: string) {
-    if (!confirm("Are you sure you want to delete this live schedule?")) return
-
-    try {
-      const response = await fetch("/api/admin/live-schedules", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", id })
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        await loadLiveSchedules()
-        alert("Live schedule deleted successfully!")
-      } else {
-        alert(data.error || "Failed to delete live schedule")
-      }
-    } catch (error) {
-      console.error("Error deleting live schedule:", error)
-      alert("Failed to delete live schedule")
-    }
-  }
-
-  async function publishLiveSchedule(id: string) {
-    try {
-      const response = await fetch("/api/admin/live-schedules", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "publish", id })
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        await loadLiveSchedules()
-        alert("Live schedule published successfully!")
-      } else {
-        alert(data.error || "Failed to publish live schedule")
-      }
-    } catch (error) {
-      console.error("Error publishing live schedule:", error)
-      alert("Failed to publish live schedule")
-    }
-  }
-
-  // Load live schedules when component mounts and when active tab changes
-  useEffect(() => {
-    if (active === "live-schedules") {
-      loadLiveSchedules()
-    }
-  }, [active])
 
   const addBanner = () => {
     if (!bannerText.trim()) return
@@ -1039,7 +974,7 @@ export default function AdminDashboard() {
         </div>
         
         <nav className="space-y-2 mb-6">
-                 {(["ads", "banners", "banner2", "banner3", "footer-banner", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns", "live-schedules"] as const).map((k) => (
+                 {(["ads", "banners", "banner2", "banner3", "footer-banner", "categories", "schedule", "scheduled", "header-image", "footer-note", "running-banner", "text-columns"] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -1065,7 +1000,6 @@ export default function AdminDashboard() {
               {k === "footer-note" && "📝 Footer Note"}
                      {k === "running-banner" && "🏃 Running Banner"}
                      {k === "text-columns" && "📝 Text Columns"}
-                     {k === "live-schedules" && "⏰ Live Schedules"}
             </button>
           ))}
         </nav>
@@ -2633,36 +2567,6 @@ export default function AdminDashboard() {
               <Button onClick={addSchedule} disabled={!schedCat || !schedValue || !schedDate}>
                 Add Schedule
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={async () => {
-                  if (!confirm("This will force execute ALL scheduled items immediately, regardless of their date/time. This action cannot be undone. Continue?")) {
-                    return
-                  }
-                  
-                  try {
-                    const res = await fetch("/api/admin/schedules", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({ action: "force-run" }),
-                    })
-                    const data = await res.json()
-                    if (res.ok) {
-                      schedMutate()
-                      alert(`Force executed ${data.executed} scheduled items successfully!`)
-                    } else {
-                      alert("Failed to force execute schedules")
-                    }
-                  } catch (error) {
-                    console.error("Error force executing schedules:", error)
-                    alert("Error force executing schedules")
-                  }
-                }}
-                className="text-xs sm:text-sm"
-              >
-                Run Due Now (Force)
-              </Button>
             </div>
           </div>
         )}
@@ -2699,24 +2603,73 @@ export default function AdminDashboard() {
               {(scheduled || []).map((it) => {
                 const due = Date.parse(it.publishAt) <= Date.now()
                 const isExecuted = it.executed || false
-                    const categoryKey = Object.keys(it.row).find(k => k !== "date")
-                    const categoryValue = categoryKey ? it.row[categoryKey] : "--"
-                    const categoryLabel = (content.categories ?? []).find(c => c.key === categoryKey)?.label || categoryKey
-                    
+                const categoryKey = Object.keys(it.row).find(k => k !== "date")
+                const categoryValue = categoryKey ? it.row[categoryKey] : "--"
+                const categoryLabel = (content.categories ?? []).find(c => c.key === categoryKey)?.label || categoryKey
+                const isEditing = editId === it.id
+                
+                // Get date and time for editing
+                const publishDate = new Date(it.publishAt)
+                const editDateValue = isEditing ? editDate : it.row.date
+                const editTimeValue = isEditing ? editTime : `${String(publishDate.getHours()).padStart(2, '0')}:${String(publishDate.getMinutes()).padStart(2, '0')}`
+                
                 return (
-                      <tr key={it.id} className="hover:bg-gray-50">
+                      <tr key={it.id} className={`hover:bg-gray-50 ${isEditing ? 'bg-yellow-50' : ''}`}>
                         <td className="border border-gray-200 px-4 py-3 text-sm">
-                          <div className="font-medium text-gray-900">{categoryLabel}</div>
-                          <div className="text-xs text-gray-500">({categoryKey})</div>
+                          {isEditing ? (
+                            <select
+                              className="w-full p-1 border rounded text-sm"
+                              value={editCat}
+                              onChange={(e) => setEditCat(e.target.value)}
+                            >
+                              {(content.categories ?? []).map((c) => (
+                                <option key={c.key} value={c.key}>
+                                  {c.label} ({c.key})
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <>
+                              <div className="font-medium text-gray-900">{categoryLabel}</div>
+                              <div className="text-xs text-gray-500">({categoryKey})</div>
+                            </>
+                          )}
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-sm font-mono text-gray-900">
-                          {categoryValue}
+                          {isEditing ? (
+                            <Input 
+                              value={editValue} 
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="w-20 text-sm font-mono"
+                              placeholder="Value"
+                            />
+                          ) : (
+                            categoryValue
+                          )}
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-sm text-gray-900">
-                          {it.row.date}
+                          {isEditing ? (
+                            <Input 
+                              type="date" 
+                              value={editDateValue} 
+                              onChange={(e) => setEditDate(e.target.value)}
+                              className="w-full text-sm"
+                            />
+                          ) : (
+                            it.row.date
+                          )}
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-sm text-gray-900">
-                          {new Date(it.publishAt).toLocaleString()}
+                          {isEditing ? (
+                            <Input 
+                              type="time" 
+                              value={editTimeValue} 
+                              onChange={(e) => setEditTime(e.target.value)}
+                              className="w-full text-sm"
+                            />
+                          ) : (
+                            new Date(it.publishAt).toLocaleString()
+                          )}
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-sm">
                           <span
@@ -2733,23 +2686,45 @@ export default function AdminDashboard() {
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-sm">
                           <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => startEdit(it)}
-                              className="text-xs"
-                            >
-                            Edit
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive" 
-                            onClick={() => deleteSchedule(it.id)}
-                              className="text-xs"
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                            {isEditing ? (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  onClick={saveEdit}
+                                  className="text-xs bg-green-600 hover:bg-green-700"
+                                >
+                                  Save
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={cancelEdit}
+                                  className="text-xs"
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => startEdit(it)}
+                                  className="text-xs"
+                                >
+                                  Edit
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => deleteSchedule(it.id)}
+                                  className="text-xs"
+                                >
+                                  Delete
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )
@@ -2764,49 +2739,6 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
                       </div>
-
-            {/* Edit Modal */}
-            {editId && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Edit Schedule</h3>
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-                  <div>
-                    <Label>Category</Label>
-                          <select
-                            className="h-9 w-full rounded border px-2"
-                            value={editCat}
-                            onChange={(e) => setEditCat(e.target.value)}
-                          >
-                            {(content.categories ?? []).map((c) => (
-                              <option key={c.key} value={c.key}>
-                                {c.label} ({c.key})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <Label>Value</Label>
-                          <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} />
-                        </div>
-                        <div>
-                          <Label>Date</Label>
-                          <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
-                        </div>
-                        <div>
-                          <Label>Time</Label>
-                          <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
-                        </div>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Button onClick={() => saveEdit(scheduled?.find(s => s.id === editId))}>
-                    Save Changes
-                          </Button>
-                  <Button variant="outline" onClick={cancelEdit}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    )}
           </div>
         )}
 
@@ -3540,151 +3472,6 @@ export default function AdminDashboard() {
                   </span>
                 )}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* LIVE SCHEDULES */}
-        {active === "live-schedules" && (
-          <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
-            <FieldLegend>Live Results Scheduling</FieldLegend>
-            <FieldDescription>
-              Schedule live results to be published at specific times today. These will override scraper data.
-            </FieldDescription>
-            
-            {/* Add New Schedule Form */}
-            <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Add New Live Schedule</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field>
-                  <Label>Category</Label>
-                  <FieldContent>
-                    <select
-                      value={newScheduleCategory}
-                      onChange={(e) => setNewScheduleCategory(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="GHAZIABAD1">GHAZIABAD1</option>
-                      <option value="FARIDABAD1">FARIDABAD1</option>
-                      <option value="GALI1">GALI1</option>
-                      <option value="DESAWAR1">DESAWAR1</option>
-                      <option value="GHAZIABAD">GHAZIABAD</option>
-                      <option value="FARIDABAD">FARIDABAD</option>
-                      <option value="GALI">GALI</option>
-                      <option value="DESAWAR">DESAWAR</option>
-                    </select>
-                  </FieldContent>
-                </Field>
-                
-                <Field>
-                  <Label>Time (24h format)</Label>
-                  <FieldContent>
-                    <Input
-                      type="time"
-                      value={newScheduleTime}
-                      onChange={(e) => setNewScheduleTime(e.target.value)}
-                      placeholder="15:59"
-                    />
-                  </FieldContent>
-                </Field>
-                
-                <Field>
-                  <Label>Today's Result</Label>
-                  <FieldContent>
-                    <Input
-                      value={newScheduleResult}
-                      onChange={(e) => setNewScheduleResult(e.target.value)}
-                      placeholder="56"
-                    />
-                  </FieldContent>
-                </Field>
-                
-                <Field>
-                  <Label>Yesterday's Result (Optional)</Label>
-                  <FieldContent>
-                    <Input
-                      value={newScheduleYesterdayResult}
-                      onChange={(e) => setNewScheduleYesterdayResult(e.target.value)}
-                      placeholder="88"
-                    />
-                  </FieldContent>
-                </Field>
-              </div>
-              
-              <div className="mt-4">
-                <Button onClick={addLiveSchedule} className="w-full">
-                  Add Live Schedule
-                </Button>
-              </div>
-            </div>
-
-            {/* Current Schedules */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Current Live Schedules</h3>
-              {liveSchedules.length === 0 ? (
-                <div className="text-gray-500 text-center py-8">
-                  No live schedules found. Add one above to get started.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {liveSchedules.map((schedule) => {
-                    const scheduleTime = new Date(schedule.scheduledTime)
-                    const now = new Date()
-                    const isDue = now >= scheduleTime
-                    const timeUntil = Math.ceil((scheduleTime.getTime() - now.getTime()) / (1000 * 60))
-                    
-                    return (
-                      <div key={schedule.id} className="border rounded-lg p-4 bg-gray-50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="font-semibold text-lg">{schedule.category}</div>
-                            <div className="text-sm text-gray-600">
-                              Scheduled: {scheduleTime.toLocaleTimeString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: true 
-                              })}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Result: {schedule.result}
-                              {schedule.yesterdayResult && ` | Yesterday: ${schedule.yesterdayResult}`}
-                            </div>
-                            <div className="text-sm">
-                              Status: 
-                              <span className={`ml-1 font-semibold ${
-                                schedule.status === 'published' ? 'text-green-600' :
-                                isDue ? 'text-blue-600' : 'text-yellow-600'
-                              }`}>
-                                {schedule.status === 'published' ? 'Published' :
-                                 isDue ? 'Due Now' : `In ${timeUntil}m`}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            {!isDue && schedule.status === 'scheduled' && (
-                              <Button
-                                size="sm"
-                                onClick={() => publishLiveSchedule(schedule.id)}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                Publish Now
-                              </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => deleteLiveSchedule(schedule.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
             </div>
           </div>
         )}

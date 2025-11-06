@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server"
-import { getSiteContent, getActiveLiveSchedules, publishLiveSchedule, getSchedules, runDueSchedules, getMonthlyResults, saveMonthlyResults } from "@/lib/local-content-store"
+import { getSiteContent, getSchedules, runDueSchedules, getMonthlyResults, saveMonthlyResults } from "@/lib/local-content-store"
 import { parseMonthlyTable, parseLiveResults, parseLiveResultsFast } from "@/lib/scrape"
 import type { MonthlyResults } from "@/lib/types"
+import { getAdminDataForMonth, getBaseDataForMonth, getAdminDataForDate, preloadCaches } from "@/lib/csv-cache"
+import { getAdminResults, getScrapedResults } from "@/lib/supabase-db"
+
+// Preload CSV caches on module load (runs once when server starts)
+let cachePreloaded = false
+if (typeof window === 'undefined' && !cachePreloaded) {
+  cachePreloaded = true
+  // Preload in background (don't block)
+  preloadCaches().catch(console.error)
+}
 
 const DEFAULT_CATEGORIES = [
   { key: "ghaziabad1", label: "GHAZIABAD1", showInToday: true },
@@ -10,47 +20,103 @@ const DEFAULT_CATEGORIES = [
   { key: "desawar1", label: "DESAWAR1", showInToday: true },
 ]
 
+// Optimized cache headers: Allow stale-while-revalidate for better performance
 const CACHE_HEADERS = {
-  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600, max-age=60", // 2 min CDN cache, 10 min stale, 60s browser cache
   "Pragma": "no-cache",
-  "Expires": "0"
 }
+
+// In-memory cache for deletion markers (CSV read is expensive)
+let deletionMarkersCache: { data: Set<string>; timestamp: number } | null = null
+const DELETION_MARKERS_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export async function GET(req: Request) {
   try {
     const { month, year } = getParams(req)
     const content = await getContentWithFallback()
     
-    // Check for cached monthly data first (use cache if less than 1 hour old)
+    // Check for cached monthly data first (use cache if less than 30 minutes old - SKIP scraping if fresh)
     const monthKey = `${year}-${String(month).padStart(2, '0')}` as `${number}-${number}`
     let cachedData: MonthlyResults | null = null
+    let shouldScrape = true // Only scrape if cache is stale or missing
     try {
       cachedData = await getMonthlyResults(monthKey)
       if (cachedData) {
         const cacheAge = new Date().getTime() - new Date(cachedData.updatedAt).getTime()
-        const oneHour = 60 * 60 * 1000
-        // Use cache if it's less than 1 hour old
-        if (cacheAge < oneHour) {
-          console.log(`Using cached monthly data for ${monthKey} (${Math.round(cacheAge / 1000 / 60)} minutes old)`)
+        const thirtyMinutes = 30 * 60 * 1000 // 30 minutes - if cache is fresh, skip scraping
+        // Use cache if it's less than 30 minutes old - SKIP EXPENSIVE SCRAPING
+        if (cacheAge < thirtyMinutes) {
+          shouldScrape = false // Skip scraping - use cached data only
+          // Only log if cache is relatively fresh (less than 5 minutes) to reduce noise
+          if (cacheAge < 5 * 60 * 1000) {
+            console.log(`✅ Using cached monthly data for ${monthKey} (${Math.round(cacheAge / 1000 / 60)} minutes old) - SKIPPING scrape`)
+          }
         } else {
-          // Cache is stale, clear it so we'll scrape fresh
-          cachedData = null
+          // Cache is stale (> 30 min), we'll scrape fresh in background
+          console.log(`⚠️ Cache stale for ${monthKey} (${Math.round(cacheAge / 1000 / 60)} minutes old) - will scrape in background`)
         }
       }
     } catch (e) {
-      // If cache read fails, continue with scraping
-      console.error('Error reading cached data:', e)
+      // If cache read fails, continue with scraping (silent fail for performance)
     }
     
-    const scraperData = await scrapeData(month, year, true) // Use fast scraper for live results
+    // OPTIMIZATION: Only scrape if cache is stale or missing - run in background if cache exists
+    let scraperData: any = { monthly: { month, year, columns: [], rows: [] }, live: { results: [] } }
+    if (shouldScrape) {
+      // Scrape synchronously only if no cache exists
+      if (!cachedData) {
+        scraperData = await scrapeData(month, year, true) // Use fast scraper for live results
+      } else {
+        // Cache exists but stale - scrape in background (don't wait)
+        scrapeData(month, year, true).then(async (scraped) => {
+          try {
+            const scrapedMonthlyData = convertScraperDataToMonthlyResults(scraped.monthly, monthKey)
+            await saveMonthlyResults(scrapedMonthlyData)
+          } catch (e) {
+            // Silent fail - background update
+          }
+        }).catch(() => {}) // Silent fail for background scraping
+      }
+    }
     
     // Always check cached data and merge it with scraper data
     // This ensures we use cached data even if scraper returns partial/empty results
     let monthlyDataToUse = scraperData.monthly
     if (cachedData) {
-      console.log(`Found cached data for ${monthKey}, merging with scraped data`)
-      // Convert cached MonthlyResults back to scraper format
-      const cachedScraperFormat = convertCachedToScraperFormat(cachedData, month, year)
+      // Only log if merging (not for every request to reduce noise)
+      
+      // IMPORTANT: Clean cached data BEFORE converting to filter out deleted admin columns
+      const cleanedCachedData = {
+        ...cachedData,
+        rows: cachedData.rows.map((row: any) => {
+          const cleanedRow: any = { date: row.date }
+          // Copy base columns (not admin columns)
+          Object.keys(row).forEach(key => {
+            if (key !== 'date') {
+              const keyLower = key.toLowerCase()
+              const isAdminColumn = keyLower.includes('gali2') || keyLower.includes('desawar2') || 
+                                   keyLower.includes('faridabad2') || keyLower.includes('ghaziabad2') || 
+                                   keyLower.includes('luxmi') || keyLower === 'gal12'
+              
+              if (!isAdminColumn) {
+                // Base column - always include
+                cleanedRow[key] = row[key]
+              } else {
+                // Admin column - only include if not deleted (not '--', null, or empty)
+                const value = row[key]
+                if (value && value !== '--' && value !== '' && value !== null && value !== undefined) {
+                  cleanedRow[key] = value
+                }
+                // If deleted, skip it (don't add to cleanedRow)
+              }
+            }
+          })
+          return cleanedRow
+        })
+      }
+      
+      // Convert cleaned cached MonthlyResults back to scraper format
+      const cachedScraperFormat = convertCachedToScraperFormat(cleanedCachedData, month, year)
       
       // If cached data has rows, use it (even if scraper also has data, we'll merge)
       if (cachedScraperFormat.rows.length > 0) {
@@ -75,10 +141,10 @@ export async function GET(req: Request) {
         })
         
         // Then override with fresh scraper data where available
-        scraperData.monthly.rows.forEach(row => {
+        scraperData.monthly.rows.forEach((row: { day: number; values: Array<number | null> }) => {
           if (row.day >= 1 && row.day <= 31) {
             const mergedValues: Array<number | null> = mergedRowsByDay[row.day]?.values || new Array(allColumns.length).fill(null)
-            scraperData.monthly.columns.forEach((col, idx) => {
+            scraperData.monthly.columns.forEach((col: string, idx: number) => {
               const colIdx = allColumns.indexOf(col)
               if (colIdx !== -1 && row.values[idx] !== null) {
                 mergedValues[colIdx] = row.values[idx]
@@ -109,25 +175,48 @@ export async function GET(req: Request) {
     }
     
     // Save scraped monthly data to storage for future use (if we got fresh data)
-    // Also merge with existing cached data to preserve any data we already have
-    if (scraperData.monthly && scraperData.monthly.rows.length > 0) {
+    // OPTIMIZATION: Only save if we actually scraped (not skipped)
+    if (shouldScrape && scraperData.monthly && scraperData.monthly.rows.length > 0) {
       try {
         const scrapedMonthlyData = convertScraperDataToMonthlyResults(scraperData.monthly, monthKey)
         
         // If we have cached data, merge it with scraped data to preserve all existing data
+        // IMPORTANT: Filter out deleted admin columns (those with '--', null, or empty) from cached data
         if (cachedData && cachedData.rows.length > 0) {
           // Merge: combine rows from both sources, with scraped data taking priority
           const mergedRowsByDate: Record<string, any> = {}
           
-          // First add all cached rows
+          // First add all cached rows, but FILTER OUT deleted admin columns
           cachedData.rows.forEach(row => {
-            mergedRowsByDate[row.date] = { ...row }
+            const cleanedRow: any = { date: row.date }
+            // Copy base columns (not admin columns)
+            Object.keys(row).forEach(key => {
+              if (key !== 'date') {
+                const keyLower = key.toLowerCase()
+                const isAdminColumn = keyLower.includes('gali2') || keyLower.includes('desawar2') || 
+                                     keyLower.includes('faridabad2') || keyLower.includes('ghaziabad2') || 
+                                     keyLower.includes('luxmi') || keyLower === 'gal12'
+                
+                if (!isAdminColumn) {
+                  // Base column - always include
+                  cleanedRow[key] = row[key]
+                } else {
+                  // Admin column - only include if not deleted (not '--', null, or empty)
+                  const value = row[key]
+                  if (value && value !== '--' && value !== '' && value !== null && value !== undefined) {
+                    cleanedRow[key] = value
+                  }
+                  // If deleted, skip it (don't add to cleanedRow)
+                }
+              }
+            })
+            mergedRowsByDate[row.date] = cleanedRow
           })
           
           // Then merge/override with scraped data
           scrapedMonthlyData.rows.forEach(row => {
             if (mergedRowsByDate[row.date]) {
-              // Merge: keep existing data, add/override with scraped data
+              // Merge: keep existing cleaned data, add/override with scraped data
               Object.assign(mergedRowsByDate[row.date], row)
             } else {
               // New row from scraper
@@ -152,35 +241,62 @@ export async function GET(req: Request) {
       }
     }
     
-    // Get active live schedules for today
-    const liveSchedules = await getActiveLiveSchedules()
+    // OPTIMIZATION: Run schedule execution in parallel with other operations
+    // Auto-execute due scheduled items (use local version for now - faster)
+    const scheduleExecutionPromise = runDueSchedules()
     
-    // Auto-publish due live schedules
-    const now = new Date()
-    for (const schedule of liveSchedules) {
-      const scheduleTime = new Date(schedule.scheduledTime)
-      if (now >= scheduleTime && schedule.status === 'scheduled') {
-        await publishLiveSchedule(schedule.id)
-      }
-    }
+    // Get schedules (will be updated after execution completes)
+    // Start fetching schedules immediately (parallel with execution)
+    const schedulesPromise = getSchedules()
     
-    // Auto-execute due scheduled items (this updates monthly results)
-    await runDueSchedules()
-    
-    // Get updated schedules AFTER execution (to get fresh executed status)
-    const updatedScheduledItems = await getSchedules()
+    // Wait for both to complete
+    await scheduleExecutionPromise
+    const updatedScheduledItems = await schedulesPromise
     const today = new Date().toISOString().split('T')[0]
-    const todayScheduledItems = updatedScheduledItems.filter(item => item.row.date === today)
-    const updatedLiveSchedules = await getActiveLiveSchedules()
+    // Pass ALL schedules to createTodayData - it will filter based on publish time and execution status
+    // This ensures schedules that have passed publish time (even if not yet marked executed) are included
+    const todayScheduledItems = updatedScheduledItems
     
     // Reload monthly results after schedule execution (schedules may have updated the table)
+    // IMPORTANT: Filter out deleted admin columns from monthly_results.json
     try {
       const monthKey = `${year}-${String(month).padStart(2, '0')}` as `${number}-${number}`
       const updatedCachedData = await getMonthlyResults(monthKey)
       
       if (updatedCachedData && updatedCachedData.rows.length > 0) {
-        // Convert updated cached data to scraper format and merge with existing monthlyDataToUse
-        const updatedScraperFormat = convertCachedToScraperFormat(updatedCachedData, month, year)
+        // Clean up deleted admin columns from cached data BEFORE converting
+        // Remove admin columns that have '--', null, or empty values
+        const cleanedCachedData = {
+          ...updatedCachedData,
+          rows: updatedCachedData.rows.map((row: any) => {
+            const cleanedRow: any = { date: row.date }
+            // Copy base columns (not admin columns)
+            Object.keys(row).forEach(key => {
+              if (key !== 'date') {
+                const keyLower = key.toLowerCase()
+                const isAdminColumn = keyLower.includes('gali2') || keyLower.includes('desawar2') || 
+                                     keyLower.includes('faridabad2') || keyLower.includes('ghaziabad2') || 
+                                     keyLower.includes('luxmi') || keyLower === 'gal12'
+                
+                if (!isAdminColumn) {
+                  // Base column - always include
+                  cleanedRow[key] = row[key]
+                } else {
+                  // Admin column - only include if not deleted (not '--', null, or empty)
+                  const value = row[key]
+                  if (value && value !== '--' && value !== '' && value !== null && value !== undefined) {
+                    cleanedRow[key] = value
+                  }
+                  // If deleted, skip it (don't add to cleanedRow)
+                }
+              }
+            })
+            return cleanedRow
+          })
+        }
+        
+        // Convert cleaned cached data to scraper format and merge with existing monthlyDataToUse
+        const updatedScraperFormat = convertCachedToScraperFormat(cleanedCachedData, month, year)
         
         if (updatedScraperFormat.rows.length > 0) {
           // Merge: combine columns and merge row data
@@ -188,10 +304,10 @@ export async function GET(req: Request) {
           const mergedRowsByDay: Record<number, { day: number; values: Array<number | null> }> = {}
           
           // First add existing monthlyDataToUse data
-          monthlyDataToUse.rows.forEach(row => {
+          monthlyDataToUse.rows.forEach((row: { day: number; values: Array<number | null> }) => {
             if (row.day >= 1 && row.day <= 31) {
               const existingValues: Array<number | null> = new Array(allColumns.length).fill(null)
-              monthlyDataToUse.columns.forEach((col, idx) => {
+              monthlyDataToUse.columns.forEach((col: string, idx: number) => {
                 const colIdx = allColumns.indexOf(col)
                 if (colIdx !== -1 && row.values[idx] !== null) {
                   existingValues[colIdx] = row.values[idx]
@@ -228,8 +344,8 @@ export async function GET(req: Request) {
     }
     
     const adminCategories = getAdminCategories(content)
-    const hybridData = createHybridData(adminCategories, monthlyDataToUse, updatedScheduledItems, updatedLiveSchedules)
-    const todayData = createTodayData(adminCategories, monthlyDataToUse, scraperData.live, updatedLiveSchedules, todayScheduledItems)
+    const hybridData = await createHybridData(adminCategories, monthlyDataToUse, updatedScheduledItems)
+    const todayData = await createTodayData(adminCategories, monthlyDataToUse, scraperData.live, todayScheduledItems)
     
     return NextResponse.json({
       content: getContentData(content),
@@ -321,59 +437,58 @@ async function scrapeData(month: number, year: number, useFastScraper: boolean =
     results: []
   }
   
-  // Try to fetch monthly data with error handling
-  // For newghaziabad.com, we need to POST form data to get specific month/year data
+  // OPTIMIZATION: Run monthly and live scraping in PARALLEL for faster response
   let monthlyData = emptyMonthly
+  let liveData = emptyLive
+  
   try {
-    // Simulate the site's form POST (like /api/scrape does)
     const form = new URLSearchParams()
     form.set("dd_month", String(month))
     form.set("dd_year", String(year))
     form.set("bt_showresult", "Show Result")
     
-    const targetUrl = "https://newghaziabad.com/index.php"
-    const monthlyResponse = await fetch(targetUrl, {
-      method: "POST",
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; v0-scraper/1.0; +https://v0.app)',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Accept-Language': 'en-IN,en;q=0.9',
-      },
-      body: form.toString(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15000) // 15 second timeout
-    })
+    const [monthlyResult, liveResult] = await Promise.allSettled([
+      // Monthly data - POST request
+      fetch("https://newghaziabad.com/index.php", {
+        method: "POST",
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; v0-scraper/1.0; +https://v0.app)',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Accept-Language': 'en-IN,en;q=0.9',
+        },
+        body: form.toString(),
+        cache: "no-store",
+        signal: AbortSignal.timeout(6000) // 6 second timeout (reduced)
+      }).then(res => res.ok ? res.text() : Promise.reject(new Error('Monthly fetch failed'))),
+      
+      // Live data - GET request
+      fetch(useFastScraper ? urls.fast : urls.original, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        cache: "no-store",
+        signal: AbortSignal.timeout(4000) // 4 second timeout (reduced)
+      }).then(res => res.ok ? res.text() : Promise.reject(new Error('Live fetch failed')))
+    ])
     
-    if (monthlyResponse.ok) {
-      const monthlyHtml = await monthlyResponse.text()
-      monthlyData = parseMonthlyTable(monthlyHtml, month, year)
-      console.log(`Successfully scraped monthly data for ${year}-${month}: ${monthlyData.rows.length} rows`)
-    } else {
-      console.error(`Failed to fetch monthly data: ${monthlyResponse.status} ${monthlyResponse.statusText}`)
+    // Process monthly data
+    if (monthlyResult.status === 'fulfilled') {
+      try {
+        monthlyData = parseMonthlyTable(monthlyResult.value, month, year)
+        console.log(`✅ Successfully scraped monthly data for ${year}-${month}: ${monthlyData.rows.length} rows`)
+      } catch (e) {
+        // Silent fail - use empty data
+      }
+    }
+    
+    // Process live data
+    if (liveResult.status === 'fulfilled') {
+      try {
+        liveData = useFastScraper ? parseLiveResultsFast(liveResult.value) : parseLiveResults(liveResult.value)
+      } catch (e) {
+        // Silent fail - use empty data
+      }
     }
   } catch (error: any) {
-    console.error('Error fetching/parsing monthly data:', error.message)
-    // Use empty data structure - don't throw
-  }
-  
-  // Try to fetch live data with error handling
-  let liveData = emptyLive
-  try {
-    const liveUrl = useFastScraper ? urls.fast : urls.original
-    const liveResponse = await fetch(liveUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-      signal: AbortSignal.timeout(10000) // 10 second timeout
-    })
-    
-    if (liveResponse.ok) {
-      const liveHtml = await liveResponse.text()
-      liveData = useFastScraper ? parseLiveResultsFast(liveHtml) : parseLiveResults(liveHtml)
-    } else {
-      console.error(`Failed to fetch live data: ${liveResponse.status} ${liveResponse.statusText}`)
-    }
-  } catch (error: any) {
-    console.error('Error fetching/parsing live data:', error.message)
-    // Use empty data structure - don't throw
+    // Silent fail - return empty data structures
   }
   
   return {
@@ -388,7 +503,7 @@ function getAdminCategories(content: any) {
   ) || []
 }
 
-function createHybridData(adminCategories: any[], scraperData: any, scheduledItems: any[] = [], liveSchedules: any[] = []) {
+async function createHybridData(adminCategories: any[], scraperData: any, scheduledItems: any[] = []) {
   // Normalize helpers
   const norm = (s: string) => (s || '').toUpperCase().trim()
 
@@ -424,153 +539,234 @@ function createHybridData(adminCategories: any[], scraperData: any, scheduledIte
   const currentMonth = today.getMonth() + 1
   const isCurrentMonth = scraperData.year === currentYear && scraperData.month === currentMonth
 
-  // Load admin category values from simple CSV file for HISTORICAL dates only (before today)
-  const adminDataByDay: Record<number, { GALI2?: string; DESAWAR2?: string; FARIDABAD2?: string; GHAZIABAD2?: string; 'LUXMI KUBER'?: string }> = {}
-  try {
-    const { readFileSync } = require('fs')
+  // CRITICAL: Check for deleted schedules - if a schedule was deleted, we should NOT show its Supabase value
+  // We need to check if there are any schedules that were deleted (not in scheduledItems but exist in Supabase)
+  // IMPORTANT: Read CSV directly (not through cache) to check for '--' deletion markers
+  // The cache filters out '--' values, so we need to read the raw CSV file
+  // OPTIMIZATION: Cache deletion markers in memory to avoid reading CSV on every request
+  let deletedFromCSV = new Set<string>() // Format: "YYYY-MM-DD:CATEGORY"
+  const now = Date.now()
+  
+  // Check if we have cached deletion markers
+  if (deletionMarkersCache && (now - deletionMarkersCache.timestamp < DELETION_MARKERS_CACHE_TTL)) {
+    deletedFromCSV = deletionMarkersCache.data
+    // Filter to only the selected month for efficiency
+    const filtered = new Set<string>()
+    deletedFromCSV.forEach(key => {
+      const [dateStr] = key.split(':')
+      const rowYear = parseInt(dateStr.substring(0, 4))
+      const rowMonth = parseInt(dateStr.substring(5, 7))
+      if (rowYear === scraperData.year && rowMonth === scraperData.month) {
+        filtered.add(key)
+      }
+    })
+    deletedFromCSV = filtered
+  } else {
+    // Load fresh deletion markers
+    try {
+      const { readFile } = require('fs/promises')
     const { join } = require('path')
     const csvPath = join(process.cwd(), 'dummy_gali1_2015_to_today.csv')
-    const raw = readFileSync(csvPath, 'utf-8')
-    const lines = raw.trim().split(/\r?\n/)
-    const headers = lines[0].split(',')
-    
-    const idxDate = headers.indexOf('date')
-    const idxGali2 = headers.indexOf('GALI2')
-    const idxDesawar2 = headers.indexOf('DESAWAR2')
-    const idxFaridabad2 = headers.indexOf('FARIDABAD2')
-    const idxGhaziabad2 = headers.indexOf('GHAZIABAD2')
-    const idxLuxmiKuber = headers.indexOf('LUXMI KUBER')
-    
+      const csvContent = await readFile(csvPath, 'utf-8')
+      const lines = csvContent.trim().split(/\r?\n/)
+      
+      if (lines.length > 0) {
+        const header = lines[0].split(',').map((h: string) => h.trim())
+        const dateColIdx = header.indexOf('date')
+        const gal2ColIdx = header.indexOf('GALI2')
+        const desawar2ColIdx = header.indexOf('DESAWAR2')
+        const faridabad2ColIdx = header.indexOf('FARIDABAD2')
+        const ghaziabad2ColIdx = header.indexOf('GHAZIABAD2')
+        const luxmiKuberColIdx = header.indexOf('LUXMI KUBER')
+        
+        // Check all rows (cache all, not just current month)
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim()
-      if (!line) continue
-      
-      const parts = line.split(',')
-      if (parts.length < 2 || idxDate === -1) continue
-      
-      const dateStr = parts[idxDate]?.trim()
-      if (!dateStr) continue
-      
-      const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-      if (!dateMatch) continue
-      
-      const y = parseInt(dateMatch[1], 10)
-      const m = parseInt(dateMatch[2], 10)
-      const d = parseInt(dateMatch[3], 10)
-      const rowDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-      
-      // Load CSV for dates in the selected month (regardless of whether it's before today or not)
-      // This ensures we have data even if scraper fails
-      if (y === scraperData.year && m === scraperData.month && d >= 1 && d <= 31) {
-        const data: any = {}
-        if (idxGali2 !== -1 && parts[idxGali2]?.trim() && parts[idxGali2].trim() !== '--') {
-          data.GALI2 = parts[idxGali2].trim().padStart(2, '0')
+          const parts = lines[i].split(',')
+          if (parts.length < 2 || dateColIdx === -1) continue
+          
+          const dateStr = parts[dateColIdx]?.trim()
+          if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) continue
+          
+          // Check each column for '--' (deletion marker)
+          if (gal2ColIdx !== -1 && (parts[gal2ColIdx]?.trim() === '--' || !parts[gal2ColIdx]?.trim())) {
+            deletedFromCSV.add(`${dateStr}:GALI2`)
+          }
+          if (desawar2ColIdx !== -1 && (parts[desawar2ColIdx]?.trim() === '--' || !parts[desawar2ColIdx]?.trim())) {
+            deletedFromCSV.add(`${dateStr}:DESAWAR2`)
+          }
+          if (faridabad2ColIdx !== -1 && (parts[faridabad2ColIdx]?.trim() === '--' || !parts[faridabad2ColIdx]?.trim())) {
+            deletedFromCSV.add(`${dateStr}:FARIDABAD2`)
+          }
+          if (ghaziabad2ColIdx !== -1 && (parts[ghaziabad2ColIdx]?.trim() === '--' || !parts[ghaziabad2ColIdx]?.trim())) {
+            deletedFromCSV.add(`${dateStr}:GHAZIABAD2`)
+          }
+          if (luxmiKuberColIdx !== -1 && (parts[luxmiKuberColIdx]?.trim() === '--' || !parts[luxmiKuberColIdx]?.trim())) {
+            deletedFromCSV.add(`${dateStr}:LUXMI KUBER`)
+          }
         }
-        if (idxDesawar2 !== -1 && parts[idxDesawar2]?.trim() && parts[idxDesawar2].trim() !== '--') {
-          data.DESAWAR2 = parts[idxDesawar2].trim().padStart(2, '0')
+        
+        // Cache the deletion markers (all dates, filter by month when using)
+        deletionMarkersCache = { data: deletedFromCSV, timestamp: now }
+        
+        // Filter to only selected month for logging
+        const monthFiltered = new Set<string>()
+        deletedFromCSV.forEach(key => {
+          const [dateStr] = key.split(':')
+          const rowYear = parseInt(dateStr.substring(0, 4))
+          const rowMonth = parseInt(dateStr.substring(5, 7))
+          if (rowYear === scraperData.year && rowMonth === scraperData.month) {
+            monthFiltered.add(key)
+          }
+        })
+        
+        if (monthFiltered.size > 0) {
+          console.log(`✅ Loaded ${monthFiltered.size} deletion markers for ${scraperData.year}-${scraperData.month} (from cache: ${deletionMarkersCache ? 'yes' : 'no'})`)
         }
-        if (idxFaridabad2 !== -1 && parts[idxFaridabad2]?.trim() && parts[idxFaridabad2].trim() !== '--') {
-          data.FARIDABAD2 = parts[idxFaridabad2].trim().padStart(2, '0')
-        }
-        if (idxGhaziabad2 !== -1 && parts[idxGhaziabad2]?.trim() && parts[idxGhaziabad2].trim() !== '--') {
-          data.GHAZIABAD2 = parts[idxGhaziabad2].trim().padStart(2, '0')
-        }
-        if (idxLuxmiKuber !== -1 && parts[idxLuxmiKuber]?.trim() && parts[idxLuxmiKuber].trim() !== '--') {
-          data['LUXMI KUBER'] = parts[idxLuxmiKuber].trim().padStart(2, '0')
-        }
-        if (Object.keys(data).length > 0) {
-          adminDataByDay[d] = data
-        }
-      }
-    }
-  } catch (e) {
-    // ignore file errors
-  }
-
-  // Load base column values (Faridabad, Ghaziabad, Gali, Desawar) from comprehensive CSV for HISTORICAL dates
-  const baseDataByDay: Record<number, { FARIDABAD?: number; GHAZIABAD?: number; GALI?: number; DESAWAR?: number }> = {}
-  
-  // Try multiple CSV files in order of preference
-  const csvFilesToTry = [
-    'satta_2025_complete.csv',
-    'comprehensive_historical_data.csv'
-  ]
-  
-  let csvLoaded = false
-  for (const csvFileName of csvFilesToTry) {
-    if (csvLoaded) break // Stop if we already loaded data
-    
-    try {
-      const { readFileSync, existsSync } = require('fs')
-      const { join } = require('path')
-      const csvPath = join(process.cwd(), csvFileName)
-      
-      if (!existsSync(csvPath)) continue // Skip if file doesn't exist
-      
-      const raw = readFileSync(csvPath, 'utf-8')
-      const lines = raw.trim().split(/\r?\n/)
-      if (lines.length < 2) continue // Skip if no data rows
-      
-      const headers = lines[0].split(',')
-    
-    const idxDate = headers.indexOf('date')
-    const idxFrbd = headers.indexOf('frbd')  // Faridabad
-    const idxGzbd = headers.indexOf('gzbd')  // Ghaziabad
-    const idxGali = headers.indexOf('gali')  // Gali
-    const idxDswr = headers.indexOf('dswr')  // Desawar
-    
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim()
-      if (!line) continue
-      
-      const parts = line.split(',')
-      if (parts.length < 2 || idxDate === -1) continue
-      
-      const dateStr = parts[idxDate]?.trim()
-      if (!dateStr) continue
-      
-      const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-      if (!dateMatch) continue
-      
-      const y = parseInt(dateMatch[1], 10)
-      const m = parseInt(dateMatch[2], 10)
-      const d = parseInt(dateMatch[3], 10)
-      const rowDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-      
-      // Load CSV for dates in the selected month (regardless of whether it's before today or not)
-      // This ensures we have data even if scraper fails
-      if (y === scraperData.year && m === scraperData.month && d >= 1 && d <= 31) {
-        const data: any = {}
-        if (idxFrbd !== -1 && parts[idxFrbd]?.trim() && parts[idxFrbd].trim() !== '--' && parts[idxFrbd].trim() !== '') {
-          const val = parseInt(parts[idxFrbd].trim(), 10)
-          if (!isNaN(val)) data.FARIDABAD = val
-        }
-        if (idxGzbd !== -1 && parts[idxGzbd]?.trim() && parts[idxGzbd].trim() !== '--' && parts[idxGzbd].trim() !== '') {
-          const val = parseInt(parts[idxGzbd].trim(), 10)
-          if (!isNaN(val)) data.GHAZIABAD = val
-        }
-        if (idxGali !== -1 && parts[idxGali]?.trim() && parts[idxGali].trim() !== '--' && parts[idxGali].trim() !== '') {
-          const val = parseInt(parts[idxGali].trim(), 10)
-          if (!isNaN(val)) data.GALI = val
-        }
-        if (idxDswr !== -1 && parts[idxDswr]?.trim() && parts[idxDswr].trim() !== '--' && parts[idxDswr].trim() !== '') {
-          const val = parseInt(parts[idxDswr].trim(), 10)
-          if (!isNaN(val)) data.DESAWAR = val
-        }
-        if (Object.keys(data).length > 0) {
-          baseDataByDay[d] = data
-          csvLoaded = true // Mark that we found at least some data
-        }
-      }
       }
     } catch (e) {
-      // Try next file if this one fails
-      continue
+      console.error('Error reading CSV for deletion markers:', e)
     }
+  }
+
+  // Load admin data from Supabase first, fallback to CSV if Supabase is empty/not configured
+  // OPTIMIZATION: Parallelize Supabase and CSV loading where possible
+  let adminDataByDay: Record<number, any> = {}
+  try {
+    // Calculate date range for the month
+    const startDate = `${scraperData.year}-${String(scraperData.month).padStart(2, '0')}-01`
+    const daysInMonth = new Date(scraperData.year, scraperData.month, 0).getDate()
+    const endDate = `${scraperData.year}-${String(scraperData.month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
+    
+    // Try Supabase first (with timeout to avoid hanging)
+    const supabaseAdminData = await Promise.race([
+      getAdminResults(startDate, endDate),
+      new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000)) // 2s timeout
+    ])
+    
+    if (supabaseAdminData && supabaseAdminData.length > 0) {
+      // Convert Supabase data to day-indexed format
+      // STRICT filtering: Only include fields that have actual valid numeric values
+      // NULL, undefined, empty string, '--', 'null' are all treated as deleted
+      // CRITICAL: Also exclude values that were deleted according to CSV (deletedFromCSV set)
+      for (const row of supabaseAdminData) {
+        const day = parseInt(row.date.split('-')[2])
+        if (day >= 1 && day <= 31) {
+          const rowDate = `${scraperData.year}-${String(scraperData.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+          const dayData: any = {}
+          
+          // Helper to validate and set value - but skip if deleted in CSV
+          const setIfValid = (value: any, key: string) => {
+            // CRITICAL: If this date+category was deleted (marked in CSV), don't use Supabase value
+            if (deletedFromCSV.has(`${rowDate}:${key}`)) {
+              console.log(`🚫 Blocking Supabase value for ${key} on ${rowDate} (marked as deleted in CSV)`)
+              return false // Explicitly deleted, ignore Supabase value
+            }
+            if (value === null || value === undefined) return false
+            const str = String(value).trim()
+            if (str === '' || str === '--' || str === 'null' || str === 'NULL') return false
+            const num = parseInt(str, 10)
+            if (isNaN(num) || num < 0 || num > 99) return false
+            dayData[key] = str.padStart(2, '0')
+            return true
+          }
+          
+          // Only set valid numeric values (and not deleted ones)
+          setIfValid(row.gal12, 'GALI2')
+          setIfValid(row.desawar2, 'DESAWAR2')
+          setIfValid(row.faridabad2, 'FARIDABAD2')
+          setIfValid(row.ghaziabad2, 'GHAZIABAD2')
+          setIfValid(row.luxmi_kuber, 'LUXMI KUBER')
+          
+          // Only set adminDataByDay if there's at least one valid value
+          if (Object.keys(dayData).length > 0) {
+            adminDataByDay[day] = dayData
+          }
+        }
+      }
+      console.log(`Loaded ${supabaseAdminData.length} admin results from Supabase for ${scraperData.year}-${scraperData.month}`)
+    } else {
+      // Fallback to CSV if Supabase is empty
+      // Clear CSV cache first to ensure fresh data (especially after deletions)
+      try {
+        const { clearCache } = require('@/lib/csv-cache')
+        clearCache()
+        console.log('✅ Cleared CSV cache before loading admin data')
+  } catch (e) {
+        // Ignore cache clear errors
+      }
+      adminDataByDay = await getAdminDataForMonth(scraperData.year, scraperData.month)
+      
+      // Double-check: Filter out any '--' values that might have slipped through
+      Object.keys(adminDataByDay).forEach(day => {
+        const dayData = adminDataByDay[parseInt(day)]
+        if (dayData) {
+          Object.keys(dayData).forEach(key => {
+            const value = dayData[key as keyof typeof dayData]
+            if (value === '--' || value === '' || value === null || value === undefined) {
+              delete dayData[key as keyof typeof dayData]
+            }
+          })
+          // Remove empty day data
+          if (Object.keys(dayData).length === 0) {
+            delete adminDataByDay[parseInt(day)]
+          }
+        }
+      })
+      
+      console.log(`Loaded admin results from CSV (Supabase empty) for ${scraperData.year}-${scraperData.month}`)
+    }
+  } catch (error) {
+    // Fallback to CSV on error
+    console.warn('Error loading from Supabase, falling back to CSV:', error)
+    adminDataByDay = await getAdminDataForMonth(scraperData.year, scraperData.month)
+  }
+  
+  // Load base data from Supabase first (Faridabad, Ghaziabad, Gali, Desawar), fallback to CSV
+  // OPTIMIZATION: Parallelize Supabase query with timeout
+  let baseDataByDay: Record<number, any> = {}
+  try {
+    // Calculate date range for the month
+    const startDate = `${scraperData.year}-${String(scraperData.month).padStart(2, '0')}-01`
+    const daysInMonth = new Date(scraperData.year, scraperData.month, 0).getDate()
+    const endDate = `${scraperData.year}-${String(scraperData.month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
+    
+    // Try Supabase first (with timeout to avoid hanging)
+    const supabaseBaseData = await Promise.race([
+      getScrapedResults(startDate, endDate),
+      new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000)) // 2s timeout
+    ])
+    
+    if (supabaseBaseData && supabaseBaseData.length > 0) {
+      // Convert Supabase data to day-indexed format
+      for (const row of supabaseBaseData) {
+        const day = parseInt(row.date.split('-')[2])
+        if (day >= 1 && day <= 31) {
+          baseDataByDay[day] = {
+            FARIDABAD: row.faridabad ? parseInt(row.faridabad) : null,
+            GHAZIABAD: row.ghaziabad ? parseInt(row.ghaziabad) : null,
+            GALI: row.gali ? parseInt(row.gali) : null,
+            DESAWAR: row.desawar ? parseInt(row.desawar) : null
+          }
+        }
+      }
+      console.log(`Loaded ${supabaseBaseData.length} base results from Supabase for ${scraperData.year}-${scraperData.month}`)
+    } else {
+      // Fallback to CSV if Supabase is empty
+      baseDataByDay = await getBaseDataForMonth(scraperData.year, scraperData.month)
+      console.log(`Loaded base results from CSV (Supabase empty) for ${scraperData.year}-${scraperData.month}`)
+    }
+  } catch (error) {
+    // Fallback to CSV on error
+    console.warn('Error loading base data from Supabase, falling back to CSV:', error)
+    baseDataByDay = await getBaseDataForMonth(scraperData.year, scraperData.month)
   }
 
   // Load schedule data for today and future dates (admin columns from schedules)
   const scheduleDataByDay: Record<number, { GALI2?: string; DESAWAR2?: string; FARIDABAD2?: string; GHAZIABAD2?: string; 'LUXMI KUBER'?: string }> = {}
+  
+  // CRITICAL: Track which date+category combinations have been deleted
+  // If a schedule was deleted, we should NOT show the Supabase value even if it exists
+  const deletedCombinations = new Set<string>() // Format: "YYYY-MM-DD:CATEGORY"
   
   // Load from scheduled items (for any date in the selected month)
   // Process schedules in order of publish time (earliest first) so latest schedules override earlier ones
@@ -613,64 +809,39 @@ function createHybridData(adminCategories: any[], scraperData: any, scheduledIte
         const normalizedLabel = norm(categoryLabel)
         const value = schedule.row[scheduleKey]?.toString()?.trim()
         
-        // Only set if value exists and is not empty/--
-        if (value && value !== '--' && value !== '') {
+        // STRICT validation: Only set if value exists, is not empty, not '--', not null, and is a valid number
+        if (value && value !== '--' && value !== '' && value !== null && value !== undefined) {
+          // Validate it's a valid number
+          const numValue = parseInt(value, 10)
+          if (!isNaN(numValue) && numValue >= 0 && numValue <= 99) {
           if (!scheduleDataByDay[d]) scheduleDataByDay[d] = {}
           
-          // Set the value for the matching category using the label (not the key)
-          // This handles cases where keys are "desawar1" but labels are "DESAWAR2"
-          if (normalizedLabel === 'GALI2' || normalizedLabel === 'GALI1') {
-            scheduleDataByDay[d].GALI2 = value.padStart(2, '0')
-          } else if (normalizedLabel === 'DESAWAR2' || normalizedLabel === 'DESAWAR1') {
-            scheduleDataByDay[d].DESAWAR2 = value.padStart(2, '0')
-          } else if (normalizedLabel === 'FARIDABAD2' || normalizedLabel === 'FARIDABAD1') {
-            scheduleDataByDay[d].FARIDABAD2 = value.padStart(2, '0')
-          } else if (normalizedLabel === 'GHAZIABAD2' || normalizedLabel === 'GHAZIABAD1') {
-            scheduleDataByDay[d].GHAZIABAD2 = value.padStart(2, '0')
-          } else if (normalizedLabel === 'LUXMI KUBER') {
-            scheduleDataByDay[d]['LUXMI KUBER'] = value.padStart(2, '0')
+            // Set the value for the matching category using the label (not the key)
+            // This handles cases where keys are "desawar1" but labels are "DESAWAR2"
+            if (normalizedLabel === 'GALI2' || normalizedLabel === 'GALI1') {
+              scheduleDataByDay[d].GALI2 = value.padStart(2, '0')
+            } else if (normalizedLabel === 'DESAWAR2' || normalizedLabel === 'DESAWAR1') {
+              scheduleDataByDay[d].DESAWAR2 = value.padStart(2, '0')
+            } else if (normalizedLabel === 'FARIDABAD2' || normalizedLabel === 'FARIDABAD1') {
+              scheduleDataByDay[d].FARIDABAD2 = value.padStart(2, '0')
+            } else if (normalizedLabel === 'GHAZIABAD2' || normalizedLabel === 'GHAZIABAD1') {
+              scheduleDataByDay[d].GHAZIABAD2 = value.padStart(2, '0')
+            } else if (normalizedLabel === 'LUXMI KUBER') {
+              scheduleDataByDay[d]['LUXMI KUBER'] = value.padStart(2, '0')
+            }
           }
         }
       }
     }
   })
   
-  // Also check live schedules (for the selected month)
-  liveSchedules.forEach(schedule => {
-    if (schedule.status !== 'published') return
-    const scheduleTime = new Date(schedule.scheduledTime)
-    const scheduleYear = scheduleTime.getFullYear()
-    const scheduleMonth = scheduleTime.getMonth() + 1
-    const scheduleDay = scheduleTime.getDate()
-    
-    // Include if it's in the selected month and publish time has passed
-    if (scheduleYear === scraperData.year && scheduleMonth === scraperData.month && scheduleDay >= 1 && scheduleDay <= 31) {
-      const publishTime = scheduleTime.getTime()
-      const now = new Date().getTime()
-      
-      // Only include if publish time has passed
-      if (now >= publishTime) {
-        const categoryKey = norm(schedule.category)
-        const value = schedule.result?.toString()
-        
-        if (value && value !== '--') {
-          if (!scheduleDataByDay[scheduleDay]) scheduleDataByDay[scheduleDay] = {}
-          if (categoryKey === 'GALI2') scheduleDataByDay[scheduleDay].GALI2 = value.padStart(2, '0')
-          if (categoryKey === 'DESAWAR2') scheduleDataByDay[scheduleDay].DESAWAR2 = value.padStart(2, '0')
-          if (categoryKey === 'FARIDABAD2') scheduleDataByDay[scheduleDay].FARIDABAD2 = value.padStart(2, '0')
-          if (categoryKey === 'GHAZIABAD2') scheduleDataByDay[scheduleDay].GHAZIABAD2 = value.padStart(2, '0')
-          if (categoryKey === 'LUXMI KUBER') scheduleDataByDay[scheduleDay]['LUXMI KUBER'] = value.padStart(2, '0')
-        }
-      }
-    }
-  })
 
   // Build a lookup for API column indices
   const apiIndex: Record<string, number> = {}
   if (scraperData.columns && Array.isArray(scraperData.columns)) {
-    scraperData.columns.forEach((label: string, idx: number) => {
-      apiIndex[norm(label)] = idx
-    })
+  scraperData.columns.forEach((label: string, idx: number) => {
+    apiIndex[norm(label)] = idx
+  })
   }
 
   // Find admin labels (case-insensitive)
@@ -733,11 +904,11 @@ function createHybridData(adminCategories: any[], scraperData: any, scheduledIte
   // Build lookup for scraper data by day
   const scraperByDay: Record<number, any> = {}
   if (scraperData.rows && Array.isArray(scraperData.rows)) {
-    scraperData.rows.forEach((row: any) => {
+  scraperData.rows.forEach((row: any) => {
       if (row && row.day >= 1 && row.day <= 31) {
-        scraperByDay[row.day] = row
-      }
-    })
+      scraperByDay[row.day] = row
+    }
+  })
   }
 
   // Generate rows for ALL days of the month (1-31)
@@ -769,43 +940,101 @@ function createHybridData(adminCategories: any[], scraperData: any, scheduledIte
         return null
       }
       // Admin categories: Use schedule data (priority) for today/future, CSV for historical
+      // NOTE: If schedule is deleted, scheduleDayData will be empty, so we only use CSV
+      // If CSV has '--' or empty, it means the data was deleted
+      // CRITICAL: We MUST check Supabase data here too, because Supabase might have the deleted values
       const scheduleDayData = scheduleDataByDay[day]
       const csvDayData = adminDataByDay[day]
       
+      // Helper function to validate and parse a value - returns null if invalid/deleted
+      const parseIfValid = (val: any): number | null => {
+        if (!val || val === '--' || val === '' || val === null || val === undefined) return null
+        const str = String(val).trim()
+        if (str === '--' || str === '' || str === 'null' || str === 'NULL') return null
+        const num = parseInt(str, 10)
+        if (isNaN(num) || num < 0 || num > 99) return null
+        return num
+      }
+      
+      // Build date string for this row (YYYY-MM-DD)
+      const rowDate = `${scraperData.year}-${String(scraperData.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      
       if (key === 'GALI2') {
-        const scheduleVal = scheduleDayData?.GALI2
-        const csvVal = csvDayData?.GALI2
-        if (scheduleVal) return parseInt(scheduleVal, 10)
-        if (csvVal) return parseInt(csvVal, 10)
+        // Priority: schedule > csv > deletion markers
+        // If there's a valid schedule, it should override deletion markers
+        const scheduleVal = parseIfValid(scheduleDayData?.GALI2)
+        if (scheduleVal !== null) {
+          console.log(`✅ Table: Using schedule value for GALI2 on ${rowDate} = ${scheduleVal}`)
+          return scheduleVal
+        }
+        // Only check deletion if no schedule data
+        if (deletedFromCSV.has(`${rowDate}:GALI2`) || deletedCombinations.has(`${rowDate}:GALI2`)) {
+          console.log(`🚫 Returning null for GALI2 on ${rowDate} (deleted, no schedule)`)
+          return null
+        }
+        const csvVal = parseIfValid(csvDayData?.GALI2)
+        if (csvVal !== null) return csvVal
         return null
       }
       if (key === 'DESAWAR2') {
-        const scheduleVal = scheduleDayData?.DESAWAR2
-        const csvVal = csvDayData?.DESAWAR2
-        if (scheduleVal) return parseInt(scheduleVal, 10)
-        if (csvVal) return parseInt(csvVal, 10)
+        // Priority: schedule > csv > deletion markers
+        const scheduleVal = parseIfValid(scheduleDayData?.DESAWAR2)
+        if (scheduleVal !== null) {
+          console.log(`✅ Table: Using schedule value for DESAWAR2 on ${rowDate} = ${scheduleVal}`)
+          return scheduleVal
+        }
+        if (deletedFromCSV.has(`${rowDate}:DESAWAR2`) || deletedCombinations.has(`${rowDate}:DESAWAR2`)) {
+          console.log(`🚫 Returning null for DESAWAR2 on ${rowDate} (deleted, no schedule)`)
+          return null
+        }
+        const csvVal = parseIfValid(csvDayData?.DESAWAR2)
+        if (csvVal !== null) return csvVal
         return null
       }
       if (key === 'FARIDABAD2') {
-        const scheduleVal = scheduleDayData?.FARIDABAD2
-        const csvVal = csvDayData?.FARIDABAD2
-        if (scheduleVal) return parseInt(scheduleVal, 10)
-        if (csvVal) return parseInt(csvVal, 10)
+        // Priority: schedule > csv > deletion markers
+        const scheduleVal = parseIfValid(scheduleDayData?.FARIDABAD2)
+        if (scheduleVal !== null) {
+          console.log(`✅ Table: Using schedule value for FARIDABAD2 on ${rowDate} = ${scheduleVal}`)
+          return scheduleVal
+        }
+        if (deletedFromCSV.has(`${rowDate}:FARIDABAD2`) || deletedCombinations.has(`${rowDate}:FARIDABAD2`)) {
+          console.log(`🚫 Returning null for FARIDABAD2 on ${rowDate} (deleted, no schedule)`)
+          return null
+        }
+        const csvVal = parseIfValid(csvDayData?.FARIDABAD2)
+        if (csvVal !== null) return csvVal
         return null
       }
       if (key === 'GHAZIABAD2') {
-        const scheduleVal = scheduleDayData?.GHAZIABAD2
-        const csvVal = csvDayData?.GHAZIABAD2
-        if (scheduleVal) return parseInt(scheduleVal, 10)
-        if (csvVal) return parseInt(csvVal, 10)
+        // Priority: schedule > csv > deletion markers
+        const scheduleVal = parseIfValid(scheduleDayData?.GHAZIABAD2)
+        if (scheduleVal !== null) {
+          console.log(`✅ Table: Using schedule value for GHAZIABAD2 on ${rowDate} = ${scheduleVal}`)
+          return scheduleVal
+        }
+        if (deletedFromCSV.has(`${rowDate}:GHAZIABAD2`) || deletedCombinations.has(`${rowDate}:GHAZIABAD2`)) {
+          console.log(`🚫 Returning null for GHAZIABAD2 on ${rowDate} (deleted, no schedule)`)
+          return null
+        }
+        const csvVal = parseIfValid(csvDayData?.GHAZIABAD2)
+        if (csvVal !== null) return csvVal
         return null
       }
       // LUXMI KUBER: Use schedule data (priority) for today/future, CSV for historical
       if (key === 'LUXMI KUBER') {
-        const scheduleVal = scheduleDayData?.['LUXMI KUBER']
-        const csvVal = csvDayData?.['LUXMI KUBER']
-        if (scheduleVal) return parseInt(scheduleVal, 10)
-        if (csvVal) return parseInt(csvVal, 10)
+        // Priority: schedule > csv > deletion markers
+        const scheduleVal = parseIfValid(scheduleDayData?.['LUXMI KUBER'])
+        if (scheduleVal !== null) {
+          console.log(`✅ Table: Using schedule value for LUXMI KUBER on ${rowDate} = ${scheduleVal}`)
+          return scheduleVal
+        }
+        if (deletedFromCSV.has(`${rowDate}:LUXMI KUBER`) || deletedCombinations.has(`${rowDate}:LUXMI KUBER`)) {
+          console.log(`🚫 Returning null for LUXMI KUBER on ${rowDate} (deleted, no schedule)`)
+          return null
+        }
+        const csvVal = parseIfValid(csvDayData?.['LUXMI KUBER'])
+        if (csvVal !== null) return csvVal
         return null
       }
       // Other admin columns - check if they have scheduled data
@@ -824,7 +1053,7 @@ function createHybridData(adminCategories: any[], scraperData: any, scheduledIte
   }
 }
 
-function createTodayData(adminCategories: any[], scraperData: any, liveResults: any, liveSchedules: any[] = [], scheduledItems: any[] = []) {
+async function createTodayData(adminCategories: any[], scraperData: any, liveResults: any, scheduledItems: any[] = []) {
   // Normalize helper
   const norm = (s: string) => (s || '').toUpperCase().trim()
   
@@ -835,87 +1064,192 @@ function createTodayData(adminCategories: any[], scraperData: any, liveResults: 
   const yesterdayStr = yesterday.toISOString().split('T')[0]
   const yesterdayDay = yesterday.getDate()
   
-  // Build a lookup for yesterday's results from monthly data
-  const yesterdayResults: Record<string, string> = {}
-  if (scraperData && scraperData.rows && Array.isArray(scraperData.rows)) {
-    // Find yesterday's row in the monthly data
-    const yesterdayRow = scraperData.rows.find((row: any) => row.day === yesterdayDay)
-    if (yesterdayRow && yesterdayRow.values && scraperData.columns) {
-      scraperData.columns.forEach((col: string, idx: number) => {
-        const val = yesterdayRow.values[idx]
-        if (val !== null && val !== undefined) {
-          // Map column names to category labels
-          const normalizedCol = norm(col)
-          if (normalizedCol === 'GALI' || normalizedCol === 'GALI1' || normalizedCol === 'GALI2') {
-            yesterdayResults['GALI2'] = String(val).padStart(2, '0')
-          } else if (normalizedCol === 'DESAWAR' || normalizedCol === 'DESAWAR1' || normalizedCol === 'DESAWAR2') {
-            yesterdayResults['DESAWAR2'] = String(val).padStart(2, '0')
-          } else if (normalizedCol === 'FARIDABAD' || normalizedCol === 'FARIDABAD1' || normalizedCol === 'FARIDABAD2') {
-            yesterdayResults['FARIDABAD2'] = String(val).padStart(2, '0')
-          } else if (normalizedCol === 'GHAZIABAD' || normalizedCol === 'GHAZIABAD1' || normalizedCol === 'GHAZIABAD2') {
-            yesterdayResults['GHAZIABAD2'] = String(val).padStart(2, '0')
-          } else if (normalizedCol === 'LUXMI KUBER') {
-            yesterdayResults['LUXMI KUBER'] = String(val).padStart(2, '0')
+  // IMPORTANT: Admin categories are 100% admin-driven, no API interference
+  // Build scheduleDataByDay from executed schedules (SAME SOURCE as table chart)
+  // This ensures Live Results uses the exact same data source as the table chart
+  const scheduleDataByDay: Record<number, { GALI2?: string; DESAWAR2?: string; FARIDABAD2?: string; GHAZIABAD2?: string; 'LUXMI KUBER'?: string }> = {}
+  
+  // Get executed schedules (same logic as createHybridData)
+  try {
+    const { getSchedules } = require('@/lib/local-content-store')
+    const allSchedules = await getSchedules()
+    
+    allSchedules.forEach((schedule: any) => {
+      if (!schedule.executed) return
+      const dateMatch = schedule.row?.date?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+      if (!dateMatch) return
+      
+      const y = parseInt(dateMatch[1], 10)
+      const m = parseInt(dateMatch[2], 10)
+      const d = parseInt(dateMatch[3], 10)
+      
+      // Check if schedule is for yesterday's date
+      if (y === yesterday.getFullYear() && m === yesterday.getMonth() + 1 && d === yesterdayDay) {
+        // Find which admin category this schedule is for
+        const scheduleKey = Object.keys(schedule.row).find(key => key !== 'date')
+        if (!scheduleKey) return
+        
+        // Find the admin category that matches this schedule key
+        const matchingCategory = adminCategories.find((cat: any) => norm(cat.key) === norm(scheduleKey))
+        const categoryLabel = matchingCategory?.label || scheduleKey
+        
+        // Normalize the category label
+        const normalizedLabel = norm(categoryLabel)
+        const value = schedule.row[scheduleKey]?.toString()?.trim()
+        
+        // Only set if value exists and is not empty/--
+        if (value && value !== '--' && value !== '') {
+          if (!scheduleDataByDay[yesterdayDay]) scheduleDataByDay[yesterdayDay] = {}
+          
+          if (normalizedLabel === 'GALI2' || normalizedLabel === 'GALI1') {
+            scheduleDataByDay[yesterdayDay].GALI2 = value.padStart(2, '0')
+          } else if (normalizedLabel === 'DESAWAR2' || normalizedLabel === 'DESAWAR1') {
+            scheduleDataByDay[yesterdayDay].DESAWAR2 = value.padStart(2, '0')
+          } else if (normalizedLabel === 'FARIDABAD2' || normalizedLabel === 'FARIDABAD1') {
+            scheduleDataByDay[yesterdayDay].FARIDABAD2 = value.padStart(2, '0')
+          } else if (normalizedLabel === 'GHAZIABAD2' || normalizedLabel === 'GHAZIABAD1') {
+            scheduleDataByDay[yesterdayDay].GHAZIABAD2 = value.padStart(2, '0')
+          } else if (normalizedLabel === 'LUXMI KUBER' || normalizedLabel.includes('LUXMI') && normalizedLabel.includes('KUBER')) {
+            scheduleDataByDay[yesterdayDay]['LUXMI KUBER'] = value.padStart(2, '0')
           }
         }
-      })
-    }
+      }
+    })
+  } catch (e) {
+    // Continue if schedule loading fails
   }
   
-  // Also check CSV/executed schedules for yesterday's results
-  // This ensures we get yesterday's results even if monthly data doesn't have it
+  // Build a lookup for yesterday's results from monthly data
+  const yesterdayResults: Record<string, string> = {}
+  
+  // FIRST PRIORITY: Use scheduleDataByDay (executed schedules) - SAME AS TABLE CHART
+  // This ensures Live Results shows the exact same yesterday's result as the table chart
+  // Admin categories are 100% admin-driven - NO API interference
+  const yesterdayScheduleData = scheduleDataByDay[yesterdayDay]
+  if (yesterdayScheduleData) {
+    if (yesterdayScheduleData.GALI2) yesterdayResults['GALI2'] = yesterdayScheduleData.GALI2
+    if (yesterdayScheduleData.DESAWAR2) yesterdayResults['DESAWAR2'] = yesterdayScheduleData.DESAWAR2
+    if (yesterdayScheduleData.FARIDABAD2) yesterdayResults['FARIDABAD2'] = yesterdayScheduleData.FARIDABAD2
+    if (yesterdayScheduleData.GHAZIABAD2) yesterdayResults['GHAZIABAD2'] = yesterdayScheduleData.GHAZIABAD2
+    if (yesterdayScheduleData['LUXMI KUBER']) yesterdayResults['LUXMI KUBER'] = yesterdayScheduleData['LUXMI KUBER']
+  }
+  
+  // NOTE: Admin categories (GALI2, DESAWAR2, FARIDABAD2, GHAZIABAD2, LUXMI KUBER) are admin-driven ONLY
+  // We do NOT check scraperData for these - they come from schedules/CSV only
+  
+  // Also check monthly_results.json directly for admin categories
+  // This is the PRIMARY source for yesterday's results (same as GHAZIABAD2, GALI2, etc.)
+  // GHAZIABAD2 gets its data from monthly_results.json where it finds "ghaziabad" key
+  // LUXMI KUBER should use the same approach - check for "luxmi kuber" or variations
   try {
-    const { readFileSync } = require('fs')
-    const { join } = require('path')
-    const csvFile = join(process.cwd(), 'dummy_gali1_2015_to_today.csv')
-    const csvContent = readFileSync(csvFile, 'utf-8')
-    const lines = csvContent.split('\n').filter((l: string) => l.trim())
-    
-    if (lines.length > 0) {
-      const header = lines[0].split(',').map((h: string) => h.trim())
-      const dateIdx = header.indexOf('date')
-      
-      // Find yesterday's row
-      for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(',')
-        if (dateIdx !== -1 && parts[dateIdx]?.trim() === yesterdayStr) {
-          // Found yesterday's row, extract admin category values
-          const gal2Idx = header.findIndex((h: string) => norm(h) === 'GALI2')
-          const des2Idx = header.findIndex((h: string) => norm(h) === 'DESAWAR2')
-          const far2Idx = header.findIndex((h: string) => norm(h) === 'FARIDABAD2')
-          const ghz2Idx = header.findIndex((h: string) => norm(h) === 'GHAZIABAD2')
-          const luxIdx = header.findIndex((h: string) => norm(h) === 'LUXMI KUBER')
-          
-          if (gal2Idx !== -1 && parts[gal2Idx]?.trim() && parts[gal2Idx].trim() !== '--') {
-            yesterdayResults['GALI2'] = parts[gal2Idx].trim().padStart(2, '0')
+    const { getMonthlyResults } = require('@/lib/local-content-store')
+    const monthKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}` as `${number}-${number}`
+    const monthlyData = await getMonthlyResults(monthKey)
+    if (monthlyData && monthlyData.rows) {
+      const yesterdayRow = monthlyData.rows.find((r: any) => r.date === yesterdayStr)
+      if (yesterdayRow) {
+        // Check for all admin categories in monthly_results.json (same source as GHAZIABAD2)
+        for (const [key, value] of Object.entries(yesterdayRow)) {
+          if (key !== 'date' && value && String(value).trim() !== '--' && String(value).trim() !== '') {
+            const keyNorm = norm(key)
+            // LUXMI KUBER: Check for exact match or variations (same pattern as GHAZIABAD2)
+            // Check for: LUXMI KUBER, LUXMIKUBER, or any key containing both LUXMI and KUBER
+            // This matches the same pattern used for GHAZIABAD2 which checks for "GHAZIABAD", "GHAZIABAD1", "GHAZIABAD2"
+            if ((keyNorm === 'LUXMI KUBER' || keyNorm === 'LUXMIKUBER' || 
+                 (keyNorm.includes('LUXMI') && keyNorm.includes('KUBER'))) && 
+                !yesterdayResults['LUXMI KUBER']) {
+              yesterdayResults['LUXMI KUBER'] = String(value).padStart(2, '0')
+            }
+            // GALI2: Check ONLY for GALI2 or GALI1 (admin categories)
+            // DO NOT match base "GALI" column - that's for the base API column, not admin category
+            else if ((keyNorm === 'GALI2' || keyNorm === 'GALI1') && !yesterdayResults['GALI2']) {
+              yesterdayResults['GALI2'] = String(value).padStart(2, '0')
+            }
+            // DESAWAR2: Check ONLY for DESAWAR2 or DESAWAR1 (admin categories)
+            // DO NOT match base "DESAWAR" column - that's for the base API column, not admin category
+            else if ((keyNorm === 'DESAWAR2' || keyNorm === 'DESAWAR1') && !yesterdayResults['DESAWAR2']) {
+              yesterdayResults['DESAWAR2'] = String(value).padStart(2, '0')
+            }
+            // FARIDABAD2: Check ONLY for FARIDABAD2 or FARIDABAD1 (admin categories)
+            // DO NOT match base "FARIDABAD" column - that's for the base API column, not admin category
+            else if ((keyNorm === 'FARIDABAD2' || keyNorm === 'FARIDABAD1') && !yesterdayResults['FARIDABAD2']) {
+              yesterdayResults['FARIDABAD2'] = String(value).padStart(2, '0')
+            }
+            // GHAZIABAD2: Check ONLY for GHAZIABAD2 or GHAZIABAD1 (admin categories)
+            // DO NOT match base "GHAZIABAD" column - that's for the base API column, not admin category
+            else if ((keyNorm === 'GHAZIABAD2' || keyNorm === 'GHAZIABAD1') && 
+                     !yesterdayResults['GHAZIABAD2']) {
+              yesterdayResults['GHAZIABAD2'] = String(value).padStart(2, '0')
+            }
+            // LUXMI KUBER: Also check for base name variations (same pattern)
+            // If monthly_results.json has "luxmi kuber" or "luxmikuber" (lowercase), it should match
           }
-          if (des2Idx !== -1 && parts[des2Idx]?.trim() && parts[des2Idx].trim() !== '--') {
-            yesterdayResults['DESAWAR2'] = parts[des2Idx].trim().padStart(2, '0')
-          }
-          if (far2Idx !== -1 && parts[far2Idx]?.trim() && parts[far2Idx].trim() !== '--') {
-            yesterdayResults['FARIDABAD2'] = parts[far2Idx].trim().padStart(2, '0')
-          }
-          if (ghz2Idx !== -1 && parts[ghz2Idx]?.trim() && parts[ghz2Idx].trim() !== '--') {
-            yesterdayResults['GHAZIABAD2'] = parts[ghz2Idx].trim().padStart(2, '0')
-          }
-          if (luxIdx !== -1 && parts[luxIdx]?.trim() && parts[luxIdx].trim() !== '--') {
-            yesterdayResults['LUXMI KUBER'] = parts[luxIdx].trim().padStart(2, '0')
-          }
-          break
         }
       }
     }
   } catch (e) {
-    // If CSV read fails, continue with what we have from monthly data
+    // Continue if monthly results check fails
   }
   
+  // SECOND PRIORITY: Check CSV cache for yesterday's results (admin-driven only) - instant lookup
+  try {
+    // Get yesterday's admin data from Supabase first, fallback to CSV
+    let yesterdayRow: any = null
+    try {
+      const supabaseYesterdayData = await getAdminResults(yesterdayStr, yesterdayStr)
+      if (supabaseYesterdayData && supabaseYesterdayData.length > 0) {
+        const row = supabaseYesterdayData[0]
+        yesterdayRow = {
+          GALI2: row.gal12,
+          DESAWAR2: row.desawar2,
+          FARIDABAD2: row.faridabad2,
+          GHAZIABAD2: row.ghaziabad2,
+          'LUXMI KUBER': row.luxmi_kuber
+        }
+      } else {
+        yesterdayRow = await getAdminDataForDate(yesterdayStr)
+      }
+    } catch (error) {
+      yesterdayRow = await getAdminDataForDate(yesterdayStr)
+    }
+    if (yesterdayRow) {
+      if (yesterdayRow.GALI2) yesterdayResults['GALI2'] = yesterdayRow.GALI2
+      if (yesterdayRow.DESAWAR2) yesterdayResults['DESAWAR2'] = yesterdayRow.DESAWAR2
+      if (yesterdayRow.FARIDABAD2) yesterdayResults['FARIDABAD2'] = yesterdayRow.FARIDABAD2
+      if (yesterdayRow.GHAZIABAD2) yesterdayResults['GHAZIABAD2'] = yesterdayRow.GHAZIABAD2
+      if (yesterdayRow['LUXMI KUBER']) yesterdayResults['LUXMI KUBER'] = yesterdayRow['LUXMI KUBER']
+    }
+  } catch (e) {
+    // If cache lookup fails, continue with what we have
+    console.error('Error loading yesterday results from cache:', e)
+  }
+  
+  // Helper function to format time with AM/PM
+  const formatTimeWithAMPM = (timeStr: string): string => {
+    if (!timeStr || timeStr === "TBD") return "TBD"
+    // If already has AM/PM, return as is
+    if (timeStr.includes('AM') || timeStr.includes('PM') || timeStr.includes('am') || timeStr.includes('pm')) {
+      return timeStr
+    }
+    // Try to parse as HH:MM or HH:MM:SS
+    const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1], 10)
+      const minutes = timeMatch[2]
+      const ampm = hours >= 12 ? 'PM' : 'AM'
+      hours = hours % 12 || 12
+      return `${hours}:${minutes} ${ampm}`
+    }
+    return timeStr // Return as is if can't parse
+  }
+
   // Create items from admin categories (empty placeholders)
   // Store both key and label - key for matching schedules, label for display
   const adminItems = adminCategories.map(cat => ({ 
     category: cat.label, // Display label
     categoryKey: cat.key, // Store key for matching with schedule row keys
     value: "--",
-    time: cat.defaultTime || "TBD", // Use default time from category
+    time: formatTimeWithAMPM(cat.defaultTime || "TBD"), // Format time with AM/PM
     jodi: "--",
     status: "wait",
     yesterdayResult: "--",
@@ -934,48 +1268,36 @@ function createTodayData(adminCategories: any[], scraperData: any, liveResults: 
   }))
   
   // Merge live results with admin categories where there's a match (schedules/exec take priority)
+  // OPTIMIZATION: Reduced logging for performance
   const mergedAdminItems = adminItems.map(adminItem => {
-    // First, check for a scheduled live result (highest priority)
-    const matchingSchedule = liveSchedules.find(schedule => {
-      const adminName = norm(adminItem.category)
-      const scheduleName = norm(schedule.category)
-      return adminName === scheduleName
-    })
-    
-    if (matchingSchedule) {
-      const now = new Date()
-      const scheduleTime = new Date(matchingSchedule.scheduledTime)
-      if (now >= scheduleTime || matchingSchedule.status === 'published') {
-        return {
-          ...adminItem,
-          value: matchingSchedule.result,
-          time: adminItem.time,
-          jodi: matchingSchedule.result,
-          status: 'pass',
-          yesterdayResult: matchingSchedule.yesterdayResult || '--',
-          todayResult: matchingSchedule.todayResult || matchingSchedule.result,
-        }
-      } else {
-        const timeUntil = Math.ceil((scheduleTime.getTime() - now.getTime()) / (1000 * 60))
-        return { ...adminItem, time: `In ${timeUntil}m`, status: 'wait' }
-      }
-    }
-    
     // Check for scheduled items from Schedule section (for Live Results)
-    // Only show schedules that are for TODAY in Live Results
+    // Show schedules that match this category AND (are for TODAY OR executed OR publish time has passed)
     const now = new Date()
     const today = new Date().toISOString().split('T')[0]
     
     const matchingScheduledItem = scheduledItems.find(schedule => {
-      // Match using category KEY (not label) - schedules use keys like "desawar2"
-      const adminKey = norm(adminItem.categoryKey || adminItem.category)
+      // Find the schedule key from the schedule row
       const scheduleKey = Object.keys(schedule.row).find(key => key !== 'date' && key.trim() !== '')
       if (!scheduleKey) return false
-      const scheduleName = norm(scheduleKey)
-      const scheduleDate = schedule.row.date
       
-      // Only match if: category KEY matches AND schedule is for TODAY
-      return scheduleName === adminKey && scheduleDate === today
+      // Use the SAME matching logic as createHybridData (line 739)
+      // Find the admin category that matches this schedule key
+      // Schedules use category keys (e.g., "gali1"), but we need to map to labels (e.g., "GALI2")
+      const matchingCategory = adminCategories.find((cat: any) => norm(cat.key) === norm(scheduleKey))
+      const categoryLabel = matchingCategory?.label || scheduleKey
+      const normalizedScheduleLabel = norm(categoryLabel)
+      
+      // Match against the admin item's category label (normalized)
+      const adminLabel = norm(adminItem.category)
+      
+      const scheduleDate = schedule.row.date
+      const publishTime = new Date(schedule.publishAt)
+      const isExecuted = schedule.executed === true
+      const isPublishTimePassed = now >= publishTime
+      
+      // Match if: category labels match AND (schedule is for TODAY OR schedule is executed OR publish time has passed)
+      return normalizedScheduleLabel === adminLabel && 
+             (scheduleDate === today || isExecuted || isPublishTimePassed)
     })
     
     if (matchingScheduledItem) {
@@ -987,17 +1309,27 @@ function createTodayData(adminCategories: any[], scraperData: any, liveResults: 
       const scheduleValue = matchingScheduledItem.row[scheduleKey]
       const publishTime = new Date(matchingScheduledItem.publishAt)
       
-      // If publish time has passed, show the result in Live Results (auto-publish)
-      // This ensures scheduled results automatically appear when time arrives
-      if (now >= publishTime) {
-        // Get yesterday's result for this category
+      // If schedule is executed OR publish time has passed, show the result in Live Results
+      // Executed schedules should always show their result (even if published in the past)
+      const isExecuted = matchingScheduledItem.executed === true
+      const isPublishTimePassed = now >= publishTime
+      
+      if (isExecuted || isPublishTimePassed) {
+        // Get yesterday's result for this category (try multiple variations)
         const categoryLabel = norm(adminItem.category)
-        const yesterdayValue = yesterdayResults[categoryLabel] || '--'
+        let yesterdayValue = yesterdayResults[categoryLabel] || '--'
+        if (!yesterdayValue || yesterdayValue === '--') {
+          // Try with spaces (e.g., "LUXMI KUBER" vs "LUXMIKUBER")
+          yesterdayValue = yesterdayResults[categoryLabel.replace(/\s+/g, '')] || 
+                           yesterdayResults[categoryLabel.replace(/\s+/g, '_')] ||
+                           yesterdayResults[categoryLabel.replace(/\s+/g, '-')] ||
+                           '--'
+        }
         
         return {
           ...adminItem,
           value: scheduleValue?.toString() || '--', // Today's result (main display)
-          time: adminItem.time, // Keep default time from category
+          time: adminItem.time, // Keep default time from category (already formatted with AM/PM)
           jodi: scheduleValue?.toString() || '--',
           status: 'pass',
           yesterdayResult: yesterdayValue, // Yesterday's actual result
@@ -1023,7 +1355,15 @@ function createTodayData(adminCategories: any[], scraperData: any, liveResults: 
     
     // Default admin-managed placeholder - but include yesterday's result if available
     const categoryLabel = norm(adminItem.category)
-    const yesterdayValue = yesterdayResults[categoryLabel]
+    // Try multiple variations of the category label to find yesterday's result
+    let yesterdayValue = yesterdayResults[categoryLabel]
+    if (!yesterdayValue || yesterdayValue === '--') {
+      // Try with spaces (e.g., "LUXMI KUBER" vs "LUXMIKUBER")
+      yesterdayValue = yesterdayResults[categoryLabel.replace(/\s+/g, '')] || 
+                       yesterdayResults[categoryLabel.replace(/\s+/g, '_')] ||
+                       yesterdayResults[categoryLabel.replace(/\s+/g, '-')] ||
+                       '--'
+    }
     
     return {
       ...adminItem,
@@ -1100,6 +1440,7 @@ function convertCachedToScraperFormat(cachedData: MonthlyResults, month: number,
   // Map cached fields to expected scraper column names
   // Cached might have: Desawar, Disawar, Faridabad, Ghaziabad, Gali
   // We need: Faridabad, Ghaziabad, Gali, Desawar (standardized)
+  // IMPORTANT: Filter out deleted admin columns (those with '--', null, or empty values)
   const fieldMapping: Record<string, string> = {
     'faridabad': 'Faridabad',
     'ghaziabad': 'Ghaziabad',

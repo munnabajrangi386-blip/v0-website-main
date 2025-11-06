@@ -23,7 +23,7 @@
     },
     {
       "id": "84e42a3d-9b3e-4bae-9ae0-435feeaa5ecd",
-      "text": "GHAZIABAD1 🔜",
+      "text": "GHAZIABAD2🔜",
       "color": "#f5f0f0",
       "completeRow": false,
       "backgroundColor": "#161212",
@@ -34,7 +34,7 @@
     },
     {
       "id": "61289227-8f1b-42fb-8471-f819d9f22025",
-      "text": "FARIDABAD1 ⏳",
+      "text": "FARIDABAD2⏳",
       "color": "#000000",
       "completeRow": false,
       "backgroundColor": "#dc2626",
@@ -44,19 +44,19 @@
       "gifUrl": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWR5eXZ6bXZseGNxaG04dGNmOHBtYWk1Zzl4bGRlb3dlbmxhZHpkZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/RLWHDGLJ7LB7R7md14/giphy.gif"
     },
     {
-      "id": "71bd90d1-e773-4da4-a047-9bace7ad9e16",
-      "text": "GALI1 🔜",
-      "color": "#fefbfb",
+      "id": "c05c0d79-cf08-48e5-9ae9-046f49528ec3",
+      "text": "DESAWAR2 ⏳",
+      "color": "#fbf9f9",
       "completeRow": false,
-      "backgroundColor": "#070303",
+      "backgroundColor": "#140505",
       "multiColor": false,
       "bold": true,
       "kind": "info",
       "gifUrl": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWR5eXZ6bXZseGNxaG04dGNmOHBtYWk1Zzl4bGRlb3dlbmxhZHpkZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/RLWHDGLJ7LB7R7md14/giphy.gif"
     },
     {
-      "id": "c05c0d79-cf08-48e5-9ae9-046f49528ec3",
-      "text": "DESAWAR1 ⏳",
+      "id": "fade54fa-7a8c-406f-ab0c-7a5887f991e7",
+      "text": "GALI2",
       "color": "#000000",
       "completeRow": false,
       "backgroundColor": "#dc2626",
@@ -175,7 +175,7 @@
     "text": "Matka Guessing |Matka Chart|Tara Matka |Indian Matka |Fix Matka |Sitemap",
     "active": false
   },
-  "updatedAt": "2025-11-03T10:44:02.952Z",
+  "updatedAt": "2025-11-05T19:09:44.148Z",
   "banner2": [
     {
       "id": "banner2-1",
@@ -522,6 +522,16 @@
         "text": "LAKSHMI KUBER ✅",
         "color": "#ea580c",
         "size": "text-xl"
+      },
+      {
+        "text": "FARDABAD",
+        "color": "#0a318a",
+        "size": "text-xl"
+      },
+      {
+        "text": "FARIDABAD2",
+        "color": "#5d2614",
+        "size": "text-2xl"
       }
     ]
   }

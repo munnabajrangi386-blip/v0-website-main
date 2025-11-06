@@ -9,15 +9,39 @@ type Props = {
 }
 
 export function MonthlyTable({ data, loading, error }: Props) {
-  if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading monthly results…</div>
-  }
+  // Show error state
   if (error) {
-    return <div className="text-sm text-destructive">Failed to load monthly results: {error}</div>
+    return <div className="text-sm text-destructive p-4">Failed to load monthly results: {error}</div>
   }
+  
+  // Show loading GIF on first load (no data yet)
+  if (loading && !data) {
+    return (
+      <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+        <div className="w-full min-w-[600px] sm:min-w-[800px] bg-white rounded-lg shadow-sm p-8 flex justify-center items-center">
+          <img 
+            src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGJldHdvYnZ2bXkyMXVyMWZjaXR2djQxNWN0NGw1OHlkeGFxbDhhaCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/L05HgB2h6qICDs5Sms/giphy.gif" 
+            alt="Loading..." 
+            className="w-24 h-24 sm:w-32 sm:h-32"
+          />
+        </div>
+      </div>
+    )
+  }
+  
   if (!data) {
-    return <div className="text-sm text-muted-foreground">Choose a month and year, then click "Show Result".</div>
+    // Show empty state when no data (not loading)
+    return (
+      <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+        <div className="w-full min-w-[600px] sm:min-w-[800px] bg-white rounded-lg shadow-sm p-8 text-center text-gray-400">
+          <p className="text-sm">Choose a month and year, then click "Show Result"</p>
+        </div>
+      </div>
+    )
   }
+  
+  // If loading but we have data, show the data (optimistic rendering)
+  // The loading prop here is ignored when data exists to show cached/previous data
 
   // Use dynamic columns: admin categories (from API) are already at the left, followed by API columns
   const columns = data.columns || []

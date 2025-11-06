@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/admin-auth"
+import { uploadFile } from "@/lib/supabase-storage"
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 
@@ -15,24 +16,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadsDir, { recursive: true })
-
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // Save file locally
+    // Upload to Supabase Storage
     const fileName = `${Date.now()}-${file.name}`
-    const filePath = join(uploadsDir, fileName)
-    await writeFile(filePath, buffer)
+    const publicUrl = await uploadFile(file, fileName, {
+      contentType: file.type,
+      upsert: true
+    })
 
-    // Return local URL
-    const url = `/uploads/${fileName}`
+    // Also save locally as backup
+    try {
+      const uploadsDir = join(process.cwd(), 'public', 'uploads')
+      await mkdir(uploadsDir, { recursive: true })
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const filePath = join(uploadsDir, fileName)
+      await writeFile(filePath, buffer)
+    } catch (localError) {
+      // Local save is optional, continue even if it fails
+      console.warn('Failed to save file locally:', localError)
+    }
 
     return NextResponse.json({
-      url: url,
+      url: publicUrl,
       filename: file.name,
       size: file.size,
       type: file.type,

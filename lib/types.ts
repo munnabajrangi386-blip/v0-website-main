@@ -142,17 +142,6 @@ export type SiteContent = {
   }
 }
 
-export type LiveSchedule = {
-  id: string
-  category: string // e.g., "GHAZIABAD1", "FARIDABAD1", etc.
-  scheduledTime: string // ISO time string for today (e.g., "2025-10-29T15:59:00.000Z")
-  result: string // The result to display (e.g., "56")
-  yesterdayResult?: string // Yesterday's result if available
-  todayResult?: string // Today's result (same as result)
-  status: "scheduled" | "published" | "expired"
-  createdAt: string
-  publishedAt?: string
-}
 
 export type ContentBundle = {
   content: SiteContent

@@ -30,22 +30,26 @@ export function useCombinedData(month: number, year: number) {
   const now = new Date()
   const isCurrent = year === now.getFullYear() && month === now.getMonth() + 1
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, isValidating, mutate } = useSWR(
     ["combined", month, year],
     () => fetcher(`/api/combined?month=${month}&year=${year}`),
     {
       refreshInterval: isCurrent ? 600_000 : 0, // 10 minutes for current month, no refresh for past months
-      revalidateOnFocus: false,
+      revalidateOnFocus: true, // Revalidate when user returns to tab (catches deletions)
       revalidateOnReconnect: false,
-      keepPreviousData: true,
-      dedupingInterval: 300_000, // 5 minute deduplication
+      keepPreviousData: true, // Show old data while loading new (optimistic rendering)
+      dedupingInterval: 30_000, // 30 second deduplication (reduced for faster updates)
+      revalidateIfStale: true, // Always revalidate stale data
+      fallbackData: null, // No fallback - use keepPreviousData instead
     }
   )
 
   return {
     data,
     error,
-    isLoading
+    isLoading: isLoading && !data, // Only show loading if we have NO data (first load)
+    isValidating, // Background refresh indicator (data exists but updating)
+    mutate // Manual refresh function
   }
 }
 

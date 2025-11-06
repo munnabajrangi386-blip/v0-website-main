@@ -2,84 +2,11 @@
   {
     "month": "2025-11",
     "row": {
-      "date": "2025-11-03",
-      "faridabad1": "12"
+      "date": "2025-11-06",
+      "LUXMI KUBER": "12"
     },
-    "publishAt": "2025-11-03T12:45:00.000Z",
-    "id": "51f8de26-9b01-4d8a-8bc1-38b5348211bf"
-  },
-  {
-    "month": "2025-11",
-    "row": {
-      "date": "2025-11-03",
-      "gali1": "78"
-    },
-    "publishAt": "2025-11-03T11:09:00.000Z",
-    "id": "e521776f-cf58-4588-a81e-ee86d6c111f9",
-    "executed": true
-  },
-  {
-    "month": "2025-11",
-    "row": {
-      "date": "2025-11-03",
-      "LUXMI KUBER": "44"
-    },
-    "publishAt": "2025-11-03T11:04:00.000Z",
-    "id": "59a17d72-8749-4530-8efa-7eb4e4c4edd5",
-    "executed": true
-  },
-  {
-    "month": "2025-11",
-    "row": {
-      "date": "2025-11-03",
-      "desawar1": "45"
-    },
-    "publishAt": "2025-11-03T10:51:00.000Z",
-    "id": "204dcc6c-612a-4b4c-b56a-bb9d4af33c16",
-    "executed": true
-  },
-  {
-    "month": "2025-10",
-    "row": {
-      "date": "2025-10-31",
-      "faridabad1": "32"
-    },
-    "publishAt": "2025-10-31T09:23:00.000Z",
-    "id": "8c75dd43-6575-4923-82cb-2cf65cdbe5f8",
-    "executed": true
-  },
-  {
-    "month": "2025-10",
-    "row": {
-      "date": "2025-10-31",
-      "ghaziabad1": "12"
-    },
-    "publishAt": "2025-10-31T09:14:00.000Z",
-    "id": "ecac8a39-2234-495c-b451-fcb33529e22f",
-    "executed": true
-  },
-  {
-    "id": "schedule-1",
-    "publishAt": "2025-11-01T09:12:13.932Z",
-    "month": "2025-10",
-    "row": {
-      "date": "2025-10-17",
-      "ghaziabad1": "99",
-      "gali1": "88"
-    },
-    "merge": false,
-    "executed": true
-  },
-  {
-    "id": "schedule-2",
-    "publishAt": "2025-11-02T09:12:13.932Z",
-    "month": "2025-10",
-    "row": {
-      "date": "2025-10-18",
-      "faridabad1": "77",
-      "desawar1": "66"
-    },
-    "merge": false,
+    "publishAt": "2025-11-05T19:00:00.000Z",
+    "id": "d2b7eb82-7a44-4f86-8534-adeb4c2f3d60",
     "executed": true
   }
 ]

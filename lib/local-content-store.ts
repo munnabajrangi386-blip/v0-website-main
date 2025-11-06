@@ -403,6 +403,87 @@ export async function runDueSchedules(): Promise<void> {
   // Due schedules execution completed
 }
 
+// Helper function to remove/clear admin result from CSV file
+async function removeAdminResultFromCSV(date: string, category: string): Promise<void> {
+  try {
+    const { readFile, writeFile } = require('fs/promises')
+    const { join } = require('path')
+    const csvPath = join(process.cwd(), 'dummy_gali1_2015_to_today.csv')
+    
+    // Read existing CSV
+    const csvContent = await readFile(csvPath, 'utf-8')
+    const lines = csvContent.trim().split(/\r?\n/)
+    if (lines.length === 0) return
+    
+    const header = lines[0].split(',').map((h: string) => h.trim())
+    const dateColIdx = header.indexOf('date')
+    
+    if (dateColIdx === -1) return
+    
+    // Map category to CSV column name (handle both categoryLabel and categoryKey)
+    const categoryNorm = category.toUpperCase().trim()
+    let csvColumnName = ''
+    
+    // Try exact match first
+    if (categoryNorm === 'GALI2' || categoryNorm === 'GALI1' || categoryNorm === 'GAL12') {
+      csvColumnName = 'GALI2'
+    } else if (categoryNorm === 'DESAWAR2' || categoryNorm === 'DESAWAR1') {
+      csvColumnName = 'DESAWAR2'
+    } else if (categoryNorm === 'FARIDABAD2' || categoryNorm === 'FARIDABAD1') {
+      csvColumnName = 'FARIDABAD2'
+    } else if (categoryNorm === 'GHAZIABAD2' || categoryNorm === 'GHAZIABAD1') {
+      csvColumnName = 'GHAZIABAD2'
+    } else if (categoryNorm === 'LUXMI KUBER' || categoryNorm === 'LUXMIKUBER' || categoryNorm.includes('LUXMI') && categoryNorm.includes('KUBER')) {
+      csvColumnName = 'LUXMI KUBER'
+    } else if (categoryNorm.includes('GALI') && !categoryNorm.includes('LUXMI')) {
+      csvColumnName = 'GALI2'
+    } else if (categoryNorm.includes('DESAWAR')) {
+      csvColumnName = 'DESAWAR2'
+    } else if (categoryNorm.includes('FARIDABAD')) {
+      csvColumnName = 'FARIDABAD2'
+    } else if (categoryNorm.includes('GHAZIABAD')) {
+      csvColumnName = 'GHAZIABAD2'
+    } else if (categoryNorm.includes('LUXMI') || categoryNorm.includes('KUBER')) {
+      csvColumnName = 'LUXMI KUBER'
+    }
+    
+    if (!csvColumnName) {
+      console.warn(`⚠️ Could not map category "${category}" to CSV column name`)
+      return
+    }
+    
+    const categoryColIdx = header.indexOf(csvColumnName)
+    if (categoryColIdx === -1) return
+    
+    // Find and update the row for this date
+    let found = false
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',')
+      if (parts[dateColIdx]?.trim() === date) {
+        // Clear the category column to '--'
+        const oldValue = parts[categoryColIdx]
+        parts[categoryColIdx] = '--'
+        lines[i] = parts.join(',')
+        found = true
+        console.log(`✅ Found row for ${date}, clearing ${csvColumnName} from "${oldValue}" to "--"`)
+        break
+      }
+    }
+    
+    if (!found) {
+      console.warn(`⚠️ No row found in CSV for date ${date}`)
+      return
+    }
+    
+    // Write back to CSV
+    await writeFile(csvPath, lines.join('\n') + '\n', 'utf-8')
+    console.log(`✅ Removed ${category} (${csvColumnName}) result from CSV for ${date}`)
+  } catch (error) {
+    console.error('❌ Error removing admin result from CSV:', error)
+    // Don't throw - CSV update failure shouldn't break the main flow
+  }
+}
+
 export async function upsertResultRow(month: MonthKey, row: any, merge: boolean): Promise<void> {
   // Result row upserted
   
@@ -442,11 +523,223 @@ export async function upsertResultRow(month: MonthKey, row: any, merge: boolean)
     
     // Save the updated monthly results
     await saveMonthlyResults(monthlyResults)
+    
+    // Update CSV for admin categories (GALI2, DESAWAR2, etc.)
+    const adminKeys = ['gal12', 'gali2', 'desawar2', 'faridabad2', 'ghaziabad2', 'luxmi_kuber', 'luxmi kuber']
+    const hasAdminData = Object.keys(row).some(key => 
+      adminKeys.some(adminKey => key.toLowerCase().includes(adminKey.toLowerCase()))
+    )
+    
+    if (hasAdminData) {
+      await updateCSVWithResult(row)
+    }
     // Updated monthly results
   } catch (error) {
     console.error("❌ Error in upsertResultRow:", error)
     throw error
   }
+}
+
+// Helper function to update CSV file with new results
+async function updateCSVWithResult(row: any): Promise<void> {
+  try {
+    const { readFile, writeFile } = require('fs/promises')
+    const { join } = require('path')
+    const csvPath = join(process.cwd(), 'dummy_gali1_2015_to_today.csv')
+    
+    // Read existing CSV
+    const csvContent = await readFile(csvPath, 'utf-8')
+    const lines = csvContent.trim().split(/\r?\n/)
+    if (lines.length === 0) return
+    
+    const header = lines[0].split(',').map((h: string) => h.trim())
+    const dateColIdx = header.indexOf('date')
+    
+    if (dateColIdx === -1) return
+    
+    // Find the row index for this date
+    let rowIndex = -1
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',')
+      if (parts[dateColIdx]?.trim() === row.date) {
+        rowIndex = i
+        break
+      }
+    }
+    
+    // Prepare the new row data
+    const newRowData: Record<string, string> = {}
+    header.forEach((col: string) => {
+      if (col === 'date') {
+        newRowData[col] = row.date
+      } else {
+        // Map admin category keys to CSV column names
+        const colNorm = col.toUpperCase().trim()
+        let value = '--'
+        
+        // Check if this row has data for this column
+        for (const [key, val] of Object.entries(row)) {
+          if (key === 'date') continue
+          const keyNorm = String(key).toUpperCase().trim()
+          
+          // Match admin categories: GALI2, DESAWAR2, FARIDABAD2, GHAZIABAD2, LUXMI KUBER
+          if (colNorm === 'GALI2' && (keyNorm === 'GALI2' || keyNorm === 'GALI1')) {
+            value = String(val || '--').padStart(2, '0')
+            break
+          } else if (colNorm === 'DESAWAR2' && (keyNorm === 'DESAWAR2' || keyNorm === 'DESAWAR1')) {
+            value = String(val || '--').padStart(2, '0')
+            break
+          } else if (colNorm === 'FARIDABAD2' && (keyNorm === 'FARIDABAD2' || keyNorm === 'FARIDABAD1')) {
+            value = String(val || '--').padStart(2, '0')
+            break
+          } else if (colNorm === 'GHAZIABAD2' && (keyNorm === 'GHAZIABAD2' || keyNorm === 'GHAZIABAD1')) {
+            value = String(val || '--').padStart(2, '0')
+            break
+          } else if ((colNorm === 'LUXMI KUBER' || colNorm === 'LUXMIKUBER') && 
+                     (keyNorm.includes('LUXMI') && keyNorm.includes('KUBER'))) {
+            value = String(val || '--').padStart(2, '0')
+            break
+          }
+        }
+        
+        newRowData[col] = value
+      }
+    })
+    
+    // Build new CSV row
+    const newRow = header.map((col: string) => newRowData[col] || '--').join(',')
+    
+    if (rowIndex >= 0) {
+      // Update existing row
+      lines[rowIndex] = newRow
+    } else {
+      // Add new row (insert in date order)
+      let insertIndex = lines.length
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(',')
+        const existingDate = parts[dateColIdx]?.trim()
+        if (existingDate && existingDate > row.date) {
+          insertIndex = i
+          break
+        }
+      }
+      lines.splice(insertIndex, 0, newRow)
+    }
+    
+    // Write back to CSV
+    await writeFile(csvPath, lines.join('\n') + '\n', 'utf-8')
+    console.log(`✅ Updated CSV with result for ${row.date}`)
+  } catch (error) {
+    console.error('❌ Error updating CSV:', error)
+    // Don't throw - CSV update failure shouldn't break the main flow
+  }
+}
+
+// Helper function to remove admin result from monthly_results.json
+async function removeAdminResultFromMonthlyResults(date: string, category: string): Promise<void> {
+  try {
+    // Load from file directly (not from storage adapter) to ensure we get the latest data
+    const MONTHLY_RESULTS_FILE = join(process.cwd(), 'monthly_results.json')
+    if (!existsSync(MONTHLY_RESULTS_FILE)) return
+    
+    const monthlyResultsContent = readFileSync(MONTHLY_RESULTS_FILE, 'utf-8')
+    const monthlyResults: Record<string, MonthlyResults> = JSON.parse(monthlyResultsContent)
+    if (!monthlyResults) return
+    
+    // Extract month from date (YYYY-MM-DD -> YYYY-MM)
+    const monthKey = date.substring(0, 7) as MonthKey
+    
+    if (monthlyResults[monthKey]) {
+      const monthData = monthlyResults[monthKey]
+      const rowIndex = monthData.rows.findIndex(r => r.date === date)
+      
+      if (rowIndex >= 0) {
+        // Remove the category field from the row
+        const row = monthData.rows[rowIndex]
+        const categoryNorm = category.toLowerCase()
+        
+        // Map category variations to possible keys in the row
+        const keysToRemove: string[] = []
+        Object.keys(row).forEach(key => {
+          const keyNorm = key.toLowerCase()
+          if (
+            (categoryNorm.includes('gali') && !categoryNorm.includes('luxmi') && (keyNorm.includes('gali2') || keyNorm.includes('gali1') || keyNorm === 'gal12')) ||
+            (categoryNorm.includes('desawar') && (keyNorm.includes('desawar2') || keyNorm.includes('desawar1'))) ||
+            (categoryNorm.includes('faridabad') && (keyNorm.includes('faridabad2') || keyNorm.includes('faridabad1'))) ||
+            (categoryNorm.includes('ghaziabad') && (keyNorm.includes('ghaziabad2') || keyNorm.includes('ghaziabad1'))) ||
+            ((categoryNorm.includes('luxmi') || categoryNorm.includes('kuber')) && (keyNorm.includes('luxmi') || keyNorm.includes('kuber')))
+          ) {
+            keysToRemove.push(key)
+          }
+        })
+        
+        // Remove the category fields
+        keysToRemove.forEach(key => {
+          delete row[key]
+        })
+        
+        // Save updated monthly results to file
+        writeFileSync(MONTHLY_RESULTS_FILE, JSON.stringify(monthlyResults, null, 2))
+        
+        // Also save to storage adapter if configured
+        try {
+          await saveToStorage('monthly_results.json', monthlyResults)
+        } catch (error) {
+          // Ignore storage adapter errors
+        }
+        
+        console.log(`✅ Removed ${category} from monthly_results.json for ${date} (removed keys: ${keysToRemove.join(', ')})`)
+      } else {
+        console.warn(`⚠️ No row found in monthly_results.json for date ${date}`)
+      }
+    } else {
+      console.warn(`⚠️ No month data found in monthly_results.json for ${monthKey}`)
+    }
+  } catch (error) {
+    console.error('❌ Error removing admin result from monthly_results.json:', error)
+    // Don't throw - continue even if this fails
+  }
+}
+
+// Export function to remove admin result from CSV (for use in schedule deletion)
+export async function removeAdminResultFromCSVAndSupabase(date: string, category: string): Promise<void> {
+  console.log(`🗑️ Starting deletion: date=${date}, category=${category}`)
+  
+  // Clear CSV cache FIRST so fresh data is loaded
+  try {
+    const { clearCache } = require('./csv-cache')
+    clearCache()
+    console.log('✅ Cleared CSV cache before deletion')
+  } catch (error) {
+    console.error('Error clearing CSV cache:', error)
+  }
+  
+  // Remove from CSV
+  await removeAdminResultFromCSV(date, category)
+  
+  // Clear CSV cache again after deletion
+  try {
+    const { clearCache } = require('./csv-cache')
+    clearCache()
+    console.log('✅ Cleared CSV cache after CSV deletion')
+  } catch (error) {
+    console.error('Error clearing CSV cache:', error)
+  }
+  
+  // Remove from monthly_results.json cache
+  await removeAdminResultFromMonthlyResults(date, category)
+  
+  // Remove from Supabase
+  try {
+    const { deleteAdminResult } = require('./supabase-db')
+    await deleteAdminResult(date, category)
+    console.log(`✅ Removed ${category} result from Supabase for ${date}`)
+  } catch (error) {
+    console.error('Error removing admin result from Supabase:', error)
+    // Continue even if Supabase delete fails
+  }
+  
+  console.log(`✅ Completed deletion for ${date}, category ${category}`)
 }
 
 // Live Schedule Management

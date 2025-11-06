@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFileSync } from 'fs'
+import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { loadHistoricalDataFromCSV, getHistoricalDataSummary } from '@/lib/simple-historical-data'
 
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     // Read the main CSV file (2015-2024)
     try {
       const csvPath = join(process.cwd(), 'comprehensive_historical_data.csv')
-      const csvData = readFileSync(csvPath, 'utf-8')
+      const csvData = await readFile(csvPath, 'utf-8')
       const lines = csvData.trim().split(/\r?\n/)
       combinedCsvData = lines[0] + '\n' // Header
       combinedCsvData += lines.slice(1).join('\n') + '\n' // Data rows
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Read and append 2025 data
     try {
       const csv2025Path = join(process.cwd(), 'satta_2025_simple.csv')
-      const csv2025Data = readFileSync(csv2025Path, 'utf-8')
+      const csv2025Data = await readFile(csv2025Path, 'utf-8')
       const lines = csv2025Data.trim().split(/\r?\n/)
       if (combinedCsvData) {
         combinedCsvData += lines.slice(1).join('\n') + '\n' // Data rows only

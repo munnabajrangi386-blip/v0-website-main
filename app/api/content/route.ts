@@ -6,7 +6,7 @@ export async function GET() {
     const content = await getSiteContent()
     return NextResponse.json(content, { 
       headers: { 
-        "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=1800" // 5 minute cache, 30 minute stale
+        "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=120" // 30s browser cache, 1min CDN cache, 2min stale
       } 
     })
   } catch (error) {
