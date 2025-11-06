@@ -4,13 +4,19 @@
  */
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-// Use service role for admin operations (full storage access)
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
-
 const UPLOADS_BUCKET = 'uploads'
+
+// Lazy initialization to avoid build-time errors
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase environment variables are not configured')
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
 /**
  * Upload a file to Supabase Storage
@@ -28,6 +34,7 @@ export async function uploadFile(
       ? Buffer.from(await file.arrayBuffer())
       : file
 
+    const supabaseAdmin = getSupabaseAdmin()
     const { data, error } = await supabaseAdmin.storage
       .from(UPLOADS_BUCKET)
       .upload(path, fileBuffer, {
@@ -58,6 +65,7 @@ export async function uploadFile(
  */
 export async function deleteFile(path: string): Promise<void> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin.storage
       .from(UPLOADS_BUCKET)
       .remove([path])
@@ -77,6 +85,7 @@ export async function deleteFile(path: string): Promise<void> {
  */
 export async function listFiles(folder?: string): Promise<string[]> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { data, error } = await supabaseAdmin.storage
       .from(UPLOADS_BUCKET)
       .list(folder || '', {
@@ -100,6 +109,7 @@ export async function listFiles(folder?: string): Promise<string[]> {
  * Get public URL for a file
  */
 export function getPublicUrl(path: string): string {
+  const supabaseAdmin = getSupabaseAdmin()
   const { data } = supabaseAdmin.storage
     .from(UPLOADS_BUCKET)
     .getPublicUrl(path)

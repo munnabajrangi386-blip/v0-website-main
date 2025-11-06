@@ -2,17 +2,31 @@
  * Supabase Database Service Layer
  * Handles all database operations using Supabase client
  */
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { MonthKey } from './types'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+// Lazy initialization to avoid build-time errors
+function getSupabaseAdmin(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase environment variables are not configured')
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
-// Use service role for admin operations (bypasses RLS)
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
-// Use anon key for public operations
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+function getSupabase(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not configured')
+  }
+  
+  return createClient(supabaseUrl, supabaseAnonKey)
+}
 
 // ==================== ADMIN RESULTS ====================
 
@@ -26,13 +40,9 @@ export interface AdminResultRow {
 }
 
 export async function getAdminResults(startDate?: string, endDate?: string): Promise<AdminResultRow[]> {
-  // Check if Supabase is configured
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase not configured, returning empty admin results')
-    return []
-  }
-
   try {
+    const supabase = getSupabase()
+    
     // Add timeout to prevent hanging
     const timeoutPromise = new Promise<AdminResultRow[]>((_, reject) => {
       setTimeout(() => reject(new Error('Query timeout')), 3000) // 3 second timeout
@@ -68,6 +78,7 @@ export async function getAdminResults(startDate?: string, endDate?: string): Pro
 
 export async function upsertAdminResult(date: string, data: Partial<AdminResultRow>): Promise<void> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from('admin_results')
       .upsert({
@@ -89,13 +100,8 @@ export async function upsertAdminResult(date: string, data: Partial<AdminResultR
 }
 
 export async function deleteAdminResult(date: string, category: string): Promise<void> {
-  // Check if Supabase is configured
-  if (!supabaseUrl || !supabaseServiceKey) {
-    console.warn('Supabase not configured, skipping database deletion')
-    return
-  }
-
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     // Map category to database column name
     const categoryNorm = category.toLowerCase().trim()
     let columnName = ''
@@ -185,13 +191,9 @@ export interface ScrapedResultRow {
 }
 
 export async function getScrapedResults(startDate?: string, endDate?: string): Promise<ScrapedResultRow[]> {
-  // Check if Supabase is configured
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase not configured, returning empty scraped results')
-    return []
-  }
-
   try {
+    const supabase = getSupabase()
+    
     // Add timeout to prevent hanging
     const timeoutPromise = new Promise<ScrapedResultRow[]>((_, reject) => {
       setTimeout(() => reject(new Error('Query timeout')), 3000) // 3 second timeout
@@ -227,6 +229,7 @@ export async function getScrapedResults(startDate?: string, endDate?: string): P
 
 export async function upsertScrapedResult(date: string, data: Partial<ScrapedResultRow>): Promise<void> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from('scraped_results')
       .upsert({
@@ -265,12 +268,8 @@ export interface ScheduleRow {
 }
 
 export async function getSchedules(): Promise<ScheduleRow[] | null> {
-  // Check if Supabase is configured
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null // Not configured, signal to use file fallback
-  }
-
   try {
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .from('schedules')
       .select('*')
@@ -297,12 +296,8 @@ export async function getSchedules(): Promise<ScheduleRow[] | null> {
 }
 
 export async function saveSchedule(schedule: Partial<ScheduleRow> & { id: string }): Promise<ScheduleRow> {
-  // Check if Supabase is configured
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase not configured')
-  }
-
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     // Use upsert to handle both insert and update
     const { data, error } = await supabaseAdmin
       .from('schedules')
@@ -334,6 +329,7 @@ export async function saveSchedule(schedule: Partial<ScheduleRow> & { id: string
 
 export async function updateSchedule(id: string, schedule: Partial<ScheduleRow>): Promise<void> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from('schedules')
       .update({
@@ -354,6 +350,7 @@ export async function updateSchedule(id: string, schedule: Partial<ScheduleRow>)
 
 export async function deleteSchedule(id: string): Promise<void> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from('schedules')
       .delete()
@@ -375,6 +372,7 @@ export async function runDueSchedules(): Promise<void> {
     const today = now.toISOString().split('T')[0]
 
     // Get all due schedules
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: dueSchedules, error: fetchError } = await supabaseAdmin
       .from('schedules')
       .select('*')
@@ -432,6 +430,7 @@ export async function runDueSchedules(): Promise<void> {
 
 export async function getSiteContent(id: string = 'site_content'): Promise<any | null> {
   try {
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .from('site_content')
       .select('data')
@@ -456,6 +455,7 @@ export async function getSiteContent(id: string = 'site_content'): Promise<any |
 
 export async function saveSiteContent(id: string, content: any): Promise<void> {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from('site_content')
       .upsert({

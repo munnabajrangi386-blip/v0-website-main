@@ -1,14 +1,22 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { SiteContent, MonthlyResults, ScheduleItem, ActivityLog, MonthKey } from './types'
+
+// Lazy initialization to avoid build-time errors
+function getSupabase(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase environment variables are not configured')
+  }
+  
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 // Helper functions for Supabase operations
 async function getJSON<T>(key: string): Promise<T | null> {
   try {
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .from('site_content')
       .select('data')
@@ -24,6 +32,7 @@ async function getJSON<T>(key: string): Promise<T | null> {
 
 async function putJSON<T>(key: string, value: T): Promise<void> {
   try {
+    const supabase = getSupabase()
     const { error } = await supabase
       .from('site_content')
       .upsert({
